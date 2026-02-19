@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(sbs-psp)
+project("Silly Bird PSPquel")
 
 set(CMAKE_BUILD_TYPE Debug)
 
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(sbs-psp main.cpp)
 
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
 pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(sbs-psp PRIVATE
     ${SDL2_INCLUDE_DIRS}
     ${SDL2_IMAGE_INCLUDE_DIRS}
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(sbs-psp PRIVATE
     ${SDL2_LIBRARIES}
     ${SDL2_IMAGE_LIBRARIES}
 )
@@ -24,9 +24,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 if(PSP)
     # Create an EBOOT.PBP file
     create_pbp_file(
-        TARGET ${PROJECT_NAME}
-        ICON_PATH NULL
-        BACKGROUND_PATH NULL
+        TARGET sbs-psp
+        ICON_PATH "../psp-assets/icon.png"
+        BACKGROUND_PATH "../psp-assets/background.png"
         PREVIEW_PATH NULL
         TITLE ${PROJECT_NAME}
         VERSION 01.00

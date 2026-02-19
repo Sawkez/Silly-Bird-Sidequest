@@ -44,29 +44,11 @@ int main(int argc, char *argv[])
         SDL_Event event;
 
         while (SDL_PollEvent(&event) != 0) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-                
-                case SDL_KEYDOWN:
-                    input.HandleEvent(event.key);
-                    break;
-                
-                case SDL_KEYUP:
-                    input.HandleEvent(event.key);
-                    break;
+            if (input.HandleEvent(event)) continue;
 
-                case SDL_CONTROLLERBUTTONDOWN:
-                    input.HandleEvent(event.cbutton);
-                    break;
-
-                case SDL_CONTROLLERBUTTONUP:
-                    input.HandleEvent(event.cbutton);
-                
-                case SDL_CONTROLLERDEVICEADDED:
-                    input.HandleEvent(event.cdevice);
-                    break;
+            if (event.type == SDL_QUIT) {
+                running = false;
+                continue;
             }
         }
         input.UpdateDir();

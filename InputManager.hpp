@@ -39,6 +39,28 @@ class InputManager {
         _dir(Vector2(0.0, 0.0))
         { }
 
+        bool HandleEvent(SDL_Event event) {
+            switch (event.type) {
+                case SDL_CONTROLLERDEVICEADDED:
+                case SDL_CONTROLLERDEVICEREMOVED:
+                    HandleEvent(event.cdevice);
+                    return true;
+                
+                case SDL_KEYDOWN:
+                case SDL_KEYUP:
+                    HandleEvent(event.key);
+                    return true;
+                
+                case SDL_CONTROLLERBUTTONDOWN:
+                case SDL_CONTROLLERBUTTONUP:
+                    HandleEvent(event.cbutton);
+                    return true;
+                
+            }
+
+            return false;
+        }
+
         void HandleEvent(SDL_KeyboardEvent event) {
             
             int actionId = -1;
@@ -55,8 +77,6 @@ class InputManager {
             if (actionId < 0) return;
 
             _actions[actionId].SetDown(event.state == SDL_PRESSED);
-
-            std::cout << "KEY: " << event.keysym.scancode << " TYPE: " << event.type << std::endl;
 
         }
 
