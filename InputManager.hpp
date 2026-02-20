@@ -7,18 +7,18 @@
 #include "Vector2.hpp"
 #include "Action.hpp"
 
-class InputManager {
-
-    static const int ACTION_COUNT = 7;
-    enum ActionID {
+enum ActionID {
         ACTION_JUMP,
         ACTION_DIVE,
         ACTION_LEFT,
         ACTION_RIGHT,
         ACTION_UP,
         ACTION_DOWN,
-        ACTION_INTERACT
+        ACTION_INTERACT,
+        ACTION_COUNT
     };
+
+class InputManager {
 
     private:
         Vector2 _dir = Vector2(0.0, 0.0);

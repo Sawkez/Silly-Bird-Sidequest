@@ -77,7 +77,12 @@ class Player : IProcessable, IDrawable {
         SDL_FRect _ceilingCheck {0.0, 0.0, 8.0, 6.0};
         AnimatedSprite _sprite;
 
-        // collision bools
+        // timers
+        float _timers[_TIMER_COUNT] {};
+        float _buffers[_BUFFER_COUNT] {};
+        float _cooldowns[_COOLDOWN_COUNT] {};
+
+        // collision info
         bool _pushingFloor = false;
         bool _wasPushingFloor = false;
         bool _closeToFloor = false;
@@ -160,20 +165,6 @@ class Player : IProcessable, IDrawable {
         ))
         { }
 
-        void Process(float delta) override {
-            //std::cout << _input.GetDir().x << std::endl;
-            _input.GetDir();
-
-            (this->*_processFuncs[_movementStateID])(delta);
-
-            _sprite.SetPosition(position);
-            _sprite.Process(delta);
-        }
-
-        void Draw(SDL_Renderer* renderer) const override {
-            _sprite.Draw(renderer);
-        }
-
         const InputManager& GetInput() const {
             return _input;
         }
@@ -182,6 +173,71 @@ class Player : IProcessable, IDrawable {
             (this->*_deinitFuncs[_movementStateID])();
             _movementStateID = state;
             (this->*_initFuncs[_movementStateID])();
+        }
+
+        void SetShortCollision(bool isShort) {
+            _shortCollision = isShort;
+            _collision = isShort? SHORT_COLLISION : FULL_COLLISION;
+        }
+
+        void SetTimer(int timer) {
+            if (isnanf(TIMER_DURATIONS[timer])) {
+                std::cerr << "ERROR: timer " << timer << " duration is NAN" << std::endl;
+            }
+            _timers[timer] = TIMER_DURATIONS[timer];
+        }
+
+        void UnsetTimer(int timer) {
+            _timers[timer] = 0.0;
+        }
+
+        bool TimerActive(int timer) const {
+            return _timers[timer] > 0.0;
+        }
+
+        void Buffer(int buffer) {
+            if (isnanf(BUFFER_DURATIONS[buffer])) {
+                std::cerr << "ERROR: buffer " << buffer << " duration is NAN" << std::endl;
+            }
+            _buffers[buffer] = BUFFER_DURATIONS[buffer];
+        }
+
+        void Unbuffer(int buffer) {
+            _buffers[buffer] = 0.0;
+        }
+
+        bool BufferActive(int buffer) const {
+            return _buffers[buffer] > 0.0;
+        }
+
+        bool UseBuffer(int buffer) {
+            bool active = BufferActive(buffer);
+            Unbuffer(buffer);
+            return active;
+        }
+
+        bool HasUpgrade(int upgrade) {
+            return (_upgradeBits & (1 << upgrade)) > 0; 
+        }
+
+        bool CooldownActive(int cooldown) const {
+            return _cooldowns[cooldown] > 0;
+        }
+
+        void Process(float delta) override {
+            _input.GetDir();
+
+            // calling movement state function
+            (this->*_processFuncs[_movementStateID])(delta);
+
+            // moving and colliding
+
+            _sprite.SetPosition(position);
+            _sprite.Process(delta);
+        }
+
+        void Draw(SDL_Renderer* renderer) const override {
+            _sprite.Draw(renderer);
         }
 };
 

@@ -15,25 +15,33 @@ class Vector2 {
 
         static const Vector2 ZERO;
 
-        Vector2 operator+(const Vector2& b) {
+        Vector2 operator+(const Vector2& b) const {
             return Vector2{
                 x + b.x,
                 y + b.y
             };
         }
 
-        Vector2 operator*(float b) {
+        Vector2 operator*(float b) const {
             return Vector2{
                 x * b,
                 y * b
             };
         }
 
-        Vector2& operator+=(const Vector2& other) {
-            x = x + other.x;
-            y = y + other.y;
+        Vector2& operator+=(const Vector2& b) {
+            x = x + b.x;
+            y = y + b.y;
             return *this;
+        }
+
+        bool operator==(const Vector2& b) const {
+            return x == b.x && y == b.y;
         }
 };
 
 inline const Vector2 Vector2::ZERO = Vector2(0.0, 0.0);
+
+Vector2 operator*(float a, const Vector2& b) {
+    return Vector2 {a * b.x, a * b.y};
+}

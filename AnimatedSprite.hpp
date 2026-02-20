@@ -30,8 +30,8 @@ class AnimatedSprite : IDrawable, IProcessable {
             SDL_Rect destination{
                 int(std::round(_position.x)),
                 int(std::round(_position.y)),
-                _animation.GetFrameWidth() * 4,
-                _animation.GetFrameHeight() * 4
+                _animation.GetFrameWidth(),
+                _animation.GetFrameHeight()
             };
 
             int error = SDL_RenderCopyEx(
