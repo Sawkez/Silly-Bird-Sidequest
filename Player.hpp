@@ -7,6 +7,8 @@
 #include "Animation.hpp"
 #include "AnimatedSprite.hpp"
 
+// Player movement state functions are defined in headers included at the bottom of this one
+
 class Player : IProcessable, IDrawable {
 
     enum PlayerAnimation {
@@ -34,7 +36,7 @@ class Player : IProcessable, IDrawable {
         5.0     / 60.0,     // v reset
         30.0    / 60.0,     // gravity freeze
         NAN,                // bored (should be randomized)
-        NAN,                // twerk (use min & max)
+        NAN,                // twerk (use min &Player:: max)
         15.0    / 60.0,     // dive
         10.0    / 60.0,     // dash
         15.0    / 60.0      // slide
@@ -45,7 +47,7 @@ class Player : IProcessable, IDrawable {
     };
 
     const float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
-        NAN,                // ledge (use up & down)
+        NAN,                // ledge (use up &Player:: down)
         15.0    / 60.0,     // slide
         5.0     / 60.0      // interact
     };
@@ -100,12 +102,56 @@ class Player : IProcessable, IDrawable {
         bool _diveAvailable = true;
         bool _dashAvailable = true;
 
+        // movement state functions
+        // implemented in MovementStateNormal.hpp, included at the bottom
+        void NormalInit();
+        void NormalProcess(float delta);
+        void NormalDeinit();
+
+        // implemented in MovementStateLedge.hpp, included at the bottom
+        void LedgeInit();
+        void LedgeProcess(float delta);
+        void LedgeDeinit();
+
+        // implemented in MovementStateDive.hpp, included at the bottom
+        void DiveInit();
+        void DiveProcess(float delta);
+        void DiveDeinit();
+
+        // implemented in MovementStateDash.hpp, included at the bottom
+        void DashInit();
+        void DashProcess(float delta);
+        void DashDeinit();
+
+        // implemented in MovementStateSlide.hpp, included at the bottom
+        void SlideInit();
+        void SlideProcess(float delta);
+        void SlideDeinit();
+
+        // implemented in MovementStateDuck.hpp, included at the bottom
+        void DuckInit();
+        void DuckProcess(float delta);
+        void DuckDeinit();
+
+        // implemented in MovementStateDead.hpp, included at the bottom
+        void DeadInit();
+        void DeadProcess(float delta);
+        void DeadDeinit();
+
+        using StateInitFunc = void(Player::*)();
+        StateInitFunc _initFuncs[_MOVEMENT_STATE_COUNT] {&Player::NormalInit, &Player::LedgeInit, &Player::DiveInit, &Player::DashInit, &Player::SlideInit, &Player::DuckInit, &Player::DeadInit};
+
+        using StateProcessFunc = void(Player::*)(float);
+        StateProcessFunc _processFuncs[_MOVEMENT_STATE_COUNT] {&Player::NormalProcess, &Player::LedgeProcess, &Player::DiveProcess, &Player::DashProcess, &Player::SlideProcess, &Player::DuckProcess, &Player::DeadProcess};
+
+        using StateDeinitFunc = void(Player::*)();
+        StateDeinitFunc _deinitFuncs[_MOVEMENT_STATE_COUNT] {&Player::NormalDeinit, &Player::LedgeDeinit, &Player::DiveDeinit, &Player::DashDeinit, &Player::SlideDeinit, &Player::DuckDeinit, &Player::DeadDeinit};
 
     public:
         Vector2 velocity {0.0, 0.0};
         Vector2 position {0.0, 0.0};
 
-        Player(InputManager input, SDL_Renderer* renderer) :
+        Player(InputManager& input, SDL_Renderer* renderer) :
         _input(input),
         _sprite(Animation(
             renderer,
@@ -115,6 +161,12 @@ class Player : IProcessable, IDrawable {
         { }
 
         void Process(float delta) override {
+            //std::cout << _input.GetDir().x << std::endl;
+            _input.GetDir();
+
+            (this->*_processFuncs[_movementStateID])(delta);
+
+            _sprite.SetPosition(position);
             _sprite.Process(delta);
         }
 
@@ -125,4 +177,18 @@ class Player : IProcessable, IDrawable {
         const InputManager& GetInput() const {
             return _input;
         }
+
+        void SetState(int state) {
+            (this->*_deinitFuncs[_movementStateID])();
+            _movementStateID = state;
+            (this->*_initFuncs[_movementStateID])();
+        }
 };
+
+#include "MovementStateNormal.hpp"
+#include "MovementStateLedge.hpp"
+#include "MovementStateDive.hpp"
+#include "MovementStateDash.hpp"
+#include "MovementStateSlide.hpp"
+#include "MovementStateDuck.hpp"
+#include "MovementStateDead.hpp"
