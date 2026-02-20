@@ -4,10 +4,12 @@
 
 #include <SDL.h>
 
+#include "IDrawable.hpp"
+#include "IProcessable.hpp"
 #include "Animation.hpp"
 #include "Vector2.hpp"
 
-class AnimatedSprite {
+class AnimatedSprite : IDrawable, IProcessable {
     private:
         Animation _animation;
         Vector2 _position = Vector2::ZERO;
@@ -17,11 +19,11 @@ class AnimatedSprite {
         _animation(animation)
         { }
 
-        void Process(float delta) {
+        void Process(float delta) override {
             _animation.Process(delta);
         }
 
-        void Draw(SDL_Renderer* renderer) const {
+        void Draw(SDL_Renderer* renderer) const override {
 
             SDL_Rect source = _animation.GetSourceRect();
 

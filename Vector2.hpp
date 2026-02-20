@@ -15,7 +15,7 @@ class Vector2 {
 
         static const Vector2 ZERO;
 
-        Vector2 operator+(Vector2 b) {
+        Vector2 operator+(const Vector2& b) {
             return Vector2{
                 x + b.x,
                 y + b.y
@@ -27,6 +27,12 @@ class Vector2 {
                 x * b,
                 y * b
             };
+        }
+
+        Vector2& operator+=(const Vector2& other) {
+            x = x + other.x;
+            y = y + other.y;
+            return *this;
         }
 };
 

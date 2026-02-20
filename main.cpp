@@ -3,8 +3,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-#include "AnimatedSprite.hpp"
 #include "InputManager.hpp"
+#include "Player.hpp"
 
 using namespace std;
 
@@ -23,10 +23,8 @@ int main(int argc, char *argv[])
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    AnimatedSprite player(Animation(renderer, "content/textures/gameplay/player_styles/classic/run.png", 16, 24, true));
     InputManager input;
-
-    player.SetPosition(Vector2(50.0, 50.0));
+    Player player(input, renderer);
 
     bool running = true;
 
@@ -55,8 +53,6 @@ int main(int argc, char *argv[])
 
         // game logic
         player.Process(delta);
-
-        player.SetPosition(player.GetPosition() + input.GetDir() * 3.0);
 
         input.UpdateTapStates();
         
