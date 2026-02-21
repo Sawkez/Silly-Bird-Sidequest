@@ -74,6 +74,15 @@ class Player : IProcessable, IDrawable {
     const Vector2 BODY_CENTER {8.0, 8.0};
     const Vector2 FEET_POS {8.0, 16.0};
 
+    const float SQUISH_BASE_X_VELOCITY = 200.0;
+    const float SQUISH_BASE_Y_VELOCITY = 250.0;
+    const float SQUISH_ACCEL = 180.0;
+    const float MAX_SQUISH_VELOCITY = 15.0;
+    const float SQUISH_DAMPENING = pow(0.85, 60.0);
+    const float X_SQUISH_MIN = 0.25;
+    const float X_SQUISH_MAX = 1.5;
+    const float Y_SQUISH_MAX = 1.25;
+
     const float FLOOR_RAY_LENGTH = 12.0;
 
     const CollisionRect FULL_COLLISION = CollisionRect(0.0, 0.0, 8.0, 13.0);
@@ -171,6 +180,24 @@ class Player : IProcessable, IDrawable {
         using StateDeinitFunc = void(Player::*)();
         StateDeinitFunc _deinitFuncs[_MOVEMENT_STATE_COUNT] {&Player::NormalDeinit, &Player::LedgeDeinit, &Player::DiveDeinit, &Player::DashDeinit, &Player::SlideDeinit, &Player::DuckDeinit, &Player::DeadDeinit};
 
+        vector<Animation> LoadAnimations(SDL_Renderer* renderer) const {
+            vector<Animation> animations = {                                          // path       frames   fps    looping
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/duck.png",         1,  1.0f,   false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/fly.png",          1,  1.0f,   false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/idle.png",         7,  10.0f,  true),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/jump.png",         10, 24.0f,  false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/ledge_flip.png",   4,  10.0f,  false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/ledge_unflip.png", 4,  10.0f,  false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/run.png",          16, 24.0f,  true),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/slow_run.png",     16, 24.0f,  true),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/slide.png",        1,  1.0f,   false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/twerk_down.png",   5,  12.0f,  false),
+                Animation(renderer, "content/textures/gameplay/player_styles/classic/twerk_up.png",     5,  12.0f,  false)
+            };
+
+            return animations;
+        }
+
     public:
         Vector2 velocity {0.0, 0.0};
         Vector2 position {0.0, 0.0};
@@ -178,11 +205,8 @@ class Player : IProcessable, IDrawable {
         Player(InputManager& input, SDL_Renderer* renderer, vector<CollisionRect>& staticColliders) :
         _input(input), _staticColliders(staticColliders),
         _sprite(
-            Animation(
-                renderer,
-                "content/textures/gameplay/player_styles/classic/run.png",
-                16, 24, true
-            ), BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER
+            LoadAnimations(renderer),
+            BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER
         )
         { }
 
@@ -246,7 +270,22 @@ class Player : IProcessable, IDrawable {
         }
 
         void Process(float delta) override {
-            _input.GetDir();
+
+            for (int i = 0; i < _TIMER_COUNT; i++) {
+                _timers[i] -= delta;
+            }
+
+            for (int i = 0; i < _COOLDOWN_COUNT; i++) {
+                _cooldowns[i] -= delta;
+            }
+
+            for (int i = 0; i < _BUFFER_COUNT; i++) {
+                _buffers[i] -= delta;
+            }
+
+            if (_pushingFloor && !_wasPushingFloor) {
+                _sprite.scale.x = X_SQUISH_MAX;
+            }
 
             // calling movement state function
             (this->*_processFuncs[_movementStateID])(delta);
@@ -303,6 +342,28 @@ class Player : IProcessable, IDrawable {
                 if (timeLeft < MIN_COLLISION_TIME) break;
             }
 
+            // squish & stretch
+            float targetSquish = 1.0;
+
+            if (_movementStateID == MOVEMENT_STATE_NORMAL || _movementStateID == MOVEMENT_STATE_SLIDE) {
+                float xAbsoluteVelocity = abs(velocity.x);
+                float yAbsoluteVelocity = abs(velocity.y);
+
+                float x = xAbsoluteVelocity / SQUISH_BASE_X_VELOCITY;
+                float y = velocity.y == 0.0? 1.0 : SQUISH_BASE_Y_VELOCITY / yAbsoluteVelocity;
+
+                if (xAbsoluteVelocity > SQUISH_BASE_X_VELOCITY || yAbsoluteVelocity > SQUISH_BASE_Y_VELOCITY) {
+                    targetSquish = x * y;
+                }
+            }
+
+            float squishDist = targetSquish - _sprite.scale.x;
+            _squishVelocity = clamp(_squishVelocity + SQUISH_ACCEL * squishDist * delta, -MAX_SQUISH_VELOCITY, MAX_SQUISH_VELOCITY);
+            _squishVelocity *= powf(SQUISH_DAMPENING, delta);
+
+            _sprite.scale.x = clamp(_sprite.scale.x + _squishVelocity * delta, X_SQUISH_MIN, X_SQUISH_MAX);
+            _sprite.scale.y = min(1.0f / _sprite.scale.x, Y_SQUISH_MAX);
+
             // updating children
             _sprite.position = position;
             _sprite.Process(delta);
@@ -313,6 +374,11 @@ class Player : IProcessable, IDrawable {
         void Draw(SDL_Renderer* renderer) const override {
             _sprite.Draw(renderer);
             //_collision.Draw(renderer);
+        }
+
+        void FlipSprite(bool left) {
+            _facingLeft = left;
+            _sprite.SetFlip(left? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
         }
 };
 

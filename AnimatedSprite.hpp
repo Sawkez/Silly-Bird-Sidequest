@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <vector>
 
 #include <SDL.h>
 
@@ -11,36 +12,41 @@
 
 const float DEGREES_PER_RADIAN = 180.0 / M_PI;
 
+using namespace std;
+
 class AnimatedSprite : IDrawable, IProcessable {
     private:
-        Animation _animation;
+        vector<Animation> _animations;
         Vector2 _offset = Vector2::ZERO;
         Vector2 _scaleOrigin = {0, 0};
         SDL_Point _rotateOrigin {0, 0};
         SDL_RendererFlip _flip = SDL_FLIP_NONE;
         float _rotation = 0.0;
+        int _current = 0;
 
     public:
         Vector2 position = Vector2::ZERO;
         Vector2 scale {1.0, 1.0};
 
-        AnimatedSprite(Animation animation, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, SDL_Point rotateOrigin = SDL_Point {0, 0}) :
-        _animation(animation), _offset(offset), _scaleOrigin(scaleOrigin), _rotateOrigin(rotateOrigin)
+        AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, SDL_Point rotateOrigin = SDL_Point {0, 0}) :
+        _animations(animations), _offset(offset), _scaleOrigin(scaleOrigin), _rotateOrigin(rotateOrigin)
         { }
 
-        AnimatedSprite(Animation animation, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2::ZERO) :
-        AnimatedSprite(animation, offset, scaleOrigin, SDL_Point{int(rotateOrigin.x), int(rotateOrigin.y)})
+        AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2::ZERO) :
+        AnimatedSprite(animations, offset, scaleOrigin, SDL_Point{int(rotateOrigin.x), int(rotateOrigin.y)})
         { }
 
         void Process(float delta) override {
-            _animation.Process(delta);
+            _animations.at(_current).Process(delta);
         }
 
         void Draw(SDL_Renderer* renderer) const override {
 
-            SDL_Rect source = _animation.GetSourceRect();
+            const Animation& animation = _animations.at(_current);
 
-            Vector2 sizeScaled = _animation.GetFrameSize() * scale;
+            SDL_Rect source = animation.GetSourceRect();
+
+            Vector2 sizeScaled = animation.GetFrameSize() * scale;
 
             SDL_Rect destination{
                 int(std::round(position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x)) - _rotateOrigin.x,
@@ -51,7 +57,7 @@ class AnimatedSprite : IDrawable, IProcessable {
 
             int error = SDL_RenderCopyEx(
                 renderer,
-                _animation.GetTexture(),
+                animation.GetTexture(),
                 &source,
                 &destination,
                 _rotation,
@@ -74,5 +80,16 @@ class AnimatedSprite : IDrawable, IProcessable {
 
         void SetFlip(SDL_RendererFlip flip) {
             _flip = flip;
+        }
+
+        void Play(int animationID, float speed = 1.0) {
+            Animation& newAnimation = _animations.at(animationID);
+
+            if (_current != animationID) newAnimation.Restart();
+
+            // TODO transitions
+
+            newAnimation.SetSpeed(speed);
+            _current = animationID;
         }
 };

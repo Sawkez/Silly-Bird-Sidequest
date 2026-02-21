@@ -74,4 +74,16 @@ class Animation {
         Vector2 GetFrameSize() const {
             return Vector2{float(_frameWidth), float(_frameHeight)};
         }
+
+        void SetSpeed(float speed) {
+            _speed = speed;
+        }
+
+        void SetFrame(int frame) {
+            _frame = frame;
+        }
+
+        void Restart() {
+            SetFrame(0);
+        }
 };

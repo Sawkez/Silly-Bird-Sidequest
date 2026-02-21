@@ -166,16 +166,36 @@ void Player::NormalProcess(float delta) {
         UnsetTimer(TIMER_COYOTE);
         velocity.y = -JUMP_FORCE;
 
-        // TODO squishy
+        _sprite.scale.x = X_SQUISH_MIN;
         // TODO moving platforms
     }
 
     // TODO grabbing ledges
 
-    // TODO updating animation
+    // updating animation
+    if (_pushingFloor) {
+        
+        if (velocity.x == 0.0 || _pushingWall) {
+            // TODO bored and twerk
+            _sprite.Play(ANIM_IDLE);
+        }
 
-    // TODO flipping sprite
+        else if (abs(velocity.x) <= SLOW_RUN_SPEED) {
+            _sprite.Play(ANIM_SLOW_RUN, abs(velocity.x) / TOP_SPEED);
+        }
 
+        else {
+            _sprite.Play(ANIM_RUN, abs(velocity.x) / TOP_SPEED);
+        }
+    }
+
+    else {
+        _sprite.Play(ANIM_JUMP);
+    }
+
+    // flipping sprite
+    if (velocity.x < 0.0 && !_facingLeft) FlipSprite(true);
+    else if (velocity.x > 0.0) FlipSprite(false);
 }
 
 void Player::NormalDeinit() { }
