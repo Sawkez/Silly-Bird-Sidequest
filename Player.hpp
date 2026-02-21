@@ -1,13 +1,19 @@
 #pragma once
 
+#include <vector>
+
 #include "IDrawable.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Vector2.hpp"
 #include "Animation.hpp"
 #include "AnimatedSprite.hpp"
+#include "CollisionResult.hpp"
+#include "CollisionRect.hpp"
 
 // Player movement state functions are defined in headers included at the bottom of this one
+
+using namespace std;
 
 class Player : IProcessable, IDrawable {
 
@@ -65,16 +71,29 @@ class Player : IProcessable, IDrawable {
         15.0    / 60.0      // interact
     };
 
-    const SDL_FRect FULL_COLLISION {0.0, 0.0, 8.0, 13.0};
-    const SDL_FRect SHORT_COLLISION {0.0, 0.0, 8.0, 6.75};
+    const Vector2 BODY_CENTER {8.0, 8.0};
+    const Vector2 FEET_POS {8.0, 16.0};
+
+    const float FLOOR_RAY_LENGTH = 12.0;
+
+    const CollisionRect FULL_COLLISION = CollisionRect(0.0, 0.0, 8.0, 13.0);
+    const CollisionRect SHORT_COLLISION = CollisionRect(0.0, 0.0, 8.0, 6.75);
+    const int COLLISION_ITERATIONS = 3;
+    const float MIN_COLLISION_TIME = 0.1;
+    const Vector2 COLLISION_OFFSET_FULL {-4.0, -13.0};
+    const Vector2 COLLISION_OFFSET_SHORT {
+        COLLISION_OFFSET_FULL.x,
+        COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h
+    };
 
     private:
 
         // objects
         const InputManager& _input;
         // TODO add jizz
-        SDL_FRect _collision = FULL_COLLISION;
+        CollisionRect _collision = CollisionRect(FULL_COLLISION);
         SDL_FRect _ceilingCheck {0.0, 0.0, 8.0, 6.0};
+        const vector<CollisionRect>& _staticColliders;
         AnimatedSprite _sprite;
 
         // timers
@@ -156,13 +175,15 @@ class Player : IProcessable, IDrawable {
         Vector2 velocity {0.0, 0.0};
         Vector2 position {0.0, 0.0};
 
-        Player(InputManager& input, SDL_Renderer* renderer) :
-        _input(input),
-        _sprite(Animation(
-            renderer,
-            "content/textures/gameplay/player_styles/classic/run.png",
-            16, 24, true
-        ))
+        Player(InputManager& input, SDL_Renderer* renderer, vector<CollisionRect>& staticColliders) :
+        _input(input), _staticColliders(staticColliders),
+        _sprite(
+            Animation(
+                renderer,
+                "content/textures/gameplay/player_styles/classic/run.png",
+                16, 24, true
+            ), BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER
+        )
         { }
 
         const InputManager& GetInput() const {
@@ -182,7 +203,7 @@ class Player : IProcessable, IDrawable {
 
         void SetTimer(int timer) {
             if (isnanf(TIMER_DURATIONS[timer])) {
-                std::cerr << "ERROR: timer " << timer << " duration is NAN" << std::endl;
+                cerr << "ERROR: timer " << timer << " duration is NAN" << endl;
             }
             _timers[timer] = TIMER_DURATIONS[timer];
         }
@@ -197,7 +218,7 @@ class Player : IProcessable, IDrawable {
 
         void Buffer(int buffer) {
             if (isnanf(BUFFER_DURATIONS[buffer])) {
-                std::cerr << "ERROR: buffer " << buffer << " duration is NAN" << std::endl;
+                cerr << "ERROR: buffer " << buffer << " duration is NAN" << endl;
             }
             _buffers[buffer] = BUFFER_DURATIONS[buffer];
         }
@@ -231,13 +252,67 @@ class Player : IProcessable, IDrawable {
             (this->*_processFuncs[_movementStateID])(delta);
 
             // moving and colliding
+            _wasPushingFloor = _pushingFloor;
+            _pushingFloor = false;
+            _closeToFloor = false;
+            _pushingWall = false;
+            _pushingCeiling = false;
+            _closeToCeiling = false;
 
-            _sprite.SetPosition(position);
+            float timeLeft = 1.0;
+            Vector2 collisionOffset = _shortCollision? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL;
+
+            for (int i = 0; i < COLLISION_ITERATIONS; i++) {
+                _collision.x = position.x + collisionOffset.x;
+                _collision.y = position.y + collisionOffset.y;
+
+                CollisionResult firstCollision{ };
+                Vector2 frameVelocity = velocity * delta;
+
+                for (auto& collider: _staticColliders) {
+                    CollisionResult newCollision = collider.SweptAABBCollision(_collision, frameVelocity);
+
+                    if (newCollision.depth < firstCollision.depth) {
+                        firstCollision = newCollision;
+                    }
+                }
+
+                float depth = std::min(firstCollision.depth, timeLeft);
+
+                Vector2 keepDir {
+                    1.0f - abs(firstCollision.normal.x),
+                    1.0f - abs(firstCollision.normal.y)
+                };
+
+                position += velocity * depth * delta;
+                velocity *= keepDir;
+
+                if (firstCollision.normal.y == -1.0) {
+                    _pushingFloor = true;
+                }
+
+                else if (firstCollision.normal.y == 1.0) {
+                    _pushingCeiling = true;
+                }
+
+                if (firstCollision.normal.x != 0.0) {
+                    _pushingWall = true;
+                }
+
+                timeLeft -= depth;
+                if (timeLeft < MIN_COLLISION_TIME) break;
+            }
+
+            // updating children
+            _sprite.position = position;
             _sprite.Process(delta);
+
+            cout << velocity << endl;
         }
 
         void Draw(SDL_Renderer* renderer) const override {
             _sprite.Draw(renderer);
+            //_collision.Draw(renderer);
         }
 };
 

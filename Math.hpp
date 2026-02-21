@@ -12,4 +12,15 @@ namespace Math {
         return min + (value - min) % len;
     }
 
+    float CopySignOrZero(float magnitude, float sign) {
+        if (sign == 0.0) return 0.0;
+        return copysignf(magnitude, sign);
+    }
+
+    float SignOrZero(float value) {
+        if (value == 0.0) return 0.0;
+        else if (signbit(value)) return -1.0;
+        else return 1.0;
+    }
+
 }

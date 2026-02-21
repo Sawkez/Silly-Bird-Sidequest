@@ -5,6 +5,7 @@
 
 #include "InputManager.hpp"
 #include "Player.hpp"
+#include "CollisionRect.hpp"
 
 using namespace std;
 
@@ -24,7 +25,11 @@ int main(int argc, char *argv[])
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     InputManager input;
-    Player player(input, renderer);
+    vector<CollisionRect> world;
+    world.push_back(CollisionRect{0.0, 100.0, 300.0, 50.0});
+    world.push_back(CollisionRect{300.0, 0.0, 50.0, 300.0});
+
+    Player player(input, renderer, world);
 
     bool running = true;
 
@@ -57,9 +62,14 @@ int main(int argc, char *argv[])
         input.UpdateTapStates();
         
         // render
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
 
         player.Draw(renderer);
+        
+        for (auto collider: world) {
+            collider.Draw(renderer);
+        }
 
         SDL_RenderPresent(renderer);
         

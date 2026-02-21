@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cmath>
+
 #include "InputManager.hpp"
+#include "Math.hpp"
 
 const float ACCELERATION = 600.0;
 const float TOP_SPEED = 125.0;
@@ -30,28 +32,28 @@ void Player::NormalProcess(float delta) {
 
     // friction
     // trying to turn around
-    if (velocity.x * _input.GetDir().x < 0.0) {
+    if (velocity.x * _input.GetDir().x <= 0.0) {
         // make sure we don't overcompensate
         float activeFrict = fminf(FRICTION * delta, abs(velocity.x)); 
-        velocity.x -= copysignf32(activeFrict, velocity.x);
+        velocity.x -= Math::CopySignOrZero(activeFrict, velocity.x);
     }
 
     // still accelerating (do nothing)
-    else if (abs(velocity.x < TOP_SPEED)) { }
+    else if (abs(velocity.x) < TOP_SPEED) { }
 
     // going barely too fast, lock to top speed
     else if (abs(velocity.x) - TOP_SPEED < FRICTION * delta) {
-        velocity.x = copysignf32(TOP_SPEED, velocity.x);
+        velocity.x = Math::CopySignOrZero(TOP_SPEED, velocity.x);
     }
 
     // going way too fast
     else {
         float activeFrict = _pushingFloor? FRICTION : AIR_FRICTION;
-        velocity.x -= copysignf32(velocity.x, activeFrict * delta);
+        velocity.x -= Math::CopySignOrZero(velocity.x, activeFrict * delta);
     }
 
     // accelerating
-    if (abs(velocity.x < TOP_SPEED)) {
+    if (abs(velocity.x) < TOP_SPEED) {
         velocity.x += ACCELERATION * _input.GetDir().x * delta;
     }
 
@@ -63,7 +65,7 @@ void Player::NormalProcess(float delta) {
     else if (!_pushingFloor && abs(velocity.y) < FAST_FALL_WINDOW) {
 
         float timeFalling = abs(velocity.y) / GRAVITY;
-        float timeFastFalling = sqrtf32(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
+        float timeFastFalling = sqrtf(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
 
         velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
     }
