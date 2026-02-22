@@ -12,6 +12,12 @@ using namespace std;
 
 const unsigned long frameDuration = 1000 / 60;
 
+#if __PSP__
+    #define INITIAL_WINDOW_RES 480, 272
+#else
+    #define INITIAL_WINDOW_RES 960, 540
+#endif
+
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
@@ -19,8 +25,8 @@ int main(int argc, char *argv[])
     SDL_Window* window = SDL_CreateWindow(
         "SBS",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        480, 272,
-        0
+        INITIAL_WINDOW_RES,
+        SDL_WINDOW_RESIZABLE
     );
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -32,7 +38,7 @@ int main(int argc, char *argv[])
     unsigned long frameStartMs = SDL_GetTicks64();
     unsigned long frameEndMs = frameStartMs + frameDuration;
 
-    Level level("mods/test-sbmaker-project", renderer, input);
+    Level level("mods/test-sbmaker-project", renderer, input, window);
 
     while (running) {
 
@@ -49,6 +55,11 @@ int main(int argc, char *argv[])
 
             if (event.type == SDL_QUIT) {
                 running = false;
+                continue;
+            }
+
+            if (event.type == SDL_WINDOWEVENT) {
+                level.GetCamera().UpdateZoom();
                 continue;
             }
         }
@@ -76,7 +87,7 @@ int main(int argc, char *argv[])
             frameEndMs = SDL_GetTicks64();
         }
 
-        cout << "Frame time: " << lastFrameTimeMs << endl;
+        //cout << "Frame time: " << lastFrameTimeMs << endl;
     }
 
     SDL_DestroyRenderer(renderer);

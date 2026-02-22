@@ -40,7 +40,7 @@ class AnimatedSprite : IDrawable, IProcessable {
             _animations.at(_current).Process(delta);
         }
 
-        void Draw(SDL_Renderer* renderer, SDL_Point drawOffset = {0, 0}) const override {
+        void Draw(SDL_Renderer* renderer) const override {
 
             const Animation& animation = _animations.at(_current);
 
@@ -49,8 +49,8 @@ class AnimatedSprite : IDrawable, IProcessable {
             Vector2 sizeScaled = animation.GetFrameSize() * scale;
 
             SDL_Rect destination{
-                int(std::round(position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x)) - _rotateOrigin.x + drawOffset.x,
-                int(std::round(position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y)) - _rotateOrigin.y + drawOffset.y,
+                int(std::round(position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x)) - _rotateOrigin.x,
+                int(std::round(position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y)) - _rotateOrigin.y,
                 int(std::round(sizeScaled.x)),
                 int(std::round(sizeScaled.y))
             };

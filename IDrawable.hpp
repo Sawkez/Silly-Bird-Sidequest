@@ -4,5 +4,5 @@
 
 class IDrawable {
     public:
-        virtual void Draw(SDL_Renderer* renderer, SDL_Point drawOffset) const = 0;
+        virtual void Draw(SDL_Renderer* renderer) const = 0;
 };

@@ -372,8 +372,8 @@ class Player : IProcessable, IDrawable {
             //cout << _input.GetDir() << endl;
         }
 
-        void Draw(SDL_Renderer* renderer, SDL_Point drawOffset = {0, 0}) const {
-            _sprite.Draw(renderer, drawOffset);
+        void Draw(SDL_Renderer* renderer) const {
+            _sprite.Draw(renderer);
         }
 
         void FlipSprite(bool left) {

@@ -31,10 +31,21 @@ class Vector2 {
             };
         }
 
+        Vector2 operator-() const {
+            return Vector2 {-x, -y};
+        }
+
         Vector2 operator*(float b) const {
             return Vector2{
                 x * b,
                 y * b
+            };
+        }
+
+        Vector2 operator/(float b) const {
+            return Vector2 {
+                x / b,
+                y / b
             };
         }
 
