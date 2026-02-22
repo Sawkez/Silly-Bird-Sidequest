@@ -5,6 +5,7 @@
 
 #include "InputManager.hpp"
 #include "Player.hpp"
+#include "Level.hpp"
 #include "CollisionRect.hpp"
 
 using namespace std;
@@ -25,16 +26,13 @@ int main(int argc, char *argv[])
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     InputManager input;
-    vector<CollisionRect> world;
-    world.push_back(CollisionRect{0.0, 100.0, 300.0, 50.0});
-    world.push_back(CollisionRect{300.0, 0.0, 50.0, 300.0});
-
-    Player player(input, renderer, world);
 
     bool running = true;
 
     unsigned long frameStartMs = SDL_GetTicks64();
     unsigned long frameEndMs = frameStartMs + frameDuration;
+
+    Level level("mods/test-sbmaker-project", renderer, input);
 
     while (running) {
 
@@ -57,19 +55,15 @@ int main(int argc, char *argv[])
         input.UpdateDir();
 
         // game logic
-        player.Process(delta);
+        level.Process(delta);
 
         input.UpdateTapStates();
         
         // render
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
-
-        player.Draw(renderer);
         
-        for (auto collider: world) {
-            collider.Draw(renderer);
-        }
+        level.Draw(renderer);
 
         SDL_RenderPresent(renderer);
         
@@ -81,6 +75,8 @@ int main(int argc, char *argv[])
             SDL_Delay(frameDuration - frameTimeMs);
             frameEndMs = SDL_GetTicks64();
         }
+
+        cout << "Frame time: " << lastFrameTimeMs << endl;
     }
 
     SDL_DestroyRenderer(renderer);

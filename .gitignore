@@ -1,0 +1,4 @@
+export_linux/*
+export_psp/*
+build_linux/*
+build_psp/*

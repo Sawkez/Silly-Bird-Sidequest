@@ -202,7 +202,7 @@ class Player : IProcessable, IDrawable {
         Vector2 velocity {0.0, 0.0};
         Vector2 position {0.0, 0.0};
 
-        Player(InputManager& input, SDL_Renderer* renderer, vector<CollisionRect>& staticColliders) :
+        Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders) :
         _input(input), _staticColliders(staticColliders),
         _sprite(
             LoadAnimations(renderer),
@@ -368,15 +368,18 @@ class Player : IProcessable, IDrawable {
             _sprite.position = position;
             _sprite.Process(delta);
 
-            cout << velocity << endl;
+            //cout << velocity << endl;
+            //cout << _input.GetDir() << endl;
         }
 
-        void Draw(SDL_Renderer* renderer) const override {
-            _sprite.Draw(renderer);
-            //_collision.Draw(renderer);
+        void Draw(SDL_Renderer* renderer, SDL_Point drawOffset = {0, 0}) const {
+            _sprite.Draw(renderer, drawOffset);
         }
 
         void FlipSprite(bool left) {
+            if (_facingLeft == left) return;
+
+            _sprite.scale.x = X_SQUISH_MIN;
             _facingLeft = left;
             _sprite.SetFlip(left? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
         }

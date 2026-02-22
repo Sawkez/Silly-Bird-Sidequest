@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "Json.hpp"
+
 class Vector2 {
     public:
         float x;
@@ -89,4 +91,9 @@ Vector2 operator*(float a, const Vector2& b) {
 std::ostream& operator<<(std::ostream& out, const Vector2& vec) {
     out << "( " << vec.x << ", " << vec.y << " )";
     return out;
+}
+
+void from_json(const nlohmann::json& json, Vector2& vector) {
+    vector.x = json.at("x");
+    vector.y = json.at("y");
 }

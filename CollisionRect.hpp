@@ -3,6 +3,8 @@
 #include <SDL.h>
 #include <iostream>
 
+#include "Json.hpp"
+
 #include "Vector2.hpp"
 #include "CollisionResult.hpp"
 #include "Math.hpp"
@@ -23,6 +25,10 @@ struct CollisionRect : SDL_FRect, IDrawable {
     CollisionRect(other.x, other.y, other.w, other.h, other.active, other.oneWay, other.oneWayNormal)
     { }
 
+    CollisionRect() :
+    CollisionRect(0.0, 0.0, 0.0, 0.0)
+    { }
+
     void operator=(const CollisionRect& other) {
         x = other.x;
         y = other.y;
@@ -33,9 +39,16 @@ struct CollisionRect : SDL_FRect, IDrawable {
         oneWayNormal = other.oneWayNormal;
     }
 
-    void Draw(SDL_Renderer* renderer) const override {
+    void Draw(SDL_Renderer* renderer, SDL_Point drawOffset = {0, 0}) const override {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawRectF(renderer, this);
+        SDL_FRect toDraw = {
+            x + drawOffset.x,
+            y + drawOffset.y,
+            w,
+            h
+        };
+
+        SDL_RenderDrawRectF(renderer, &toDraw);
     }
 
     CollisionResult SweptAABBCollision(const CollisionRect& movingRect, const Vector2& velocity) const {
@@ -45,7 +58,7 @@ struct CollisionRect : SDL_FRect, IDrawable {
         float xInverseEntry = x - (movingRect.x + movingRect.w);
         float xInverseExit = (x + w) - movingRect.x;
 
-        if (velocity.x == 0.0 && xInverseEntry >= 0.0 || xInverseExit <= 0.0) {
+        if (velocity.x == 0.0 && (xInverseEntry >= 0.0 || xInverseExit <= 0.0)) {
             return CollisionResult{ };
         }
 
@@ -58,7 +71,7 @@ struct CollisionRect : SDL_FRect, IDrawable {
         float yInverseEntry = y - (movingRect.y + movingRect.h);
         float yInverseExit = (y + h) - movingRect.y;
 
-        if (velocity.y == 0.0 && yInverseEntry >= 0.0 || yInverseExit <= 0.0) {
+        if (velocity.y == 0.0 && (yInverseEntry >= 0.0 || yInverseExit <= 0.0)) {
             return CollisionResult{ };
         }
 
@@ -101,4 +114,11 @@ std::ostream& operator<<(std::ostream& out, const CollisionRect& rect) {
         "size: " << rect.w << ", " << rect.h;
         
     return out;
+}
+
+void from_json(const nlohmann::json& json, CollisionRect& rect) {
+    rect.x = json.at("x");
+    rect.y = json.at("y");
+    rect.w = json.at("width");
+    rect.h = json.at("height");
 }
