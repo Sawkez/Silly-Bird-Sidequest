@@ -23,179 +23,185 @@ const float MAX_DIVE_BUFFER_Y_VELOCITY = 250.0;
 
 const float SLOW_RUN_SPEED = 100.0;
 
-void Player::NormalInit() { }
+void Player::NormalInit() {}
 
 void Player::NormalProcess(float delta) {
-    if (_shortCollision && !_closeToCeiling) {
-        SetShortCollision(false);
-    }
+	if (_shortCollision && !_closeToCeiling) {
+		SetShortCollision(false);
+	}
 
-    // friction
-    // trying to turn around
-    if (velocity.x * _input.GetDir().x <= 0.0) {
-        // make sure we don't overcompensate
-        float activeFrict = fminf(FRICTION * delta, abs(velocity.x)); 
-        velocity.x -= Math::CopySignOrZero(activeFrict, velocity.x);
-    }
+	// friction
+	// trying to turn around
+	if (velocity.x * _input.GetDir().x <= 0.0) {
+		// make sure we don't overcompensate
+		float activeFrict = fminf(FRICTION * delta, abs(velocity.x));
+		velocity.x -= Math::CopySignOrZero(activeFrict, velocity.x);
+	}
 
-    // still accelerating (do nothing)
-    else if (abs(velocity.x) < TOP_SPEED) { }
+	// still accelerating (do nothing)
+	else if (abs(velocity.x) < TOP_SPEED) {
+	}
 
-    // going barely too fast, lock to top speed
-    else if (abs(velocity.x) - TOP_SPEED < FRICTION * delta) {
-        velocity.x = Math::CopySignOrZero(TOP_SPEED, velocity.x);
-    }
+	// going barely too fast, lock to top speed
+	else if (abs(velocity.x) - TOP_SPEED < FRICTION * delta) {
+		velocity.x = Math::CopySignOrZero(TOP_SPEED, velocity.x);
+	}
 
-    // going way too fast
-    else {
-        float activeFrict = _pushingFloor? FRICTION : AIR_FRICTION;
-        velocity.x -= Math::CopySignOrZero(velocity.x, activeFrict * delta);
-    }
+	// going way too fast
+	else {
+		float activeFrict = _pushingFloor ? FRICTION : AIR_FRICTION;
+		velocity.x -= Math::CopySignOrZero(velocity.x, activeFrict * delta);
+	}
 
-    // accelerating
-    if (abs(velocity.x) < TOP_SPEED) {
-        velocity.x += ACCELERATION * _input.GetDir().x * delta;
-    }
+	// accelerating
+	if (abs(velocity.x) < TOP_SPEED) {
+		velocity.x += ACCELERATION * _input.GetDir().x * delta;
+	}
 
-    // starting a fastfall
-    // not fastfalling, do nothing
-    if (!_input.IsTapped(ACTION_DOWN)) { }
+	// starting a fastfall
+	// not fastfalling, do nothing
+	if (!_input.IsTapped(ACTION_DOWN)) {
+	}
 
-    // fastfalling around peak of jump, maximize downwards velocity
-    else if (!_pushingFloor && abs(velocity.y) < FAST_FALL_WINDOW) {
+	// fastfalling around peak of jump, maximize downwards velocity
+	else if (!_pushingFloor && abs(velocity.y) < FAST_FALL_WINDOW) {
+		float timeFalling = abs(velocity.y) / GRAVITY;
+		float timeFastFalling = sqrtf(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
 
-        float timeFalling = abs(velocity.y) / GRAVITY;
-        float timeFastFalling = sqrtf(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
+		velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
+	}
 
-        velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
-    }
+	// fastfalling normally, cancel up velocity
+	else {
+		velocity.y = fmaxf(velocity.y, 0.0);
+	}
 
-    // fastfalling normally, cancel up velocity
-    else {
-        velocity.y = fmaxf(velocity.y, 0.0);
-    }
+	// applying gravity
+	if (velocity.y > FALL_SPEED_CAP || TimerActive(TIMER_GRAVITY_FREEZE)) {
+		velocity.y += WEAK_GRAVITY * delta;
+	}
 
-    // applying gravity
-    if (velocity.y > FALL_SPEED_CAP || TimerActive(TIMER_GRAVITY_FREEZE)) {
-        velocity.y += WEAK_GRAVITY * delta;
-    }
+	else if (_input.IsDown(ACTION_DOWN)) {
+		velocity.y += FAST_FALL_GRAVITY * delta;
+	}
 
-    else if (_input.IsDown(ACTION_DOWN)) {
-        velocity.y += FAST_FALL_GRAVITY * delta;
-    }
+	else {
+		velocity.y += GRAVITY * delta;
+	}
 
-    else {
-        velocity.y += GRAVITY * delta;
-    }
+	// resetting coyote timer
+	if (_pushingFloor) {
+		SetTimer(TIMER_COYOTE);
+	}
 
-    // resetting coyote timer
-    if (_pushingFloor) {
-        SetTimer(TIMER_COYOTE);
-    }
+	// jump / dash buffer
+	if (!_input.IsTapped(ACTION_JUMP)) {
+	}
 
-    // jump / dash buffer
-    if (!_input.IsTapped(ACTION_JUMP)) { }
+	else if (_closeToFloor || TimerActive(TIMER_COYOTE)) {
+		Buffer(BUFFER_JUMP);
+	}
 
-    else if (_closeToFloor || TimerActive(TIMER_COYOTE)) {
-        Buffer(BUFFER_JUMP);
-    }
+	else {
+		Buffer(BUFFER_DASH);
+		// TODO dashblocker
+	}
 
-    else {
-        Buffer(BUFFER_DASH);
-        // TODO dashblocker
-    }
+	// dashing
+	bool dashFirst = !BufferActive(BUFFER_DIVE) || _buffers[BUFFER_DASH] < _buffers[BUFFER_DIVE] || !_diveAvailable;
 
-    // dashing
-    bool dashFirst = !BufferActive(BUFFER_DIVE) || _buffers[BUFFER_DASH] < _buffers[BUFFER_DIVE] || !_diveAvailable;
+	if (!BufferActive(BUFFER_DASH)) {
+	}
 
-    if (!BufferActive(BUFFER_DASH)) { }
+	else if (dashFirst && velocity.y > GRAVITY * delta && HasUpgrade(UPGRADE_DASH) && _dashAvailable) {
+		SetState(MOVEMENT_STATE_DASH);
+		return;
+	}
 
-    else if (dashFirst && velocity.y > GRAVITY * delta && HasUpgrade(UPGRADE_DASH) && _dashAvailable) {
-        SetState(MOVEMENT_STATE_DASH);
-        return;
-    }
+	// dive buffer
+	bool wantsToDive = velocity.y < GRAVITY * delta || !_closeToFloor;
+	bool wantsToUltraslide = velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && _input.IsDown(ACTION_DOWN);
 
-    // dive buffer
-    bool wantsToDive = velocity.y < GRAVITY * delta || !_closeToFloor;
-    bool wantsToUltraslide = velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && _input.IsDown(ACTION_DOWN);
+	if (!_input.IsTapped(ACTION_DIVE)) {
+	}
 
-    if (!_input.IsTapped(ACTION_DIVE)) { }
+	else if (wantsToDive && !wantsToUltraslide) {
+		Buffer(BUFFER_DIVE);
+		// TODO implement diveblocker
+	}
 
-    else if (wantsToDive && !wantsToUltraslide) {
-        Buffer(BUFFER_DIVE);
-        // TODO implement diveblocker
-    }
+	else {
+		Buffer(BUFFER_SLIDE);
+	}
 
-    else {
-        Buffer(BUFFER_SLIDE);
-    }
+	// sliding
+	bool inputtingSlide = _input.IsDown(ACTION_DIVE) || BufferActive(BUFFER_SLIDE);
+	bool slideAvailable = HasUpgrade(UPGRADE_SLIDE) && !CooldownActive(COOLDOWN_SLIDE);
 
-    // sliding
-    bool inputtingSlide = _input.IsDown(ACTION_DIVE) || BufferActive(BUFFER_SLIDE);
-    bool slideAvailable = HasUpgrade(UPGRADE_SLIDE) && !CooldownActive(COOLDOWN_SLIDE);
+	if (!_pushingFloor || !inputtingSlide || !slideAvailable) {
+	}
 
-    if (!_pushingFloor || !inputtingSlide || !slideAvailable) { }
+	else if (velocity.x != 0.0) {
+		SetState(MOVEMENT_STATE_SLIDE);
+		return;
+	}
 
-    else if (velocity.x != 0.0) {
-        SetState(MOVEMENT_STATE_SLIDE);
-        return;
-    }
+	// ducking
+	else {
+		SetState(MOVEMENT_STATE_DUCK);
+		return;
+	}
 
-    // ducking
-    else {
-        SetState(MOVEMENT_STATE_DUCK);
-        return;
-    }
+	// ducking with down key
+	bool canDuck = _pushingFloor && !BufferActive(BUFFER_JUMP) && HasUpgrade(UPGRADE_SLIDE);
 
-    // ducking with down key
-    bool canDuck = _pushingFloor && !BufferActive(BUFFER_JUMP) && HasUpgrade(UPGRADE_SLIDE);
+	if (canDuck && velocity.x == 0.0 && _input.GetDir() == Vector2{0.0, 1.0}) {
+		SetState(MOVEMENT_STATE_DUCK);
+		return;
+	}
 
-    if (canDuck && velocity.x == 0.0 && _input.GetDir() == Vector2{ 0.0, 1.0 }) {
-        SetState(MOVEMENT_STATE_DUCK);
-        return;
-    }
+	// diving
+	if (BufferActive(BUFFER_DIVE) && velocity.y > GRAVITY * delta && HasUpgrade(UPGRADE_DIVE) && _diveAvailable) {
+		SetState(MOVEMENT_STATE_DIVE);
+		return;
+	}
 
-    // diving
-    if (BufferActive(BUFFER_DIVE) && velocity.y > GRAVITY * delta && HasUpgrade(UPGRADE_DIVE) && _diveAvailable) {
-        SetState(MOVEMENT_STATE_DIVE);
-        return;
-    }
+	// jumping
+	if (TimerActive(TIMER_COYOTE) && UseBuffer(BUFFER_JUMP)) {
+		UnsetTimer(TIMER_COYOTE);
+		velocity.y = -JUMP_FORCE;
 
-    // jumping
-    if (TimerActive(TIMER_COYOTE) && UseBuffer(BUFFER_JUMP)) {
-        UnsetTimer(TIMER_COYOTE);
-        velocity.y = -JUMP_FORCE;
+		_sprite.scale.x = X_SQUISH_MIN;
+		// TODO moving platforms
+	}
 
-        _sprite.scale.x = X_SQUISH_MIN;
-        // TODO moving platforms
-    }
+	// TODO grabbing ledges
 
-    // TODO grabbing ledges
+	// updating animation
+	if (_pushingFloor) {
+		if (velocity.x == 0.0 || _pushingWall) {
+			// TODO bored and twerk
+			_sprite.Play(ANIM_IDLE);
+		}
 
-    // updating animation
-    if (_pushingFloor) {
-        
-        if (velocity.x == 0.0 || _pushingWall) {
-            // TODO bored and twerk
-            _sprite.Play(ANIM_IDLE);
-        }
+		else if (abs(velocity.x) <= SLOW_RUN_SPEED) {
+			_sprite.Play(ANIM_SLOW_RUN, abs(velocity.x) / TOP_SPEED);
+		}
 
-        else if (abs(velocity.x) <= SLOW_RUN_SPEED) {
-            _sprite.Play(ANIM_SLOW_RUN, abs(velocity.x) / TOP_SPEED);
-        }
+		else {
+			_sprite.Play(ANIM_RUN, abs(velocity.x) / TOP_SPEED);
+		}
+	}
 
-        else {
-            _sprite.Play(ANIM_RUN, abs(velocity.x) / TOP_SPEED);
-        }
-    }
+	else {
+		_sprite.Play(ANIM_JUMP);
+	}
 
-    else {
-        _sprite.Play(ANIM_JUMP);
-    }
-
-    // flipping sprite
-    if (velocity.x < 0.0 && !_facingLeft) FlipSprite(true);
-    else if (velocity.x > 0.0) FlipSprite(false);
+	// flipping sprite
+	if (velocity.x < 0.0 && !_facingLeft)
+		FlipSprite(true);
+	else if (velocity.x > 0.0)
+		FlipSprite(false);
 }
 
-void Player::NormalDeinit() { }
+void Player::NormalDeinit() {}

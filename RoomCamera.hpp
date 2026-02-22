@@ -1,7 +1,7 @@
 #pragma once
 
-#include <functional>
 #include <cmath>
+#include <functional>
 
 #include "Player.hpp"
 #include "Room.hpp"
@@ -9,100 +9,92 @@
 using namespace std;
 
 class RoomCamera : IProcessable {
+	static const int SMALL_SCREEN_SIZE_X = 720;
+	static const int SMALL_SCREEN_SIZE_Y = 405;
+	static const int BIG_TARGET_SIZE_X = 720;
+	static const int BIG_TARGET_SIZE_Y = 405;
 
-    static const int SMALL_SCREEN_SIZE_X = 720;
-    static const int SMALL_SCREEN_SIZE_Y = 405;
-    static const int BIG_TARGET_SIZE_X = 720;
-    static const int BIG_TARGET_SIZE_Y = 405;
+  private:
+	const Player& _player;
+	reference_wrapper<const Room> _room;
+	SDL_Window* _window;
 
-    private:
-        const Player& _player;
-        reference_wrapper<const Room> _room;
-        SDL_Window* _window;
+	float _zoom = 1.0;
+	Vector2 _position{0.0, 0.0};
+	Vector2 _offset{0, 0};
 
-        float _zoom = 1.0;
-        Vector2 _position {0.0, 0.0};
-        Vector2 _offset {0, 0};
-    
-    public:
+  public:
+	RoomCamera(const Player& player, const Room& room, SDL_Window* window)
+		: _player(player), _room(ref(room)), _window(window) {
+		UpdateZoom();
+	}
 
-        RoomCamera(const Player& player, const Room& room, SDL_Window* window) :
-        _player(player), _room(ref(room)), _window(window)
-        {
-            UpdateZoom();
-        }
+	void SetRoom(const Room& room) {
+		_room = ref(room);
+		UpdateZoom();
+	}
 
-        void SetRoom(const Room& room) {
-            _room = ref(room);
-            UpdateZoom();
-        }
+	void UpdateZoom() {
+		int windowWidth, windowHeight;
+		SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
+		UpdateZoom({float(windowWidth), float(windowHeight)});
+	}
 
-        void UpdateZoom() {
-            int windowWidth, windowHeight;
-            SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
-            UpdateZoom({
-                float(windowWidth),
-                float(windowHeight)
-            });
-        }
+	void UpdateZoom(Vector2 windowRes) {
+		Vector2 roomRes = _room.get().GetSize();
+		Vector2 targetRes = _room.get().GetTargetSize();
 
-        void UpdateZoom(Vector2 windowRes) {
+		bool smallScreen = windowRes.x < SMALL_SCREEN_SIZE_X && windowRes.y < SMALL_SCREEN_SIZE_Y;
+		bool bigTarget = targetRes.x > BIG_TARGET_SIZE_X && targetRes.y > BIG_TARGET_SIZE_Y;
 
-            Vector2 roomRes = _room.get().GetSize();
-            Vector2 targetRes = _room.get().GetTargetSize();
+		if (smallScreen && !bigTarget) {
+			targetRes *= 0.5;
+		}
 
-            bool smallScreen = windowRes.x < SMALL_SCREEN_SIZE_X && windowRes.y < SMALL_SCREEN_SIZE_Y;
-            bool bigTarget = targetRes.x > BIG_TARGET_SIZE_X && targetRes.y > BIG_TARGET_SIZE_Y;
+		bool taller = windowRes.x / windowRes.y < targetRes.x / targetRes.y;
 
-            if (smallScreen && !bigTarget) {
-                targetRes *= 0.5;
-            }
+		if (taller) {
+			float yIdeal = min(targetRes.x * (windowRes.y / windowRes.x), roomRes.y);
+			_zoom = windowRes.y / yIdeal;
+		}
 
-            bool taller = windowRes.x / windowRes.y < targetRes.x / targetRes.y;
+		else {
+			float xIdeal = min(targetRes.y * (windowRes.x / windowRes.y), roomRes.x);
+			_zoom = windowRes.x / xIdeal;
+		}
 
-            if (taller) {
-                float yIdeal = min(targetRes.x * (windowRes.y / windowRes.x), roomRes.y);
-                _zoom = windowRes.y / yIdeal;
-            }
+		_offset = windowRes / _zoom * 0.5;
+	}
 
-            else {
-                float xIdeal = min(targetRes.y * (windowRes.x / windowRes.y), roomRes.x);
-                _zoom = windowRes.x / xIdeal;
-            }
+	void Process(float delta) override {
+		_position = _player.position;
+	}
 
-            _offset = windowRes / _zoom * 0.5;
-        }
+	SDL_Point GetDrawOffset() const {
+		Vector2 boundary = _room.get().GetSize() - _offset;
 
-        void Process(float delta) override {
-            _position = _player.position;
-        }
-        
-        SDL_Point GetDrawOffset() const {
+		SDL_Point drawOffset;
 
-            Vector2 boundary = _room.get().GetSize() - _offset;
-            
-            SDL_Point drawOffset;
+		if (boundary.x < _offset.x) {
+			drawOffset.x = -_position.x;
+		}
 
-            if (boundary.x < _offset.x) {
-                drawOffset.x = -_position.x;
-            }
+		else {
+			drawOffset.x = -int(roundf(clamp(_position.x, _offset.x, boundary.x) - _offset.x));
+		}
 
-            else {
-                drawOffset.x = -int(roundf(clamp(_position.x, _offset.x, boundary.x) - _offset.x));
-            }
+		if (boundary.y < _offset.y) {
+			drawOffset.y = -_position.y;
+		}
 
-            if (boundary.y < _offset.y) {
-                drawOffset.y = -_position.y;
-            }
+		else {
+			drawOffset.y = -int(roundf(clamp(_position.y, _offset.y, boundary.y) - _offset.y));
+		}
 
-            else {
-                drawOffset.y = -int(roundf(clamp(_position.y, _offset.y, boundary.y) - _offset.y));
-            }
+		return drawOffset;
+	}
 
-            return drawOffset;
-        }
-
-        float GetZoom() const {
-            return _zoom;
-        }
+	float GetZoom() const {
+		return _zoom;
+	}
 };
