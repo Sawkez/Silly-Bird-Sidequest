@@ -4,13 +4,11 @@
 
 #include "Json.hpp"
 
-class Vector2 {
+class Vector2 : public SDL_FPoint {
     public:
-        float x;
-        float y;
 
         Vector2(float X, float Y) :
-        x(X), y(Y)
+        SDL_FPoint{X, Y}
         { }
 
         Vector2() :

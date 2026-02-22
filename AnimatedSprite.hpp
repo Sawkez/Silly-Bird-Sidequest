@@ -18,8 +18,8 @@ class AnimatedSprite : IDrawable, IProcessable {
     private:
         vector<Animation> _animations;
         Vector2 _offset = Vector2::ZERO;
-        Vector2 _scaleOrigin = {0, 0};
-        SDL_Point _rotateOrigin {0, 0};
+        Vector2 _scaleOrigin = Vector2::ZERO;
+        Vector2 _rotateOrigin = Vector2::ZERO;
         SDL_RendererFlip _flip = SDL_FLIP_NONE;
         float _rotation = 0.0;
         int _current = 0;
@@ -28,12 +28,8 @@ class AnimatedSprite : IDrawable, IProcessable {
         Vector2 position = Vector2::ZERO;
         Vector2 scale {1.0, 1.0};
 
-        AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, SDL_Point rotateOrigin = SDL_Point {0, 0}) :
+        AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2 {0.0, 0.0}) :
         _animations(animations), _offset(offset), _scaleOrigin(scaleOrigin), _rotateOrigin(rotateOrigin)
-        { }
-
-        AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2::ZERO) :
-        AnimatedSprite(animations, offset, scaleOrigin, SDL_Point{int(rotateOrigin.x), int(rotateOrigin.y)})
         { }
 
         void Process(float delta) override {
@@ -48,14 +44,14 @@ class AnimatedSprite : IDrawable, IProcessable {
 
             Vector2 sizeScaled = animation.GetFrameSize() * scale;
 
-            SDL_Rect destination{
-                int(std::round(position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x)) - _rotateOrigin.x,
-                int(std::round(position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y)) - _rotateOrigin.y,
-                int(std::round(sizeScaled.x)),
-                int(std::round(sizeScaled.y))
+            SDL_FRect destination {
+                position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x,
+                position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y,
+                sizeScaled.x,
+                sizeScaled.y
             };
 
-            int error = SDL_RenderCopyEx(
+            int error = SDL_RenderCopyExF(
                 renderer,
                 animation.GetTexture(),
                 &source,

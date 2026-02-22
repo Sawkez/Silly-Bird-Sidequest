@@ -80,12 +80,26 @@ class RoomCamera : IProcessable {
         SDL_Point GetDrawOffset() const {
 
             Vector2 boundary = _room.get().GetSize() - _offset;
+            
+            SDL_Point drawOffset;
 
-            return SDL_Point {
-                // TODO fix crash when window too wide
-                -int(roundf(clamp(_position.x, _offset.x, boundary.x) - _offset.x)),
-                -int(roundf(clamp(_position.y, _offset.y, boundary.y)- _offset.y))
-            };
+            if (boundary.x < _offset.x) {
+                drawOffset.x = -_position.x;
+            }
+
+            else {
+                drawOffset.x = -int(roundf(clamp(_position.x, _offset.x, boundary.x) - _offset.x));
+            }
+
+            if (boundary.y < _offset.y) {
+                drawOffset.y = -_position.y;
+            }
+
+            else {
+                drawOffset.y = -int(roundf(clamp(_position.y, _offset.y, boundary.y) - _offset.y));
+            }
+
+            return drawOffset;
         }
 
         float GetZoom() const {
