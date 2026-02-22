@@ -31,20 +31,19 @@ class AnimatedSprite : IDrawable, IProcessable {
 				   Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2{0.0, 0.0})
 		: _animations(animations), _offset(offset), _scaleOrigin(scaleOrigin), _rotateOrigin(rotateOrigin) {}
 
-	void Process(float delta) override {
-		_animations.at(_current).Process(delta);
-	}
+	void Process(float delta) override { _animations.at(_current).Process(delta); }
 
-	void Draw(SDL_Renderer* renderer) const override {
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
 		const Animation& animation = _animations.at(_current);
 
 		SDL_Rect source = animation.GetSourceRect();
 
 		Vector2 sizeScaled = animation.GetFrameSize() * scale;
 
-		SDL_FRect destination{position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x,
-							  position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y,
-							  sizeScaled.x, sizeScaled.y};
+		SDL_FRect destination{
+			position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x + drawOffset.x,
+			position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y + drawOffset.y,
+			sizeScaled.x, sizeScaled.y};
 
 		int error = SDL_RenderCopyExF(renderer, animation.GetTexture(), &source, &destination, _rotation,
 									  &_rotateOrigin, _flip);
@@ -54,17 +53,11 @@ class AnimatedSprite : IDrawable, IProcessable {
 		}
 	}
 
-	void SetRotationDegrees(float degrees) {
-		_rotation = degrees;
-	}
+	void SetRotationDegrees(float degrees) { _rotation = degrees; }
 
-	void SetRotationRadians(float radians) {
-		_rotation = radians * DEGREES_PER_RADIAN;
-	}
+	void SetRotationRadians(float radians) { _rotation = radians * DEGREES_PER_RADIAN; }
 
-	void SetFlip(SDL_RendererFlip flip) {
-		_flip = flip;
-	}
+	void SetFlip(SDL_RendererFlip flip) { _flip = flip; }
 
 	void Play(int animationID, float speed = 1.0) {
 		Animation& newAnimation = _animations.at(animationID);
@@ -76,6 +69,11 @@ class AnimatedSprite : IDrawable, IProcessable {
 
 		newAnimation.SetSpeed(speed);
 		_current = animationID;
+	}
+
+	void PlayFromStart(int animationID, float speed = 1.0) {
+		Play(animationID, speed);
+		_animations[animationID].SetFrame(0);
 	}
 
 	void PlayLastFrame(int animationID, float speed = 1.0) {

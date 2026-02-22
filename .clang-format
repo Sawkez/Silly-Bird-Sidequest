@@ -13,9 +13,9 @@ Standard: Latest
 
 # --- Braces and Functions ---
 # This allows: void Func() { }
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: All
 # This allows: if (condition) { }
-AllowShortBlocksOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Always
 
 # These settings ensure "void Player::NormalInit() { }" stays on one line
 BreakBeforeBraces: Custom

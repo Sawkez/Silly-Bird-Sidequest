@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 
 #include "AnimatedSprite.hpp"
@@ -114,7 +115,7 @@ class Player : IProcessable, IDrawable {
 	const float X_SQUISH_MAX = 1.5;
 	const float Y_SQUISH_MAX = 1.25;
 
-	const float FLOOR_RAY_LENGTH = 12.0;
+	// const float FLOOR_RAY_LENGTH = 12.0;
 
 	const CollisionRect FULL_COLLISION = CollisionRect(0.0, 0.0, 8.0, 13.0);
 	const CollisionRect SHORT_COLLISION = CollisionRect(0.0, 0.0, 8.0, 6.75);
@@ -123,14 +124,17 @@ class Player : IProcessable, IDrawable {
 	const Vector2 COLLISION_OFFSET_FULL{-4.0, -13.0};
 	const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x,
 										 COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
+	const Vector2 FLOOR_CHECK_OFFSET{-4.0, 0.0};
+	const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL;
 
   private:
 	// objects
 	const InputManager& _input;
 	// TODO add jizz
 	CollisionRect _collision = CollisionRect(FULL_COLLISION);
-	SDL_FRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
-	const vector<CollisionRect>& _staticColliders;
+	CollisionRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
+	CollisionRect _floorCheck{0.0, 0.0, 8.0, 12.0};
+	reference_wrapper<const vector<CollisionRect>> _staticColliders;
 	AnimatedSprite _sprite;
 
 	// timers
@@ -236,12 +240,14 @@ class Player : IProcessable, IDrawable {
 	Vector2 position{0.0, 0.0};
 
 	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders)
-		: _input(input), _staticColliders(staticColliders),
+		: _input(input), _staticColliders(ref(staticColliders)),
 		  _sprite(LoadAnimations(renderer), BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
 
-	const InputManager& GetInput() const {
-		return _input;
-	}
+	const InputManager& GetInput() const { return _input; }
+
+	const CollisionRect& GetCollision() const { return _collision; }
+
+	void SetStaticColliders(const vector<CollisionRect>& colliders) { _staticColliders = ref(colliders); }
 
 	void SetState(int state) {
 		(this->*_deinitFuncs[_movementStateID])();
@@ -261,13 +267,9 @@ class Player : IProcessable, IDrawable {
 		_timers[timer] = TIMER_DURATIONS[timer];
 	}
 
-	void UnsetTimer(int timer) {
-		_timers[timer] = 0.0;
-	}
+	void UnsetTimer(int timer) { _timers[timer] = 0.0; }
 
-	bool TimerActive(int timer) const {
-		return _timers[timer] > 0.0;
-	}
+	bool TimerActive(int timer) const { return _timers[timer] > 0.0; }
 
 	void Buffer(int buffer) {
 		if (isnanf(BUFFER_DURATIONS[buffer])) {
@@ -276,13 +278,9 @@ class Player : IProcessable, IDrawable {
 		_buffers[buffer] = BUFFER_DURATIONS[buffer];
 	}
 
-	void Unbuffer(int buffer) {
-		_buffers[buffer] = 0.0;
-	}
+	void Unbuffer(int buffer) { _buffers[buffer] = 0.0; }
 
-	bool BufferActive(int buffer) const {
-		return _buffers[buffer] > 0.0;
-	}
+	bool BufferActive(int buffer) const { return _buffers[buffer] > 0.0; }
 
 	bool UseBuffer(int buffer) {
 		bool active = BufferActive(buffer);
@@ -290,21 +288,13 @@ class Player : IProcessable, IDrawable {
 		return active;
 	}
 
-	void SetCooldown(int cooldown) {
-		_cooldowns[cooldown] = COOLDOWN_DURATIONS[cooldown];
-	}
+	void SetCooldown(int cooldown) { _cooldowns[cooldown] = COOLDOWN_DURATIONS[cooldown]; }
 
-	void UnsetCooldown(int cooldown) {
-		_cooldowns[cooldown] = 0.0;
-	}
+	void UnsetCooldown(int cooldown) { _cooldowns[cooldown] = 0.0; }
 
-	bool CooldownActive(int cooldown) const {
-		return _cooldowns[cooldown] > 0.0;
-	}
+	bool CooldownActive(int cooldown) const { return _cooldowns[cooldown] > 0.0; }
 
-	bool HasUpgrade(int upgrade) {
-		return (_upgradeBits & (1 << upgrade)) > 0;
-	}
+	bool HasUpgrade(int upgrade) { return (_upgradeBits & (1 << upgrade)) > 0; }
 
 	void Process(float delta) override {
 		for (int i = 0; i < _TIMER_COUNT; i++) {
@@ -347,7 +337,7 @@ class Player : IProcessable, IDrawable {
 			CollisionResult firstCollision{};
 			Vector2 frameVelocity = velocity * delta;
 
-			for (auto& collider : _staticColliders) {
+			for (auto& collider : _staticColliders.get()) {
 				CollisionResult newCollision = collider.SweptAABBCollision(_collision, frameVelocity);
 
 				if (newCollision.depth < firstCollision.depth) {
@@ -379,6 +369,25 @@ class Player : IProcessable, IDrawable {
 				break;
 		}
 
+		_ceilingCheck.x = position.x + CEILING_CHECK_OFFSET.x;
+		_ceilingCheck.y = position.y + CEILING_CHECK_OFFSET.y;
+		_floorCheck.x = position.x + FLOOR_CHECK_OFFSET.x;
+		_floorCheck.y = position.y + FLOOR_CHECK_OFFSET.y;
+
+		for (auto collider : _staticColliders.get()) {
+			if (SDL_HasIntersectionF(&_ceilingCheck, &collider)) {
+				_closeToCeiling = true;
+				break;
+			}
+		}
+
+		for (auto collider : _staticColliders.get()) {
+			if (SDL_HasIntersectionF(&_floorCheck, &collider)) {
+				_closeToFloor = true;
+				break;
+			}
+		}
+
 		// squish & stretch
 		float targetSquish = 1.0;
 
@@ -407,12 +416,15 @@ class Player : IProcessable, IDrawable {
 		_sprite.Process(delta);
 
 		// cout << velocity << endl;
-		// cout << _input.GetDir() << endl;
-		cout << position << endl;
+		//  cout << _input.GetDir() << endl;
+		// cout << position << endl;
 	}
 
-	void Draw(SDL_Renderer* renderer) const {
-		_sprite.Draw(renderer);
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const {
+		_sprite.Draw(renderer, drawOffset);
+		//_collision.Draw(renderer, drawOffset);
+		//_ceilingCheck.Draw(renderer, drawOffset);
+		//_floorCheck.Draw(renderer, drawOffset);
 	}
 
 	void FlipSprite(bool left) {
@@ -424,21 +436,13 @@ class Player : IProcessable, IDrawable {
 		_sprite.SetFlip(left ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 	}
 
-	void UnloadDive() {
-		_diveAvailable = false;
-	}
+	void UnloadDive() { _diveAvailable = false; }
 
-	void ReloadDive() {
-		_diveAvailable = true;
-	}
+	void ReloadDive() { _diveAvailable = true; }
 
-	void UnloadDash() {
-		_dashAvailable = false;
-	}
+	void UnloadDash() { _dashAvailable = false; }
 
-	void ReloadDash() {
-		_dashAvailable = true;
-	}
+	void ReloadDash() { _dashAvailable = true; }
 };
 
 #include "MovementStateDash.hpp"

@@ -42,6 +42,7 @@ void Player::DiveProcess(float delta) {
 	_currentDiveGravity = min(_currentDiveGravity * powf(DIVE_GRAVITY_MULT, delta), DIVE_GRAVITY_MAX);
 
 	// rotating
+	// FIXME rotation broken during diveboost
 	_sprite.SetRotationRadians(atanf(copysignf(velocity.y, velocity.x) / abs(velocity.x)));
 
 	// diveboost buffer

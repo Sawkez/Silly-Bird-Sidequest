@@ -66,12 +66,11 @@ class RoomCamera : IProcessable {
 		_offset = windowRes / _zoom * 0.5;
 	}
 
-	void Process(float delta) override {
-		_position = _player.position;
-	}
+	void Process(float delta) override { _position = _player.position - _room.get().GetPosition(); }
 
 	SDL_Point GetDrawOffset() const {
 		Vector2 boundary = _room.get().GetSize() - _offset;
+		cout << boundary << endl;
 
 		SDL_Point drawOffset;
 
@@ -94,7 +93,5 @@ class RoomCamera : IProcessable {
 		return drawOffset;
 	}
 
-	float GetZoom() const {
-		return _zoom;
-	}
+	float GetZoom() const { return _zoom; }
 };

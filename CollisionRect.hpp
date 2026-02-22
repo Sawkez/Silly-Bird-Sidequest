@@ -37,9 +37,10 @@ struct CollisionRect : SDL_FRect, IDrawable {
 		oneWayNormal = other.oneWayNormal;
 	}
 
-	void Draw(SDL_Renderer* renderer) const override {
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderDrawRectF(renderer, this);
+		SDL_FRect destination{x + drawOffset.x, y + drawOffset.y, w, h};
+		SDL_RenderDrawRectF(renderer, &destination);
 	}
 
 	CollisionResult SweptAABBCollision(const CollisionRect& movingRect, const Vector2& velocity) const {

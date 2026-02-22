@@ -23,11 +23,20 @@ const float MAX_DIVE_BUFFER_Y_VELOCITY = 250.0;
 
 const float SLOW_RUN_SPEED = 100.0;
 
+const float CEILING_DASH_VELOCITY = 200.0;
+
 void Player::NormalInit() {}
 
 void Player::NormalProcess(float delta) {
 	if (_shortCollision && !_closeToCeiling) {
 		SetShortCollision(false);
+	}
+
+	// ceiling dash
+	if (TimerActive(TIMER_DASH) && velocity.y < GRAVITY * delta && _pushingCeiling) {
+		UnsetTimer(TIMER_DASH);
+		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
+		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
 
 	// friction
@@ -50,7 +59,7 @@ void Player::NormalProcess(float delta) {
 	// going way too fast
 	else {
 		float activeFrict = _pushingFloor ? FRICTION : AIR_FRICTION;
-		velocity.x -= Math::CopySignOrZero(velocity.x, activeFrict * delta);
+		velocity.x -= Math::CopySignOrZero(activeFrict * delta, velocity.x);
 	}
 
 	// accelerating

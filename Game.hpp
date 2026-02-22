@@ -50,7 +50,10 @@ struct Game {
 
 	void GameLoopIteration() {
 		unsigned long lastFrameTimeMs = frameEndMs - frameStartMs;
-		float delta = min(float(lastFrameTimeMs / 1000.0), MAX_DELTA);
+		float delta = float(lastFrameTimeMs / 1000.0);
+		if (delta > MAX_DELTA) {
+			delta = frameDuration / 1000.0;
+		}
 
 		frameStartMs = SDL_GetTicks64();
 
