@@ -60,6 +60,8 @@ class Room {
 		}
 
 		SDL_SetRenderTarget(renderer, _tileCache);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_RenderClear(renderer);
 
 		for (auto tile : _tiles) {
 			tile.Draw(renderer, atlases);
