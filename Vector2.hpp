@@ -5,86 +5,52 @@
 #include "Json.hpp"
 
 class Vector2 : public SDL_FPoint {
-    public:
+  public:
+	Vector2(float X, float Y) : SDL_FPoint{X, Y} {}
 
-        Vector2(float X, float Y) :
-        SDL_FPoint{X, Y}
-        { }
+	Vector2(const SDL_Point& point) : SDL_FPoint{float(point.x), float(point.y)} {}
 
-        Vector2() :
-        Vector2(0.0, 0.0)
-        { }
+	Vector2() : Vector2(0.0, 0.0) {}
 
-        Vector2 operator+(const Vector2& b) const {
-            return Vector2{
-                x + b.x,
-                y + b.y
-            };
-        }
+	Vector2 operator+(const Vector2& b) const { return Vector2{x + b.x, y + b.y}; }
 
-        Vector2 operator-(const Vector2& b) const {
-            return Vector2{
-                x - b.x,
-                y - b.y
-            };
-        }
+	Vector2 operator-(const Vector2& b) const { return Vector2{x - b.x, y - b.y}; }
 
-        Vector2 operator-() const {
-            return Vector2 {-x, -y};
-        }
+	Vector2 operator-() const { return Vector2{-x, -y}; }
 
-        Vector2 operator*(float b) const {
-            return Vector2{
-                x * b,
-                y * b
-            };
-        }
+	Vector2 operator*(float b) const { return Vector2{x * b, y * b}; }
 
-        Vector2 operator/(float b) const {
-            return Vector2 {
-                x / b,
-                y / b
-            };
-        }
+	Vector2 operator/(float b) const { return Vector2{x / b, y / b}; }
 
-        Vector2 operator*(const Vector2& b) {
-            return Vector2{
-                x * b.x,
-                y * b.y
-            };
-        }
+	Vector2 operator*(const Vector2& b) { return Vector2{x * b.x, y * b.y}; }
 
-        Vector2& operator+=(const Vector2& b) {
-            x += b.x;
-            y += b.y;
-            return *this;
-        }
+	Vector2& operator+=(const Vector2& b) {
+		x += b.x;
+		y += b.y;
+		return *this;
+	}
 
-        Vector2& operator*=(float b) {
-            x *= b;
-            y *= b;
-            return *this;
-        }
+	Vector2& operator*=(float b) {
+		x *= b;
+		y *= b;
+		return *this;
+	}
 
-        Vector2& operator*=(const Vector2& b) {
-            x *= b.x;
-            y *= b.y;
-            return *this;
-        }
+	Vector2& operator*=(const Vector2& b) {
+		x *= b.x;
+		y *= b.y;
+		return *this;
+	}
 
-        bool operator==(const Vector2& b) const {
-            return x == b.x && y == b.y;
-        }
+	bool operator==(const Vector2& b) const { return x == b.x && y == b.y; }
 
-        float& operator[](int index) {
-            return index == 0? x : y;
-        }
+	float& operator[](int index) { return index == 0 ? x : y; }
 
-        static const Vector2 ZERO;
-        static const Vector2 UP;
-        static const Vector2 DOWN;
-        static const Vector2 LEFT;
-        static const Vector2 RIGHT;
+	static const Vector2 ZERO;
+	static const Vector2 UP;
+	static const Vector2 DOWN;
+	static const Vector2 LEFT;
+	static const Vector2 RIGHT;
 };
 
 inline const Vector2 Vector2::ZERO = Vector2(0.0, 0.0);
@@ -93,16 +59,14 @@ inline const Vector2 Vector2::DOWN = Vector2(0.0, 1.0);
 inline const Vector2 Vector2::LEFT = Vector2(-1.0, 0.0);
 inline const Vector2 Vector2::RIGHT = Vector2(1.0, 0.0);
 
-Vector2 operator*(float a, const Vector2& b) {
-    return Vector2 {a * b.x, a * b.y};
-}
+Vector2 operator*(float a, const Vector2& b) { return Vector2{a * b.x, a * b.y}; }
 
 std::ostream& operator<<(std::ostream& out, const Vector2& vec) {
-    out << "( " << vec.x << ", " << vec.y << " )";
-    return out;
+	out << "( " << vec.x << ", " << vec.y << " )";
+	return out;
 }
 
 void from_json(const nlohmann::json& json, Vector2& vector) {
-    vector.x = json.at("x");
-    vector.y = json.at("y");
+	vector.x = json.at("x");
+	vector.y = json.at("y");
 }

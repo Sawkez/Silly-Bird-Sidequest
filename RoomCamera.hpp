@@ -66,11 +66,18 @@ class RoomCamera : IProcessable {
 		_offset = windowRes / _zoom * 0.5;
 	}
 
-	void Process(float delta) override { _position = _player.position - _room.get().GetPosition(); }
+	void Process(float delta) override {
+		if (_player.GetInput().IsDown(ACTION_PAN_CAMERA)) {
+			_position += _player.GetInput().GetDir() * 100.0 * delta;
+		}
+
+		else {
+			_position = _player.position - _room.get().GetPosition();
+		}
+	}
 
 	SDL_Point GetDrawOffset() const {
 		Vector2 boundary = _room.get().GetSize() - _offset;
-		cout << boundary << endl;
 
 		SDL_Point drawOffset;
 
@@ -91,6 +98,19 @@ class RoomCamera : IProcessable {
 		}
 
 		return drawOffset;
+	}
+
+	SDL_Rect GetRect() const {
+		int w = int(round(_offset.x * 2.0f));
+		int h = int(round(_offset.y * 2.0f));
+
+
+		Vector2 roomSize = _room.get().GetSize();
+
+		float viewportX = clamp(_position.x, _offset.x, max(_offset.x, roomSize.x - _offset.x)) - _offset.x;
+		float viewportY = clamp(_position.y, _offset.y, max(_offset.y, roomSize.y - _offset.y)) - _offset.y;
+
+		return {int(round(viewportX)), int(round(viewportY)), w, h};
 	}
 
 	float GetZoom() const { return _zoom; }

@@ -16,7 +16,7 @@
 
 using namespace std;
 
-class Player : IProcessable, IDrawable {
+class Player : public IProcessable, public IDrawable {
 	enum PlayerAnimation {
 		ANIM_DUCK,
 		ANIM_FLY,
@@ -420,12 +420,7 @@ class Player : IProcessable, IDrawable {
 		// cout << position << endl;
 	}
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const {
-		_sprite.Draw(renderer, drawOffset);
-		//_collision.Draw(renderer, drawOffset);
-		//_ceilingCheck.Draw(renderer, drawOffset);
-		//_floorCheck.Draw(renderer, drawOffset);
-	}
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const { _sprite.Draw(renderer, drawOffset); }
 
 	void FlipSprite(bool left) {
 		if (_facingLeft == left)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <iostream>
 
 #include "Json.hpp"
 
@@ -17,11 +18,11 @@ struct Tile {
 
 	Tile() {};
 
-	void Draw(SDL_Renderer* renderer, const vector<SDL_Texture*>& atlases) {
+	void Draw(SDL_Renderer* renderer, const vector<SDL_Texture*>& atlases, int xOffset, int yOffset) {
 		SDL_Rect source{xAtlas * DRAW_SOURCE_SIZE, yAtlas * DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
 
-		SDL_Rect dest{x * DRAW_DEST_SIZE + DRAW_DEST_OFFSET, y * DRAW_DEST_SIZE + DRAW_DEST_OFFSET, DRAW_SOURCE_SIZE,
-					  DRAW_SOURCE_SIZE};
+		SDL_Rect dest{x * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + xOffset, y * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + yOffset,
+					  DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
 
 		int error = SDL_RenderCopy(renderer, atlases.at(sourceID), &source, &dest);
 
@@ -37,4 +38,9 @@ void from_json(const nlohmann::json& json, Tile& tile) {
 	tile.xAtlas = json.at("atlas_x");
 	tile.yAtlas = json.at("atlas_y");
 	tile.sourceID = json.at("source_id");
+}
+
+std::ostream& operator<<(std::ostream& out, const Tile& tile) {
+	out << "( " << tile.x << ", " << tile.y << " )";
+	return out;
 }

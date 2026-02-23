@@ -10,6 +10,7 @@
 #include "InputManager.hpp"
 #include "Json.hpp"
 #include "Player.hpp"
+#include "RenderChunk.hpp"
 #include "Room.hpp"
 #include "RoomCamera.hpp"
 #include "TileSheetSource.hpp"
@@ -26,7 +27,7 @@ class Level : IProcessable, IDrawable {
 	vector<Room> _rooms;
 	Player _player;
 	RoomCamera _roomCamera;
-	SDL_Texture* _lowResRenderTexture;
+	vector<RenderChunk> _renderChunks;
 
   public:
 	Level(const json& levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
@@ -35,7 +36,8 @@ class Level : IProcessable, IDrawable {
 		  _rooms(LoadRooms(levelProperties, pathToFolder)),
 		  _atlases(LoadAtlases(levelProperties, pathToFolder, renderer)),
 		  _player(Player(inputManager, renderer, _rooms.front().GetColliders())),
-		  _roomCamera(_player, _rooms.at(_currentRoom), window), _lowResRenderTexture(CreateLowResRenderTexture()) {
+		  _roomCamera(_player, _rooms.at(_currentRoom), window),
+		  _renderChunks(CreateRenderChunks(_rooms.at(_currentRoom), renderer)) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = levelProperties.at("player_x");
 		_player.position.y = levelProperties.at("player_y");
@@ -98,27 +100,32 @@ class Level : IProcessable, IDrawable {
 	}
 
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
-		// pixel rendering
-		SDL_SetRenderTarget(renderer, _lowResRenderTexture) < 0;
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255) < 0;
+		drawOffset += _roomCamera.GetDrawOffset();
+
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderClear(renderer);
 
-		_rooms[_currentRoom].Draw(renderer, _atlases);
-		_player.Draw(renderer, drawOffset - _rooms.at(_currentRoom).GetPosition());
-
-		// fullres rendering
-		SDL_SetRenderTarget(renderer, NULL);
-
-		SDL_Point cameraOffset = _roomCamera.GetDrawOffset();
+		SDL_Rect camRect = _roomCamera.GetRect();
 		float zoom = _roomCamera.GetZoom();
 
-		SDL_FRect destination{cameraOffset.x * zoom + drawOffset.x, cameraOffset.y * zoom + drawOffset.y,
-							  _rooms.at(_currentRoom).GetWidth() * zoom, _rooms.at(_currentRoom).GetHeight() * zoom};
-
-		SDL_RenderCopyF(renderer, _lowResRenderTexture, NULL, &destination);
+		for (const auto& chunk : _renderChunks) {
+			SDL_Rect chunkRect = chunk.GetRect();
+			if (SDL_HasIntersection(&camRect, &chunkRect)) {
+				chunk.DrawRoom(renderer);
+				chunk.DrawObject(renderer, _player, _rooms.at(_currentRoom).GetPosition());
+				chunk.Draw(renderer, drawOffset, zoom);
+				break;
+			}
+		}
 	}
 
 	void SetCurrentRoom(int room) {
+		if (room == _currentRoom) {
+			return;
+		}
+
+		cout << "Entered room " << room << endl;
+
 		_rooms.at(_currentRoom).UncacheTiles();
 		_currentRoom = room;
 		Room& newRoom = _rooms.at(_currentRoom);
@@ -126,18 +133,23 @@ class Level : IProcessable, IDrawable {
 		_player.SetStaticColliders(newRoom.GetColliders());
 		_roomCamera.SetRoom(newRoom);
 
-		SDL_DestroyTexture(_lowResRenderTexture);
-		_lowResRenderTexture = CreateLowResRenderTexture();
+		DestroyRenderChunks();
+		_renderChunks = CreateRenderChunks(_rooms.at(_currentRoom), _renderer);
 	}
 
-	SDL_Texture* CreateLowResRenderTexture() const {
-		SDL_Texture* tex = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-											 _rooms.at(_currentRoom).GetWidth(), _rooms.at(_currentRoom).GetHeight());
+	vector<RenderChunk> CreateRenderChunks(const Room& room, SDL_Renderer* renderer) const {
+		vector<RenderChunk> renderChunks;
+		const vector<RoomChunk>& chunks = room.GetChunks();
+		renderChunks.reserve(chunks.size());
 
-		if (tex == NULL)
-			cerr << "ERROR creating low res render texture: " << SDL_GetError() << endl;
-		return tex;
+		for (const auto& roomChunk : room.GetChunks()) {
+			renderChunks.emplace_back(roomChunk, renderer);
+		}
+
+		return renderChunks;
 	}
+
+	void DestroyRenderChunks() { _renderChunks.clear(); }
 
 	RoomCamera& GetCamera() { return _roomCamera; }
 };

@@ -1,1 +1,1 @@
-{"player_x":32.0,"player_y":192.0,"room_count":3,"starting_room":0,"tilesheet_sources":[{"custom":false,"name":"template_full.png"},{"custom":false,"name":"template_short.png"},{"custom":false,"name":"grass.png"},{"custom":true,"name":"brick.png"},{"custom":true,"name":"wood.png"}]}
+{"player_x":32.0,"player_y":192.0,"room_count":5,"starting_room":0,"tilesheet_sources":[{"custom":false,"name":"template_full.png"},{"custom":false,"name":"template_short.png"},{"custom":false,"name":"grass.png"},{"custom":true,"name":"brick.png"},{"custom":true,"name":"wood.png"}]}

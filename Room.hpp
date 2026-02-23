@@ -5,7 +5,7 @@
 
 #include "CollisionRect.hpp"
 #include "Json.hpp"
-#include "Tile.hpp"
+#include "RoomChunk.hpp"
 #include "Vector2.hpp"
 
 using namespace std;
@@ -14,7 +14,6 @@ using json = nlohmann::json;
 class Room {
   private:
 	vector<CollisionRect> _colliders;
-	vector<Tile> _tiles;
 	vector<Vector2> _ledges;
 	int _width;
 	int _height;
@@ -22,13 +21,13 @@ class Room {
 	int _targetHeight;
 	int _xPosition;
 	int _yPosition;
-	SDL_Texture* _tileCache = NULL;
+	vector<RoomChunk> _chunks;
 
   public:
 	Room(const string& jsonPath) : Room(LoadJson(jsonPath)) {}
 
 	Room(const json& roomJson)
-		: _colliders(LoadColliders(roomJson)), _tiles(LoadTiles(roomJson)), _ledges(LoadLedges(roomJson)),
+		: _colliders(LoadColliders(roomJson)), _chunks(LoadChunks(roomJson)), _ledges(LoadLedges(roomJson)),
 		  _width(roomJson["width"]), _height(roomJson["height"]), _targetWidth(roomJson["target_width"]),
 		  _targetHeight(roomJson["target_height"]), _xPosition(roomJson["position_x"]),
 		  _yPosition(roomJson["position_y"]) {}
@@ -46,45 +45,32 @@ class Room {
 		return roomJson.at("collisions").get<vector<CollisionRect>>();
 	}
 
-	vector<Tile> LoadTiles(json roomJson) const { return roomJson.at("tiles").get<vector<Tile>>(); }
+	vector<RoomChunk> LoadChunks(json roomJson) const { return roomJson.at("chunks").get<vector<RoomChunk>>(); }
 
 	vector<Vector2> LoadLedges(json roomJson) const { return roomJson.at("ledges").get<vector<Vector2>>(); }
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
 
 	void CacheTiles(SDL_Renderer* renderer, const vector<SDL_Texture*>& atlases) {
-		_tileCache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, _width, _height);
-
-		if (_tileCache == NULL) {
-			cout << "ERROR when caching room: " << SDL_GetError() << endl;
-		}
-
-		SDL_SetRenderTarget(renderer, _tileCache);
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderClear(renderer);
-
-		for (auto tile : _tiles) {
-			tile.Draw(renderer, atlases);
+		for (auto& chunk : _chunks) {
+			chunk.CacheTiles(renderer, atlases);
 		}
 
 		SDL_SetRenderTarget(renderer, NULL);
 	}
 
-	void UncacheTiles() { SDL_DestroyTexture(_tileCache); }
-
-	void Draw(SDL_Renderer* renderer, const vector<SDL_Texture*>& atlases) const {
-		if (_tileCache == NULL) {
-			cerr << "ERROR: Tiles not cached!" << endl;
+	void UncacheTiles() {
+		for (auto& chunk : _chunks) {
+			chunk.UncacheTiles();
 		}
+	}
 
-		SDL_Rect destination{0, 0, _width, _height};
-
-		// workaround
-		// background sometimes doesn't get cleared
-		if (SDL_RenderFillRect(renderer, &destination) < 0)
-			cerr << " FUCK BUTT" << endl;
-
-		SDL_RenderCopy(renderer, _tileCache, NULL, &destination);
+	void Draw(SDL_Renderer* renderer) const {
+		for (const auto& chunk : _chunks) {
+			chunk.Draw(renderer);
+			SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+			SDL_RenderDrawRect(renderer, &chunk.rect);
+		}
 	}
 
 	Vector2 GetPosition() const { return Vector2{float(_xPosition), float(_yPosition)}; }
@@ -100,4 +86,6 @@ class Room {
 	}
 
 	Vector2 GetTargetSize() const { return Vector2{float(_targetWidth), float(_targetHeight)}; }
+
+	const vector<RoomChunk>& GetChunks() const { return _chunks; }
 };
