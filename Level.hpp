@@ -23,7 +23,7 @@ class Level : IProcessable, IDrawable {
 	string _path;
 	int _currentRoom = 0;
 	SDL_Renderer* _renderer;
-	vector<SDL_Texture*> _atlases;
+	vector<SDL_Surface*> _atlases;
 	vector<Room> _rooms;
 	Player _player;
 	RoomCamera _roomCamera;
@@ -33,8 +33,7 @@ class Level : IProcessable, IDrawable {
 	Level(const json& levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
 		  const InputManager& inputManager, SDL_Window* window)
 		: _path(pathToFolder), _currentRoom(levelProperties.at("starting_room")), _renderer(renderer),
-		  _rooms(LoadRooms(levelProperties, pathToFolder)),
-		  _atlases(LoadAtlases(levelProperties, pathToFolder, renderer)),
+		  _rooms(LoadRooms(levelProperties, pathToFolder)), _atlases(LoadAtlases(levelProperties, pathToFolder)),
 		  _player(Player(inputManager, renderer, _rooms.front().GetColliders())),
 		  _roomCamera(_player, _rooms.at(_currentRoom), window),
 		  _renderChunks(CreateRenderChunks(_rooms.at(_currentRoom), renderer)) {
@@ -57,18 +56,17 @@ class Level : IProcessable, IDrawable {
 		return json::parse(jsonFile);
 	}
 
-	vector<SDL_Texture*> LoadAtlases(const json& levelProperties, const string& pathToFolder,
-									 SDL_Renderer* renderer) const {
+	vector<SDL_Surface*> LoadAtlases(const json& levelProperties, const string& pathToFolder) const {
 		vector<TileSheetSource> sources = levelProperties.at("tilesheet_sources").get<vector<TileSheetSource>>();
-		vector<SDL_Texture*> atlases;
+		vector<SDL_Surface*> atlases;
 
 		for (auto source : sources) {
-			SDL_Texture* texture = IMG_LoadTexture(renderer, source.GetPath(pathToFolder).data());
-			if (texture == NULL) {
+			SDL_Surface* surface = IMG_Load(source.GetPath(pathToFolder).data());
+			if (surface == NULL) {
 				cerr << "ERROR: couldn't load tilesheet atlas " << source.GetPath(pathToFolder) << ": "
 					 << SDL_GetError() << endl;
 			}
-			atlases.push_back(texture);
+			atlases.push_back(surface);
 		}
 
 		return atlases;
@@ -114,7 +112,6 @@ class Level : IProcessable, IDrawable {
 				chunk.DrawRoom(renderer);
 				chunk.DrawObject(renderer, _player, _rooms.at(_currentRoom).GetPosition());
 				chunk.Draw(renderer, drawOffset, zoom);
-				break;
 			}
 		}
 	}

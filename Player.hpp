@@ -7,7 +7,7 @@
 #include "Animation.hpp"
 #include "CollisionRect.hpp"
 #include "CollisionResult.hpp"
-#include "IDrawable.hpp"
+#include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Vector2.hpp"
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-class Player : public IProcessable, public IDrawable {
+class Player : public IProcessable, public IDrawableRect {
 	enum PlayerAnimation {
 		ANIM_DUCK,
 		ANIM_FLY,
@@ -438,6 +438,8 @@ class Player : public IProcessable, public IDrawable {
 	void UnloadDash() { _dashAvailable = false; }
 
 	void ReloadDash() { _dashAvailable = true; }
+
+	SDL_FRect GetRect() const override { return _sprite.GetRect(); }
 };
 
 #include "MovementStateDash.hpp"

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Animation.hpp"
-#include "IDrawable.hpp"
+#include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
 #include "Vector2.hpp"
 
@@ -13,7 +13,7 @@ const float DEGREES_PER_RADIAN = 180.0 / M_PI;
 
 using namespace std;
 
-class AnimatedSprite : IDrawable, IProcessable {
+class AnimatedSprite : IDrawableRect, IProcessable {
   private:
 	vector<Animation> _animations;
 	Vector2 _offset = Vector2::ZERO;
@@ -38,12 +38,9 @@ class AnimatedSprite : IDrawable, IProcessable {
 
 		SDL_Rect source = animation.GetSourceRect();
 
-		Vector2 sizeScaled = animation.GetFrameSize() * scale;
-
-		SDL_FRect destination{
-			position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x + drawOffset.x,
-			position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y + drawOffset.y,
-			sizeScaled.x, sizeScaled.y};
+		SDL_FRect destination = GetRect();
+		destination.x += drawOffset.x;
+		destination.y += drawOffset.y;
 
 		int error = SDL_RenderCopyExF(renderer, animation.GetTexture(), &source, &destination, _rotation,
 									  &_rotateOrigin, _flip);
@@ -79,5 +76,12 @@ class AnimatedSprite : IDrawable, IProcessable {
 	void PlayLastFrame(int animationID, float speed = 1.0) {
 		Play(animationID, speed);
 		_animations[animationID].SetLastFrame();
+	}
+
+	SDL_FRect GetRect() const override {
+		Vector2 sizeScaled = _animations.at(_current).GetFrameSize() * scale;
+		return SDL_FRect{position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x,
+						 position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y,
+						 sizeScaled.x, sizeScaled.y};
 	}
 };

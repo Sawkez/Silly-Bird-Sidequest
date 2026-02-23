@@ -18,13 +18,13 @@ struct Tile {
 
 	Tile() {};
 
-	void Draw(SDL_Renderer* renderer, const vector<SDL_Texture*>& atlases, int xOffset, int yOffset) {
+	void Draw(SDL_Surface* targetSurface, const vector<SDL_Surface*>& atlases, int xOffset, int yOffset) {
 		SDL_Rect source{xAtlas * DRAW_SOURCE_SIZE, yAtlas * DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
 
-		SDL_Rect dest{x * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + xOffset, y * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + yOffset,
-					  DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
+		SDL_Rect destination{x * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + xOffset,
+							 y * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + yOffset, DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
 
-		int error = SDL_RenderCopy(renderer, atlases.at(sourceID), &source, &dest);
+		int error = SDL_BlitSurface(atlases.at(sourceID), &source, targetSurface, &destination);
 
 		if (error < 0) {
 			cerr << "ERROR when caching room: " << SDL_GetError() << endl;

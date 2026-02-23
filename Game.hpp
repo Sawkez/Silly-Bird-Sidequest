@@ -103,12 +103,5 @@ struct Game {
 			SDL_Delay(frameDuration - frameTimeMs);
 			frameEndMs = SDL_GetTicks64();
 		}
-
-#if __PSP__
-		cout << "Kernel RAM available: " << sceKernelTotalFreeMemSize() << endl;
-		//cout << pspSdkTotalFreeUserMemSize() << endl;
-#endif
-
-		// cout << "Frame time: " << lastFrameTimeMs << endl;
 	}
 };

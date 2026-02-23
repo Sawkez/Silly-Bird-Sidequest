@@ -51,12 +51,10 @@ class Room {
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
 
-	void CacheTiles(SDL_Renderer* renderer, const vector<SDL_Texture*>& atlases) {
+	void CacheTiles(SDL_Renderer* renderer, const vector<SDL_Surface*>& atlases) {
 		for (auto& chunk : _chunks) {
 			chunk.CacheTiles(renderer, atlases);
 		}
-
-		SDL_SetRenderTarget(renderer, NULL);
 	}
 
 	void UncacheTiles() {

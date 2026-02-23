@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <functional>
 
-#include "IDrawable.hpp"
+#include "IDrawableRect.hpp"
 #include "RoomChunk.hpp"
 
 class RenderChunk {
@@ -40,19 +40,27 @@ class RenderChunk {
 	RenderChunk(const RoomChunk& roomChunk, SDL_Renderer* renderer)
 		: _roomChunk(std::ref(roomChunk)),
 		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET,
-										   _roomChunk.get().rect.w, _roomChunk.get().rect.h)) {}
+										   _roomChunk.get().rect.w, _roomChunk.get().rect.h)) {
+		SDL_SetTextureBlendMode(_renderTexture, SDL_BLENDMODE_BLEND);
+	}
 
 	void DrawRoom(SDL_Renderer* renderer) const {
 		SDL_SetRenderTarget(renderer, _renderTexture);
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
 		SDL_RenderClear(renderer);
 
 		_roomChunk.get().Draw(renderer);
 	}
 
-	void DrawObject(SDL_Renderer* renderer, const IDrawable& object, Vector2 roomPos) const {
-		SDL_Rect rect = _roomChunk.get().rect;
-		object.Draw(renderer, Vector2{-rect.x - roomPos.x, -rect.y - roomPos.y});
+	void DrawObject(SDL_Renderer* renderer, const IDrawableRect& object, Vector2 roomPos) const {
+		SDL_FRect roomRect = _roomChunk.get().GetFRect();
+		SDL_FRect objectRect = object.GetRect();
+
+		objectRect.x -= roomPos.x;
+		objectRect.y -= roomPos.y;
+
+		if (SDL_HasIntersectionF(&roomRect, &objectRect))
+			object.Draw(renderer, Vector2{-roomRect.x - roomPos.x + 8.0f, -roomRect.y - roomPos.y + 8.0f});
 	}
 
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset, float zoom) const {
@@ -60,13 +68,13 @@ class RenderChunk {
 
 		SDL_Rect destination = _roomChunk.get().rect;
 
-		SDL_FRect FDestination{(float(destination.x) + drawOffset.x) * zoom,
-							   (float(destination.y) + drawOffset.y) * zoom, float(destination.w) * zoom,
+		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom,
+							   (float(destination.y) + drawOffset.y - 8) * zoom, float(destination.w) * zoom,
 							   float(destination.h) * zoom};
 
 		SDL_RenderCopyF(renderer, _renderTexture, NULL, &FDestination);
 
-		SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		SDL_RenderDrawRectF(renderer, &FDestination);
 	}
 

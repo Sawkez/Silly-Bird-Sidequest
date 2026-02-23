@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <SDL_image.h>
 #include <iostream>
 #include <vector>
 
@@ -35,23 +36,24 @@ struct RoomChunk {
 		return *this;
 	}
 
-	void CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Texture*>& atlases) {
+	void CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases) {
 		std::cout << "Caching chunk " << rect.x << " " << rect.y << " " << rect.w << " " << rect.h << std::endl;
 
-		cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
+		SDL_Surface* cacheSurface = SDL_CreateRGBSurface(0, rect.w, rect.h, 16, 0xF000, 0x0F00, 0x00F0, 0x000F);
 
-		if (cache == NULL) {
+		if (cacheSurface == NULL) {
 			std::cerr << "ERROR when caching chunk: " << SDL_GetError() << std::endl;
 		}
 
-		SDL_SetRenderTarget(renderer, cache);
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderClear(renderer);
-
 		for (auto tile : tiles) {
 			std::cout << "Caching tile" << tile << std::endl;
-			tile.Draw(renderer, atlases, -rect.x, -rect.y);
+			tile.Draw(cacheSurface, atlases, -rect.x + 8, -rect.y + 8);
 		}
+
+		cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
+
+		SDL_SaveBMP(cacheSurface, "CUM.bmp");
+		SDL_FreeSurface(cacheSurface);
 	}
 
 	void UncacheTiles() {
@@ -69,7 +71,12 @@ struct RoomChunk {
 		destination.y = 0;
 
 		SDL_RenderCopy(renderer, cache, NULL, &destination);
+
+		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+		SDL_RenderDrawRect(renderer, &destination);
 	}
+
+	SDL_FRect GetFRect() const { return SDL_FRect{float(rect.x), float(rect.y), float(rect.w), float(rect.h)}; }
 };
 
 
