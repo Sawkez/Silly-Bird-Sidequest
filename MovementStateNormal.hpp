@@ -23,8 +23,6 @@ const float MAX_DIVE_BUFFER_Y_VELOCITY = 250.0;
 
 const float SLOW_RUN_SPEED = 100.0;
 
-const float CEILING_DASH_VELOCITY = 200.0;
-
 void Player::NormalInit() {}
 
 void Player::NormalProcess(float delta) {
@@ -34,9 +32,7 @@ void Player::NormalProcess(float delta) {
 
 	// ceiling dash
 	if (TimerActive(TIMER_DASH) && velocity.y < GRAVITY * delta && _pushingCeiling) {
-		UnsetTimer(TIMER_DASH);
-		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
-		SetTimer(TIMER_GRAVITY_FREEZE);
+		CeilingDash();
 	}
 
 	// friction

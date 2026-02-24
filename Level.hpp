@@ -120,12 +120,11 @@ class Level : IProcessable, IDrawable {
 		if (room == _currentRoom) {
 			return;
 		}
-
-		cout << "Entered room " << room << endl;
-
 		_rooms.at(_currentRoom).UncacheTiles();
+
 		_currentRoom = room;
 		Room& newRoom = _rooms.at(_currentRoom);
+
 		newRoom.CacheTiles(_renderer, _atlases);
 		_player.SetStaticColliders(newRoom.GetColliders());
 		_roomCamera.SetRoom(newRoom);

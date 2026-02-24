@@ -73,9 +73,6 @@ class RenderChunk {
 							   float(destination.h) * zoom};
 
 		SDL_RenderCopyF(renderer, _renderTexture, NULL, &FDestination);
-
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_RenderDrawRectF(renderer, &FDestination);
 	}
 
 	SDL_Rect GetRect() const { return _roomChunk.get().rect; }

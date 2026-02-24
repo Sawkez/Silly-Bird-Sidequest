@@ -26,11 +26,14 @@ void Player::DashInit() {
 }
 
 void Player::DashProcess(float delta) {
+	if (_pushingCeiling) {
+		CeilingDash();
+		return;
+	}
+
 	if (_timers[TIMER_DASH] < DASH_RETURN_TIME) {
 		SetState(MOVEMENT_STATE_NORMAL);
 	}
-
-	// cout << velocity << endl;
 }
 
 void Player::DashDeinit() {}

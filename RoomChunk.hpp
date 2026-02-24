@@ -37,8 +37,6 @@ struct RoomChunk {
 	}
 
 	void CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases) {
-		std::cout << "Caching chunk " << rect.x << " " << rect.y << " " << rect.w << " " << rect.h << std::endl;
-
 		SDL_Surface* cacheSurface = SDL_CreateRGBSurface(0, rect.w, rect.h, 16, 0xF000, 0x0F00, 0x00F0, 0x000F);
 
 		if (cacheSurface == NULL) {
@@ -46,13 +44,10 @@ struct RoomChunk {
 		}
 
 		for (auto tile : tiles) {
-			std::cout << "Caching tile" << tile << std::endl;
 			tile.Draw(cacheSurface, atlases, -rect.x + 8, -rect.y + 8);
 		}
 
 		cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
-
-		SDL_SaveBMP(cacheSurface, "CUM.bmp");
 		SDL_FreeSurface(cacheSurface);
 	}
 
@@ -71,9 +66,6 @@ struct RoomChunk {
 		destination.y = 0;
 
 		SDL_RenderCopy(renderer, cache, NULL, &destination);
-
-		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-		SDL_RenderDrawRect(renderer, &destination);
 	}
 
 	SDL_FRect GetFRect() const { return SDL_FRect{float(rect.x), float(rect.y), float(rect.w), float(rect.h)}; }

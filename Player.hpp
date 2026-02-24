@@ -115,6 +115,8 @@ class Player : public IProcessable, public IDrawableRect {
 	const float X_SQUISH_MAX = 1.5;
 	const float Y_SQUISH_MAX = 1.25;
 
+	const float V_RESET_GRAVITY = 1800.0;
+
 	// const float FLOOR_RAY_LENGTH = 12.0;
 
 	const CollisionRect FULL_COLLISION = CollisionRect(0.0, 0.0, 8.0, 13.0);
@@ -126,6 +128,8 @@ class Player : public IProcessable, public IDrawableRect {
 										 COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
 	const Vector2 FLOOR_CHECK_OFFSET{-4.0, 0.0};
 	const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL;
+
+	const float CEILING_DASH_VELOCITY = 200.0;
 
   private:
 	// objects
@@ -319,6 +323,24 @@ class Player : public IProcessable, public IDrawableRect {
 		// calling movement state function
 		(this->*_processFuncs[_movementStateID])(delta);
 
+		// conserving v velocity for ultraslides
+
+		_lastVerticalVelocity = max(_lastVerticalVelocity, velocity.y);
+
+		if (velocity.y > V_RESET_GRAVITY * delta) {
+			SetTimer(TIMER_V_RESET);
+		}
+
+		if (!TimerActive(TIMER_V_RESET)) {
+			_lastVerticalVelocity = 0.0;
+		}
+
+		// TODO moving platforms
+
+		// TODO wallswap
+
+		// TODO rejuvenation
+
 		// moving and colliding
 		_wasPushingFloor = _pushingFloor;
 		_pushingFloor = false;
@@ -438,6 +460,12 @@ class Player : public IProcessable, public IDrawableRect {
 	void UnloadDash() { _dashAvailable = false; }
 
 	void ReloadDash() { _dashAvailable = true; }
+
+	void CeilingDash() {
+		UnsetTimer(TIMER_DASH);
+		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
+		SetTimer(TIMER_GRAVITY_FREEZE);
+	}
 
 	SDL_FRect GetRect() const override { return _sprite.GetRect(); }
 };

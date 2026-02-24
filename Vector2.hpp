@@ -1,16 +1,31 @@
 #pragma once
 
+#include <cmath>
 #include <iostream>
 
 #include "Json.hpp"
 
 class Vector2 : public SDL_FPoint {
+	static constexpr float ZERO_PRECISION = 0.001;
+
   public:
 	Vector2(float X, float Y) : SDL_FPoint{X, Y} {}
 
 	Vector2(const SDL_Point& point) : SDL_FPoint{float(point.x), float(point.y)} {}
 
 	Vector2() : Vector2(0.0, 0.0) {}
+
+	float LengthSquared() const { return x * x + y * y; }
+
+	float Length() const { return sqrtf(LengthSquared()); }
+
+	float Angle() const {
+		float angle = atan2(y, x);
+
+		return angle;
+	}
+
+	bool IsZeroApprox() const { return abs(x) + abs(y) < ZERO_PRECISION; }
 
 	Vector2 operator+(const Vector2& b) const { return Vector2{x + b.x, y + b.y}; }
 
@@ -43,6 +58,7 @@ class Vector2 : public SDL_FPoint {
 	}
 
 	bool operator==(const Vector2& b) const { return x == b.x && y == b.y; }
+	bool operator!=(const Vector2& b) const { return !(*this == b); }
 
 	float& operator[](int index) { return index == 0 ? x : y; }
 
