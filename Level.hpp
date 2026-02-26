@@ -13,6 +13,7 @@
 #include "RenderChunk.hpp"
 #include "Room.hpp"
 #include "RoomCamera.hpp"
+#include "RoomNeighbor.hpp"
 #include "TileSheetSource.hpp"
 
 using namespace std;
@@ -21,10 +22,9 @@ using json = nlohmann::json;
 class Level : IProcessable, IDrawable {
   private:
 	string _path;
-	int _currentRoom = 0;
 	SDL_Renderer* _renderer;
 	vector<SDL_Surface*> _atlases;
-	vector<Room> _rooms;
+	Room _currentRoom;
 	Player _player;
 	RoomCamera _roomCamera;
 	vector<RenderChunk> _renderChunks;
@@ -32,16 +32,15 @@ class Level : IProcessable, IDrawable {
   public:
 	Level(const json& levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
 		  const InputManager& inputManager, SDL_Window* window)
-		: _path(pathToFolder), _currentRoom(levelProperties.at("starting_room")), _renderer(renderer),
-		  _rooms(LoadRooms(levelProperties, pathToFolder)), _atlases(LoadAtlases(levelProperties, pathToFolder)),
-		  _player(Player(inputManager, renderer, _rooms.front().GetColliders())),
-		  _roomCamera(_player, _rooms.at(_currentRoom), window),
-		  _renderChunks(CreateRenderChunks(_rooms.at(_currentRoom), renderer)) {
+		: _path(pathToFolder), _currentRoom(LoadRoom(levelProperties.at("starting_room"))), _renderer(renderer),
+		  _atlases(LoadAtlases(levelProperties, pathToFolder)),
+		  _player(Player(inputManager, renderer, _currentRoom.GetColliders())),
+		  _roomCamera(_player, _currentRoom, window), _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = levelProperties.at("player_x");
 		_player.position.y = levelProperties.at("player_y");
 
-		_rooms.at(_currentRoom).CacheTiles(renderer, _atlases);
+		_currentRoom.CacheTiles(renderer, _atlases);
 	}
 
 	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
@@ -72,27 +71,15 @@ class Level : IProcessable, IDrawable {
 		return atlases;
 	};
 
-	vector<Room> LoadRooms(const json& levelProperties, const string& pathToFolder) const {
-		int roomCount = levelProperties["room_count"];
-		cout << "Loading " << roomCount << " rooms" << endl;
-
-		vector<Room> rooms;
-
-		for (int i = 0; i < roomCount; i++) {
-			rooms.push_back(Room(pathToFolder + "/rooms/" + to_string(i) + ".json"));
-		}
-
-		return rooms;
-	};
+	Room LoadRoom(int index) { return Room(_path + "/rooms/" + to_string(index) + ".json"); }
 
 	void Process(float delta) override {
 		_player.Process(delta);
 		_roomCamera.Process(delta);
 
-		for (int i = 0; i < _rooms.size(); i++) {
-			SDL_FRect roomRect = _rooms.at(i).GetFRect();
-			if (SDL_HasIntersectionF(&_player.GetCollision(), &roomRect)) {
-				SetCurrentRoom(i);
+		for (const auto& neighbor : _currentRoom.GetNeighbors()) {
+			if (SDL_HasIntersectionF(&_player.GetCollision(), &neighbor)) {
+				SetCurrentRoom(neighbor.index);
 			}
 		}
 	}
@@ -110,27 +97,21 @@ class Level : IProcessable, IDrawable {
 			SDL_Rect chunkRect = chunk.GetRect();
 			if (SDL_HasIntersection(&camRect, &chunkRect)) {
 				chunk.DrawRoom(renderer);
-				chunk.DrawObject(renderer, _player, _rooms.at(_currentRoom).GetPosition());
+				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
 				chunk.Draw(renderer, drawOffset, zoom);
 			}
 		}
 	}
 
 	void SetCurrentRoom(int room) {
-		if (room == _currentRoom) {
-			return;
-		}
-		_rooms.at(_currentRoom).UncacheTiles();
+		_currentRoom = LoadRoom(room);
 
-		_currentRoom = room;
-		Room& newRoom = _rooms.at(_currentRoom);
-
-		newRoom.CacheTiles(_renderer, _atlases);
-		_player.SetStaticColliders(newRoom.GetColliders());
-		_roomCamera.SetRoom(newRoom);
+		_currentRoom.CacheTiles(_renderer, _atlases);
+		_player.SetStaticColliders(_currentRoom.GetColliders());
+		_roomCamera.SetRoom(_currentRoom);
 
 		DestroyRenderChunks();
-		_renderChunks = CreateRenderChunks(_rooms.at(_currentRoom), _renderer);
+		_renderChunks = CreateRenderChunks(_currentRoom, _renderer);
 	}
 
 	vector<RenderChunk> CreateRenderChunks(const Room& room, SDL_Renderer* renderer) const {

@@ -69,6 +69,12 @@ struct RoomChunk {
 	}
 
 	SDL_FRect GetFRect() const { return SDL_FRect{float(rect.x), float(rect.y), float(rect.w), float(rect.h)}; }
+
+	~RoomChunk() {
+		cout << "Destroying room chunk!" << endl;
+		UncacheTiles();
+		tiles.clear();
+	}
 };
 
 
