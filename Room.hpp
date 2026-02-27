@@ -26,7 +26,12 @@ class Room {
 	vector<RoomNeighbor> _neighbors;
 
   public:
-	Room(const string& jsonPath) : Room(LoadJson(jsonPath)) {}
+	Room(const string& folderPath) : Room(folderPath, LoadJson(folderPath + "/room.json")) {}
+	Room(const string& folderPath, const json& roomJson)
+		: _colliders(LoadColliders(roomJson)), _chunks(LoadChunks(folderPath, roomJson)), _ledges(LoadLedges(roomJson)),
+		  _width(roomJson["width"]), _height(roomJson["height"]), _targetWidth(roomJson["target_width"]),
+		  _targetHeight(roomJson["target_height"]), _xPosition(roomJson["position_x"]),
+		  _yPosition(roomJson["position_y"]), _neighbors(LoadNeighbors(roomJson)) {}
 
 	Room(const Room&) = delete;
 	Room& operator=(const Room&) = delete;
@@ -48,12 +53,6 @@ class Room {
 		return *this;
 	}
 
-	Room(const json& roomJson)
-		: _colliders(LoadColliders(roomJson)), _chunks(LoadChunks(roomJson)), _ledges(LoadLedges(roomJson)),
-		  _width(roomJson["width"]), _height(roomJson["height"]), _targetWidth(roomJson["target_width"]),
-		  _targetHeight(roomJson["target_height"]), _xPosition(roomJson["position_x"]),
-		  _yPosition(roomJson["position_y"]), _neighbors(LoadNeighbors(roomJson)) {}
-
 	json LoadJson(const string& jsonPath) const {
 		ifstream jsonFile(jsonPath);
 		if (!jsonFile.good()) {
@@ -67,7 +66,15 @@ class Room {
 		return roomJson.at("collisions").get<vector<CollisionRect>>();
 	}
 
-	vector<RoomChunk> LoadChunks(const json& roomJson) const { return roomJson.at("chunks").get<vector<RoomChunk>>(); }
+	vector<RoomChunk> LoadChunks(const string& folderPath, const json& roomJson) const {
+		vector<RoomChunk> chunks;
+
+		for (int i = 0; i < roomJson.at("chunks").size(); i++) {
+			chunks.push_back(RoomChunk(folderPath + "/" + to_string(i) + ".chunk", roomJson.at("chunks").at(i)));
+		}
+
+		return chunks;
+	}
 
 	vector<Vector2> LoadLedges(const json& roomJson) const { return roomJson.at("ledges").get<vector<Vector2>>(); }
 
@@ -93,7 +100,7 @@ class Room {
 		for (const auto& chunk : _chunks) {
 			chunk.Draw(renderer);
 			SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-			SDL_RenderDrawRect(renderer, &chunk.rect);
+			SDL_RenderDrawRect(renderer, &chunk.GetRect());
 		}
 	}
 

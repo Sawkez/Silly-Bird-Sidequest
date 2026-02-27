@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "CollisionRect.hpp"
+#include "GameState.hpp"
 #include "InputManager.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
@@ -15,7 +16,6 @@
 
 using namespace std;
 
-const unsigned long frameDuration = 1000 / 60;
 const float MAX_DELTA = 1.0;
 
 #if __PSP__
@@ -28,22 +28,19 @@ struct Game {
 	SDL_Window* mainWindow;
 	SDL_Renderer* mainRenderer;
 	InputManager input;
-	bool running;
-	unsigned long frameStartMs;
-	unsigned long frameEndMs;
+	GameState state;
 	Level level;
 
 	Game()
 		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES,
 									  SDL_WINDOW_RESIZABLE)),
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
-		  input(), running(true), frameStartMs(SDL_GetTicks64()), frameEndMs(frameStartMs + frameDuration),
-		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow) {}
+		  input(), state(), level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state) {}
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
 
-		while (running) {
+		while (state.IsRunning()) {
 			GameLoopIteration();
 		}
 
@@ -55,13 +52,13 @@ struct Game {
 	}
 
 	void GameLoopIteration() {
-		unsigned long lastFrameTimeMs = frameEndMs - frameStartMs;
+		unsigned long lastFrameTimeMs = state.GetFrameEndMs() - state.GetFrameStartMs();
 		float delta = float(lastFrameTimeMs / 1000.0);
 		if (delta > MAX_DELTA) {
-			delta = frameDuration / 1000.0;
+			delta = state.frameDuration / 1000.0;
 		}
 
-		frameStartMs = SDL_GetTicks64();
+		state.UpdateFrameStart();
 
 		// event handling
 		SDL_Event event;
@@ -71,7 +68,7 @@ struct Game {
 				continue;
 
 			if (event.type == SDL_QUIT) {
-				running = false;
+				state.SetRunning(false);
 				continue;
 			}
 
@@ -96,12 +93,12 @@ struct Game {
 		SDL_RenderPresent(mainRenderer);
 
 		// frame limiting
-		frameEndMs = SDL_GetTicks64();
-		unsigned long frameTimeMs = frameEndMs - frameStartMs;
+		state.UpdateFrameEnd();
+		unsigned long frameTimeMs = state.GetFrameEndMs() - state.GetFrameStartMs();
 
-		if (frameTimeMs < frameDuration) {
-			SDL_Delay(frameDuration - frameTimeMs);
-			frameEndMs = SDL_GetTicks64();
+		if (frameTimeMs < state.frameDuration) {
+			SDL_Delay(state.frameDuration - frameTimeMs);
+			state.UpdateFrameEnd();
 		}
 	}
 };

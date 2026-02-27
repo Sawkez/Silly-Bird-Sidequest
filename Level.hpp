@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "CollisionRect.hpp"
+#include "GameState.hpp"
 #include "IDrawable.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
@@ -28,14 +29,16 @@ class Level : IProcessable, IDrawable {
 	Player _player;
 	RoomCamera _roomCamera;
 	vector<RenderChunk> _renderChunks;
+	GameState& _state;
 
   public:
 	Level(const json& levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
-		  const InputManager& inputManager, SDL_Window* window)
+		  const InputManager& inputManager, SDL_Window* window, GameState& state)
 		: _path(pathToFolder), _currentRoom(LoadRoom(levelProperties.at("starting_room"))), _renderer(renderer),
 		  _atlases(LoadAtlases(levelProperties, pathToFolder)),
 		  _player(Player(inputManager, renderer, _currentRoom.GetColliders())),
-		  _roomCamera(_player, _currentRoom, window), _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {
+		  _roomCamera(_player, _currentRoom, window), _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
+		  _state(state) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = levelProperties.at("player_x");
 		_player.position.y = levelProperties.at("player_y");
@@ -43,8 +46,9 @@ class Level : IProcessable, IDrawable {
 		_currentRoom.CacheTiles(renderer, _atlases);
 	}
 
-	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
-		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window) {}
+	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window,
+		  GameState& state)
+		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window, state) {}
 
 	json LoadJson(const string& pathToFolder) const {
 		ifstream jsonFile(pathToFolder + "/level.json");
@@ -71,7 +75,7 @@ class Level : IProcessable, IDrawable {
 		return atlases;
 	};
 
-	Room LoadRoom(int index) { return Room(_path + "/rooms/" + to_string(index) + ".json"); }
+	Room LoadRoom(int index) { return Room(_path + "/rooms/" + to_string(index)); }
 
 	void Process(float delta) override {
 		_player.Process(delta);
@@ -104,6 +108,7 @@ class Level : IProcessable, IDrawable {
 	}
 
 	void SetCurrentRoom(int room) {
+		_state.Pause();
 		_currentRoom = LoadRoom(room);
 
 		_currentRoom.CacheTiles(_renderer, _atlases);
@@ -112,6 +117,7 @@ class Level : IProcessable, IDrawable {
 
 		DestroyRenderChunks();
 		_renderChunks = CreateRenderChunks(_currentRoom, _renderer);
+		_state.Unpause();
 	}
 
 	vector<RenderChunk> CreateRenderChunks(const Room& room, SDL_Renderer* renderer) const {

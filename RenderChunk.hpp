@@ -40,7 +40,7 @@ class RenderChunk {
 	RenderChunk(const RoomChunk& roomChunk, SDL_Renderer* renderer)
 		: _roomChunk(std::ref(roomChunk)),
 		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET,
-										   _roomChunk.get().rect.w, _roomChunk.get().rect.h)) {
+										   _roomChunk.get().GetWidth(), _roomChunk.get().GetHeight())) {
 		SDL_SetTextureBlendMode(_renderTexture, SDL_BLENDMODE_BLEND);
 	}
 
@@ -66,7 +66,7 @@ class RenderChunk {
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset, float zoom) const {
 		SDL_SetRenderTarget(renderer, NULL);
 
-		SDL_Rect destination = _roomChunk.get().rect;
+		SDL_Rect destination = _roomChunk.get().GetRect();
 
 		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom,
 							   (float(destination.y) + drawOffset.y - 8) * zoom, float(destination.w) * zoom,
@@ -75,5 +75,5 @@ class RenderChunk {
 		SDL_RenderCopyF(renderer, _renderTexture, NULL, &FDestination);
 	}
 
-	SDL_Rect GetRect() const { return _roomChunk.get().rect; }
+	SDL_Rect GetRect() const { return _roomChunk.get().GetRect(); }
 };
