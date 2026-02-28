@@ -11,16 +11,16 @@ struct Tile {
 	static const int DRAW_DEST_SIZE = 8.0;
 	static const int DRAW_DEST_OFFSET = (DRAW_DEST_SIZE - DRAW_SOURCE_SIZE) / 2.0;
 
-	uint32_t x = 0;
-	uint32_t y = 0;
+	uint16_t x = 0;
+	uint16_t y = 0;
 	uint16_t xAtlas = 0;
 	uint16_t yAtlas = 0;
 	uint16_t sourceID = 0;
 
 	Tile() {};
 	Tile(ifstream& file) {
-		file.read(reinterpret_cast<char*>(&x), 4);
-		file.read(reinterpret_cast<char*>(&y), 4);
+		file.read(reinterpret_cast<char*>(&x), 2);
+		file.read(reinterpret_cast<char*>(&y), 2);
 		file.read(reinterpret_cast<char*>(&xAtlas), 2);
 		file.read(reinterpret_cast<char*>(&yAtlas), 2);
 		file.read(reinterpret_cast<char*>(&sourceID), 2);

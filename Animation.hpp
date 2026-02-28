@@ -30,7 +30,6 @@ class Animation {
 		: Animation(IMG_LoadTexture(renderer, path.data()), frameCount, fps, looping) {
 		if (_texture == NULL) {
 			std::cerr << "ERROR: couldn't load texture " << path << ": " << SDL_GetError() << std::endl;
-			SDL_Quit();
 		}
 	}
 
@@ -51,39 +50,21 @@ class Animation {
 		}
 	}
 
-	SDL_Rect GetSourceRect() const {
-		return SDL_Rect{_frame * _frameWidth, 0, _frameWidth, _frameHeight};
-	}
+	SDL_Rect GetSourceRect() const { return SDL_Rect{_frame * _frameWidth, 0, _frameWidth, _frameHeight}; }
 
-	SDL_Texture* GetTexture() const {
-		return _texture;
-	}
+	SDL_Texture* GetTexture() const { return _texture; }
 
-	int GetFrameWidth() const {
-		return _frameWidth;
-	}
+	int GetFrameWidth() const { return _frameWidth; }
 
-	int GetFrameHeight() const {
-		return _frameHeight;
-	}
+	int GetFrameHeight() const { return _frameHeight; }
 
-	Vector2 GetFrameSize() const {
-		return Vector2{float(_frameWidth), float(_frameHeight)};
-	}
+	Vector2 GetFrameSize() const { return Vector2{float(_frameWidth), float(_frameHeight)}; }
 
-	void SetSpeed(float speed) {
-		_speed = speed;
-	}
+	void SetSpeed(float speed) { _speed = speed; }
 
-	void SetFrame(int frame) {
-		_frame = frame;
-	}
+	void SetFrame(int frame) { _frame = frame; }
 
-	void SetLastFrame() {
-		_frame = _frameCount - 1;
-	}
+	void SetLastFrame() { _frame = _frameCount - 1; }
 
-	void Restart() {
-		SetFrame(0);
-	}
+	void Restart() { SetFrame(0); }
 };
