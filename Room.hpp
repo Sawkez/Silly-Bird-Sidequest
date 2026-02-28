@@ -31,7 +31,7 @@ class Room {
 		: _colliders(LoadColliders(roomJson)), _chunks(LoadChunks(folderPath, roomJson)), _ledges(LoadLedges(roomJson)),
 		  _width(roomJson["width"]), _height(roomJson["height"]), _targetWidth(roomJson["target_width"]),
 		  _targetHeight(roomJson["target_height"]), _xPosition(roomJson["position_x"]),
-		  _yPosition(roomJson["position_y"]), _neighbors(LoadNeighbors(roomJson)) {}
+		  _yPosition(roomJson["position_y"]), _neighbors(LoadNeighbors(roomJson)) {cout << SDL_GetTicks64() << ": finished room load" << endl;}
 
 	Room(const Room&) = delete;
 	Room& operator=(const Room&) = delete;
@@ -54,6 +54,7 @@ class Room {
 	}
 
 	json LoadJson(const string& jsonPath) const {
+		cout << SDL_GetTicks64() << ": loading JSON" << endl;
 		ifstream jsonFile(jsonPath);
 		if (!jsonFile.good()) {
 			cerr << "ERROR opening file: " << jsonPath << endl;
@@ -63,6 +64,7 @@ class Room {
 	}
 
 	vector<CollisionRect> LoadColliders(json roomJson) const {
+		cout << SDL_GetTicks64() << ": loading colliders" << endl;
 		return roomJson.at("collisions").get<vector<CollisionRect>>();
 	}
 
@@ -70,21 +72,27 @@ class Room {
 		vector<RoomChunk> chunks;
 
 		for (int i = 0; i < roomJson.at("chunks").size(); i++) {
+			cout << SDL_GetTicks64() << ": loading chunk " << i << endl;
 			chunks.push_back(RoomChunk(folderPath + "/" + to_string(i) + ".chunk", roomJson.at("chunks").at(i)));
 		}
 
 		return chunks;
 	}
 
-	vector<Vector2> LoadLedges(const json& roomJson) const { return roomJson.at("ledges").get<vector<Vector2>>(); }
+	vector<Vector2> LoadLedges(const json& roomJson) const {
+		cout << SDL_GetTicks64() << ": loading ledges" << endl;
+		return roomJson.at("ledges").get<vector<Vector2>>();
+	}
 
 	vector<RoomNeighbor> LoadNeighbors(const json& roomJson) const {
+		cout << SDL_GetTicks64() << ": loading neighbors" << endl;
 		return roomJson.at("neighbors").get<vector<RoomNeighbor>>();
 	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
 
 	void CacheTiles(SDL_Renderer* renderer, const vector<SDL_Surface*>& atlases) {
+		cout << SDL_GetTicks64() << ": caching tiles" << endl;
 		for (auto& chunk : _chunks) {
 			chunk.CacheTiles(renderer, atlases);
 		}
@@ -123,7 +131,6 @@ class Room {
 	const vector<RoomNeighbor>& GetNeighbors() const { return _neighbors; }
 
 	~Room() {
-		cout << "Destroying room!" << endl;
 		_colliders.clear();
 		_ledges.clear();
 		_chunks.clear();

@@ -4,12 +4,12 @@
 #include <vector>
 
 #include "AnimatedSprite.hpp"
-#include "Animation.hpp"
 #include "CollisionRect.hpp"
 #include "CollisionResult.hpp"
 #include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
+#include "Jizz.hpp"
 #include "Vector2.hpp"
 
 // Player movement state functions are defined in headers included at the bottom of this one
@@ -134,7 +134,7 @@ class Player : public IProcessable, public IDrawableRect {
   private:
 	// objects
 	const InputManager& _input;
-	// TODO add jizz
+	Jizz _jizz;
 	CollisionRect _collision = CollisionRect(FULL_COLLISION);
 	CollisionRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 8.0, 12.0};
@@ -244,8 +244,13 @@ class Player : public IProcessable, public IDrawableRect {
 	Vector2 position{0.0, 0.0};
 
 	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders)
-		: _input(input), _staticColliders(ref(staticColliders)),
-		  _sprite(LoadAnimations(renderer), BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
+		: _input(input), _jizz("content/textures/gameplay/player_styles/classic", renderer,
+							   {SDL_Color{84, 84, 84, 255}, SDL_Color{168, 168, 168, 255}, SDL_Color{84, 84, 84, 255},
+								SDL_Color{84, 84, 84, 255}, SDL_Color{0, 0, 0, 255}, SDL_Color{0, 0, 0, 255},
+								SDL_Color{255, 153, 0, 255}, SDL_Color{255, 0, 0, 255}, SDL_Color{0, 255, 0, 255},
+								SDL_Color{0, 0, 255, 255}}),
+		  _staticColliders(ref(staticColliders)),
+		  _sprite(_jizz.GetAnimations(), BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
 
 	const InputManager& GetInput() const { return _input; }
 

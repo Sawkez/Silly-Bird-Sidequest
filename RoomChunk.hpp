@@ -46,7 +46,6 @@ class RoomChunk {
 	}
 
 	vector<Tile> LoadTiles(const string& chunkFilePath) {
-		std::cout << "Loading tiles from chunk " << chunkFilePath << std::endl;
 		ifstream file;
 		file.open(chunkFilePath, ios::out | ios::binary);
 		if (!file.good()) {
@@ -105,7 +104,6 @@ class RoomChunk {
 	SDL_FRect GetFRect() const { return SDL_FRect{float(_rect.x), float(_rect.y), float(_rect.w), float(_rect.h)}; }
 
 	~RoomChunk() {
-		cout << "Destroying room chunk!" << endl;
 		UncacheTiles();
 		_tiles.clear();
 	}

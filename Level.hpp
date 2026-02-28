@@ -75,7 +75,10 @@ class Level : IProcessable, IDrawable {
 		return atlases;
 	};
 
-	Room LoadRoom(int index) { return Room(_path + "/rooms/" + to_string(index)); }
+	Room LoadRoom(int index) {
+		cout << SDL_GetTicks64() << ": starting room load" << endl;
+		return Room(_path + "/rooms/" + to_string(index));
+	}
 
 	void Process(float delta) override {
 		_player.Process(delta);
