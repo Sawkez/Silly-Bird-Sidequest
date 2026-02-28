@@ -3,7 +3,7 @@
 #include <functional>
 #include <vector>
 
-#include "AnimatedSprite.hpp"
+#include "AnimatedSpriteOverlay.hpp"
 #include "CollisionRect.hpp"
 #include "CollisionResult.hpp"
 #include "IDrawableRect.hpp"
@@ -139,7 +139,7 @@ class Player : public IProcessable, public IDrawableRect {
 	CollisionRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 8.0, 12.0};
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
-	AnimatedSprite _sprite;
+	AnimatedSpriteOverlay _sprite;
 
 	// timers
 	float _timers[_TIMER_COUNT]{};
@@ -222,23 +222,6 @@ class Player : public IProcessable, public IDrawableRect {
 		&Player::NormalDeinit, &Player::LedgeDeinit, &Player::DiveDeinit, &Player::DashDeinit,
 		&Player::SlideDeinit,  &Player::DuckDeinit,	 &Player::DeadDeinit};
 
-	vector<Animation> LoadAnimations(SDL_Renderer* renderer) const {
-		vector<Animation> animations = {
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/duck.png", 1, 1.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/fly.png", 1, 1.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/idle.png", 7, 10.0f, true),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/jump.png", 10, 24.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/ledge_flip.png", 4, 10.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/ledge_unflip.png", 4, 10.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/run.png", 16, 24.0f, true),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/slow_run.png", 16, 24.0f, true),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/slide.png", 1, 1.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/twerk_down.png", 5, 12.0f, false),
-			Animation(renderer, "content/textures/gameplay/player_styles/classic/twerk_up.png", 5, 12.0f, false)};
-
-		return animations;
-	}
-
   public:
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
@@ -249,8 +232,8 @@ class Player : public IProcessable, public IDrawableRect {
 								SDL_Color{84, 84, 84, 255}, SDL_Color{0, 0, 0, 255}, SDL_Color{0, 0, 0, 255},
 								SDL_Color{255, 153, 0, 255}, SDL_Color{255, 0, 0, 255}, SDL_Color{0, 255, 0, 255},
 								SDL_Color{0, 0, 255, 255}}),
-		  _staticColliders(ref(staticColliders)),
-		  _sprite(_jizz.GetAnimations(), BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
+		  _staticColliders(ref(staticColliders)), _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer),
+														  255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
 
 	const InputManager& GetInput() const { return _input; }
 

@@ -85,6 +85,7 @@ class Level : IProcessable, IDrawable {
 		_roomCamera.Process(delta);
 
 		for (const auto& neighbor : _currentRoom.GetNeighbors()) {
+			// TODO prevent player from getting stuck in a loop of re-entering the same 2 rooms
 			if (SDL_HasIntersectionF(&_player.GetCollision(), &neighbor)) {
 				SetCurrentRoom(neighbor.index);
 			}

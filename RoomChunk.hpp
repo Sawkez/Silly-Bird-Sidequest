@@ -22,7 +22,7 @@ class RoomChunk {
 
 	RoomChunk(const string& chunkFilePath, const nlohmann::json& chunkJson)
 		: _rect{chunkJson.at("x"), chunkJson.at("y"), chunkJson.at("width"), chunkJson.at("height")},
-		  _tiles(LoadTiles(chunkFilePath)) {}
+		  _tiles(LoadTiles(chunkFilePath, chunkJson.at("tile_count"))) {}
 
 	RoomChunk(const RoomChunk&) = delete;
 	RoomChunk& operator=(const RoomChunk&) = delete;
@@ -45,7 +45,7 @@ class RoomChunk {
 		return *this;
 	}
 
-	vector<Tile> LoadTiles(const string& chunkFilePath) {
+	vector<Tile> LoadTiles(const string& chunkFilePath, int tileCount) {
 		ifstream file;
 		file.open(chunkFilePath, ios::out | ios::binary);
 		if (!file.good()) {
@@ -54,9 +54,8 @@ class RoomChunk {
 
 		vector<Tile> tiles;
 
-		while (file.good()) {
-			Tile newTile(file);
-			tiles.push_back(newTile);
+		for (int i = 0; i < tileCount; i++) {
+			tiles.push_back(Tile(file));
 		}
 
 		file.close();

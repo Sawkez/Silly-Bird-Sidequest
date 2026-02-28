@@ -14,14 +14,16 @@ const float DEGREES_PER_RADIAN = 180.0 / M_PI;
 using namespace std;
 
 class AnimatedSprite : IDrawableRect, IProcessable {
-  private:
+  protected:
+	SDL_Rect _source{};
+	SDL_FRect _destination{};
 	vector<Animation> _animations;
 	Vector2 _offset = Vector2::ZERO;
 	Vector2 _scaleOrigin = Vector2::ZERO;
 	Vector2 _rotateOrigin = Vector2::ZERO;
-	SDL_RendererFlip _flip = SDL_FLIP_NONE;
 	float _rotation = 0.0;
 	int _current = 0;
+	SDL_RendererFlip _flip = SDL_FLIP_NONE;
 
   public:
 	Vector2 position = Vector2::ZERO;
@@ -31,18 +33,21 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 				   Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2{0.0, 0.0})
 		: _animations(animations), _offset(offset), _scaleOrigin(scaleOrigin), _rotateOrigin(rotateOrigin) {}
 
-	void Process(float delta) override { _animations.at(_current).Process(delta); }
+	void Process(float delta) override {
+		Animation& animation = _animations.at(_current);
+		animation.Process(delta);
+		_source = animation.GetSourceRect();
+		_destination = GetRect();
+	}
 
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
 		const Animation& animation = _animations.at(_current);
 
-		SDL_Rect source = animation.GetSourceRect();
-
-		SDL_FRect destination = GetRect();
+		SDL_FRect destination = _destination;
 		destination.x += drawOffset.x;
 		destination.y += drawOffset.y;
 
-		int error = SDL_RenderCopyExF(renderer, animation.GetTexture(), &source, &destination, _rotation,
+		int error = SDL_RenderCopyExF(renderer, animation.GetTexture(), &_source, &destination, _rotation,
 									  &_rotateOrigin, _flip);
 
 		if (error < 0) {
