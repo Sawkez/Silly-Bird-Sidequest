@@ -4,13 +4,12 @@
 #include <vector>
 
 #include "CollisionRect.hpp"
-#include "Json.hpp"
 #include "RoomChunk.hpp"
 #include "RoomNeighbor.hpp"
 #include "Vector2.hpp"
+#include "yyjson.h"
 
 using namespace std;
-using json = nlohmann::json;
 
 class Room {
   private:
@@ -27,11 +26,19 @@ class Room {
 
   public:
 	Room(const string& folderPath) : Room(folderPath, LoadJson(folderPath + "/room.json")) {}
-	Room(const string& folderPath, const json& roomJson)
-		: _colliders(LoadColliders(roomJson)), _chunks(LoadChunks(folderPath, roomJson)), _ledges(LoadLedges(roomJson)),
-		  _width(roomJson["width"]), _height(roomJson["height"]), _targetWidth(roomJson["target_width"]),
-		  _targetHeight(roomJson["target_height"]), _xPosition(roomJson["position_x"]),
-		  _yPosition(roomJson["position_y"]), _neighbors(LoadNeighbors(roomJson)) {cout << SDL_GetTicks64() << ": finished room load" << endl;}
+	Room(const string& folderPath, yyjson_val* roomJson)
+		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
+		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"))),
+		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
+		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
+		  _height(yyjson_get_num(yyjson_obj_get(roomJson, "height"))),
+		  _targetWidth(yyjson_get_num(yyjson_obj_get(roomJson, "target_width"))),
+		  _targetHeight(yyjson_get_num(yyjson_obj_get(roomJson, "target_height"))),
+		  _xPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_x"))),
+		  _yPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_y"))),
+		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))) {
+		cout << SDL_GetTicks64() << ": finished room load" << endl;
+	}
 
 	Room(const Room&) = delete;
 	Room& operator=(const Room&) = delete;
@@ -53,40 +60,64 @@ class Room {
 		return *this;
 	}
 
-	json LoadJson(const string& jsonPath) const {
+	yyjson_val* LoadJson(const string& jsonPath) const {
 		cout << SDL_GetTicks64() << ": loading JSON" << endl;
 		ifstream jsonFile(jsonPath);
 		if (!jsonFile.good()) {
 			cerr << "ERROR opening file: " << jsonPath << endl;
 		}
 
-		return json::parse(jsonFile);
+		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
+
+		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
+		return yyjson_doc_get_root(json);
 	}
 
-	vector<CollisionRect> LoadColliders(json roomJson) const {
+	vector<CollisionRect> LoadColliders(yyjson_val* collidersJson) const {
 		cout << SDL_GetTicks64() << ": loading colliders" << endl;
-		return roomJson.at("collisions").get<vector<CollisionRect>>();
+		vector<CollisionRect> colliders;
+
+		size_t idx, max;
+		yyjson_val* collider;
+		yyjson_arr_foreach(collidersJson, idx, max, collider) { colliders.push_back(CollisionRect(collider)); }
+
+		return colliders;
 	}
 
-	vector<RoomChunk> LoadChunks(const string& folderPath, const json& roomJson) const {
+	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson) const {
 		vector<RoomChunk> chunks;
 
-		for (int i = 0; i < roomJson.at("chunks").size(); i++) {
-			cout << SDL_GetTicks64() << ": loading chunk " << i << endl;
-			chunks.push_back(RoomChunk(folderPath + "/" + to_string(i) + ".chunk", roomJson.at("chunks").at(i)));
+		size_t idx, max;
+		yyjson_val* chunk;
+
+		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
+			cout << SDL_GetTicks64() << ": loading chunk " << idx << endl;
+			chunks.push_back(RoomChunk(folderPath + "/" + to_string(idx) + ".chunk", chunk));
 		}
 
 		return chunks;
 	}
 
-	vector<Vector2> LoadLedges(const json& roomJson) const {
+	vector<Vector2> LoadLedges(yyjson_val* ledgesJson) const {
 		cout << SDL_GetTicks64() << ": loading ledges" << endl;
-		return roomJson.at("ledges").get<vector<Vector2>>();
+		vector<Vector2> ledges;
+
+		size_t idx, max;
+		yyjson_val* ledge;
+
+		yyjson_arr_foreach(ledgesJson, idx, max, ledge) { ledges.push_back(Vector2(ledge)); }
+		return ledges;
 	}
 
-	vector<RoomNeighbor> LoadNeighbors(const json& roomJson) const {
+	vector<RoomNeighbor> LoadNeighbors(yyjson_val* neighborsJson) const {
 		cout << SDL_GetTicks64() << ": loading neighbors" << endl;
-		return roomJson.at("neighbors").get<vector<RoomNeighbor>>();
+		vector<RoomNeighbor> neighbors;
+
+		size_t idx, max;
+		yyjson_val* neighbor;
+
+		yyjson_arr_foreach(neighborsJson, idx, max, neighbor) { neighbors.push_back(RoomNeighbor(neighbor)); }
+		return neighbors;
 	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };

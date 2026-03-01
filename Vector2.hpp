@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Json.hpp"
+#include "yyjson.h"
 
 class Vector2 : public SDL_FPoint {
 	static constexpr float ZERO_PRECISION = 0.001;
@@ -14,6 +15,10 @@ class Vector2 : public SDL_FPoint {
 	Vector2(const SDL_Point& point) : SDL_FPoint{float(point.x), float(point.y)} {}
 
 	Vector2() : Vector2(0.0, 0.0) {}
+
+	Vector2(yyjson_val* vectorJson)
+		: SDL_FPoint{yyjson_get_num(yyjson_obj_get(vectorJson, "x")), yyjson_get_num(yyjson_obj_get(vectorJson, "y"))} {
+	}
 
 	float LengthSquared() const { return x * x + y * y; }
 

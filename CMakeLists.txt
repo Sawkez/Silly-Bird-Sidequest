@@ -6,6 +6,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(sbs-psp
     main.cpp
+    yyjson.c
 )
 
 include(FindPkgConfig)

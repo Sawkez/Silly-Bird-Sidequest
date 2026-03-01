@@ -8,11 +8,13 @@
 #include "Level.hpp"
 #include "Player.hpp"
 
+/*
 #if __PSP__
 #include <pspdebug.h>
 #include <pspkernel.h>
 #include <pspsdk.h>
 #endif
+*/
 
 using namespace std;
 

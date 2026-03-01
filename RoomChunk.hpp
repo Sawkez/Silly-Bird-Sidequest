@@ -8,6 +8,7 @@
 
 #include "Json.hpp"
 #include "Tile.hpp"
+#include "yyjson.h"
 
 class RoomChunk {
 	const int OVERLAP_OFFSET = 8;
@@ -23,6 +24,16 @@ class RoomChunk {
 	RoomChunk(const string& chunkFilePath, const nlohmann::json& chunkJson)
 		: _rect{chunkJson.at("x"), chunkJson.at("y"), chunkJson.at("width"), chunkJson.at("height")},
 		  _tiles(LoadTiles(chunkFilePath, chunkJson.at("tile_count"))) {}
+
+	RoomChunk(const string& chunkFilePath, yyjson_val* chunkJson) :
+		_rect{
+			yyjson_get_int(yyjson_obj_get(chunkJson, "x")),
+			yyjson_get_int(yyjson_obj_get(chunkJson, "y")),
+			yyjson_get_int(yyjson_obj_get(chunkJson, "width")),
+			yyjson_get_int(yyjson_obj_get(chunkJson, "height")),
+		}, _tiles(LoadTiles(chunkFilePath, yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count"))))
+		{
+	}
 
 	RoomChunk(const RoomChunk&) = delete;
 	RoomChunk& operator=(const RoomChunk&) = delete;

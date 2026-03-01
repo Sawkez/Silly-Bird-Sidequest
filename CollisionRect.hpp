@@ -8,6 +8,7 @@
 #include "Json.hpp"
 #include "Math.hpp"
 #include "Vector2.hpp"
+#include "yyjson.h"
 
 struct CollisionRect : SDL_FRect, IDrawable {
 	const float X_PRIORITY = 0.1;
@@ -26,6 +27,14 @@ struct CollisionRect : SDL_FRect, IDrawable {
 		: CollisionRect(other.x, other.y, other.w, other.h, other.active, other.oneWay, other.oneWayNormal) {}
 
 	CollisionRect() : CollisionRect(0.0, 0.0, 0.0, 0.0) {}
+
+	CollisionRect(yyjson_val* json)
+		: SDL_FRect{
+			  yyjson_get_num(yyjson_obj_get(json, "x")),
+			  yyjson_get_num(yyjson_obj_get(json, "y")),
+			  yyjson_get_num(yyjson_obj_get(json, "width")),
+			  yyjson_get_num(yyjson_obj_get(json, "height")),
+		  } {}
 
 	void operator=(const CollisionRect& other) {
 		x = other.x;

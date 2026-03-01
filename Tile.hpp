@@ -35,7 +35,7 @@ struct Tile {
 		int error = SDL_BlitSurface(atlases.at(sourceID), &source, targetSurface, &destination);
 
 		if (error < 0) {
-			cerr << "ERROR when caching room: " << SDL_GetError() << endl;
+			cerr << "ERROR when caching tile from source " << sourceID << ": " << SDL_GetError() << endl;
 		}
 	}
 };

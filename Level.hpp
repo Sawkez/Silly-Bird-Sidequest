@@ -9,16 +9,15 @@
 #include "IDrawable.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
-#include "Json.hpp"
 #include "Player.hpp"
 #include "RenderChunk.hpp"
 #include "Room.hpp"
 #include "RoomCamera.hpp"
 #include "RoomNeighbor.hpp"
 #include "TileSheetSource.hpp"
+#include "yyjson.h"
 
 using namespace std;
-using json = nlohmann::json;
 
 class Level : IProcessable, IDrawable {
   private:
@@ -32,48 +31,56 @@ class Level : IProcessable, IDrawable {
 	GameState& _state;
 
   public:
-	Level(const json& levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
+	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
 		  const InputManager& inputManager, SDL_Window* window, GameState& state)
-		: _path(pathToFolder), _currentRoom(LoadRoom(levelProperties.at("starting_room"))), _renderer(renderer),
-		  _atlases(LoadAtlases(levelProperties, pathToFolder)),
+		: _path(pathToFolder), _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
+		  _renderer(renderer),
+		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _player(Player(inputManager, renderer, _currentRoom.GetColliders())),
 		  _roomCamera(_player, _currentRoom, window), _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
 		  _state(state) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
-		_player.position.x = levelProperties.at("player_x");
-		_player.position.y = levelProperties.at("player_y");
+		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
+		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
 
 		_currentRoom.CacheTiles(renderer, _atlases);
+
+		_state.Unpause();
 	}
 
 	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window,
 		  GameState& state)
 		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window, state) {}
 
-	json LoadJson(const string& pathToFolder) const {
+	yyjson_val* LoadJson(const string& pathToFolder) const {
 		ifstream jsonFile(pathToFolder + "/level.json");
 		if (!jsonFile.good()) {
 			cerr << "ERROR opening level.json file in " << pathToFolder << endl;
 		}
 
-		return json::parse(jsonFile);
+		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
+
+		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
+		return yyjson_doc_get_root(json);
 	}
 
-	vector<SDL_Surface*> LoadAtlases(const json& levelProperties, const string& pathToFolder) const {
-		vector<TileSheetSource> sources = levelProperties.at("tilesheet_sources").get<vector<TileSheetSource>>();
+	vector<SDL_Surface*> LoadAtlases(yyjson_val* sources, const string& pathToFolder) const {
 		vector<SDL_Surface*> atlases;
 
-		for (auto source : sources) {
-			SDL_Surface* surface = IMG_Load(source.GetPath(pathToFolder).data());
-			if (surface == NULL) {
-				cerr << "ERROR: couldn't load tilesheet atlas " << source.GetPath(pathToFolder) << ": "
-					 << SDL_GetError() << endl;
-			}
-			atlases.push_back(surface);
+		size_t idx, max;
+		yyjson_val* source;
+		yyjson_arr_foreach(sources, idx, max, source) {
+			bool custom = yyjson_get_bool(yyjson_obj_get(source, "custom"));
+
+			string path = custom ? pathToFolder : "content/sidequest";
+			path += "/tiles/fg/";
+			path += yyjson_get_str(yyjson_obj_get(source, "name"));
+
+			atlases.push_back(IMG_Load(path.data()));
 		}
 
 		return atlases;
-	};
+	}
 
 	Room LoadRoom(int index) {
 		cout << SDL_GetTicks64() << ": starting room load" << endl;
@@ -112,6 +119,7 @@ class Level : IProcessable, IDrawable {
 	}
 
 	void SetCurrentRoom(int room) {
+		cout << "Entered room " << room << endl;
 		_state.Pause();
 		_currentRoom = LoadRoom(room);
 

@@ -17,7 +17,7 @@ class GameState {
 	void SetRunning(bool value) { _running = value; }
 	void Pause() { _paused = true; }
 	void Unpause() {
-		_paused = false;
+		_paused = true;
 		_frameEndMs = SDL_GetTicks64();
 		_frameStartMs = _frameEndMs - frameDuration;
 	}
