@@ -229,14 +229,9 @@ class Player : public IProcessable, public IDrawableRect {
 	Vector2 position{0.0, 0.0};
 
 	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders)
-		: _input(input), _jizz("content/textures/gameplay/player_styles/classic", renderer,
-							   {SDL_Color{84, 84, 84, 255}, SDL_Color{168, 168, 168, 255}, SDL_Color{84, 84, 84, 255},
-								SDL_Color{84, 84, 84, 255}, SDL_Color{0, 0, 0, 255}, SDL_Color{0, 0, 0, 255},
-								SDL_Color{255, 153, 0, 255}, SDL_Color{255, 0, 0, 255}, SDL_Color{0, 255, 0, 255},
-								SDL_Color{0, 0, 255, 255}}),
-		  _staticColliders(ref(staticColliders)), _scarf(position, staticColliders),
-		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,
-				  FEET_POS, BODY_CENTER) {}
+		: _input(input), _jizz("content/sidequest/skins/classic", renderer), _staticColliders(ref(staticColliders)),
+		  _scarf(position, staticColliders), _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0,
+													 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
 
 	const InputManager& GetInput() const { return _input; }
 

@@ -30,10 +30,10 @@ struct CollisionRect : SDL_FRect, IDrawable {
 
 	CollisionRect(yyjson_val* json)
 		: SDL_FRect{
-			  yyjson_get_num(yyjson_obj_get(json, "x")),
-			  yyjson_get_num(yyjson_obj_get(json, "y")),
-			  yyjson_get_num(yyjson_obj_get(json, "width")),
-			  yyjson_get_num(yyjson_obj_get(json, "height")),
+			  float(yyjson_get_num(yyjson_obj_get(json, "x"))),
+			  float(yyjson_get_num(yyjson_obj_get(json, "y"))),
+			  float(yyjson_get_num(yyjson_obj_get(json, "width"))),
+			  float(yyjson_get_num(yyjson_obj_get(json, "height"))),
 		  } {}
 
 	void operator=(const CollisionRect& other) {

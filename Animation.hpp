@@ -6,6 +6,7 @@
 
 #include "Math.hpp"
 #include "Vector2.hpp"
+#include "yyjson.h"
 
 class Animation {
   private:
@@ -25,6 +26,11 @@ class Animation {
 		SDL_QueryTexture(texture, NULL, NULL, &_frameWidth, &_frameHeight);
 		_frameWidth /= _frameCount;
 	}
+
+	Animation(SDL_Texture* texture, yyjson_val* animJson)
+		: Animation(texture, yyjson_get_int(yyjson_obj_get(animJson, "frame_count")),
+					yyjson_get_num(yyjson_obj_get(animJson, "fps")),
+					yyjson_get_bool(yyjson_obj_get(animJson, "looping"))) {}
 
 	Animation(SDL_Renderer* renderer, std::string path, int frameCount, float fps, bool looping = true)
 		: Animation(IMG_LoadTexture(renderer, path.data()), frameCount, fps, looping) {

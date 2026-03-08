@@ -17,8 +17,8 @@ class Vector2 : public SDL_FPoint {
 	Vector2() : Vector2(0.0, 0.0) {}
 
 	Vector2(yyjson_val* vectorJson)
-		: SDL_FPoint{yyjson_get_num(yyjson_obj_get(vectorJson, "x")), yyjson_get_num(yyjson_obj_get(vectorJson, "y"))} {
-	}
+		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))),
+					 float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
 
 	float LengthSquared() const { return x * x + y * y; }
 

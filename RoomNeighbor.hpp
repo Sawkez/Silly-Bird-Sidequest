@@ -12,10 +12,10 @@ struct RoomNeighbor : public SDL_FRect {
 
 	RoomNeighbor(yyjson_val* json)
 		: SDL_FRect{
-			yyjson_get_num(yyjson_obj_get(json, "x")),
-			yyjson_get_num(yyjson_obj_get(json, "y")),
-			yyjson_get_num(yyjson_obj_get(json, "width")),
-			yyjson_get_num(yyjson_obj_get(json, "height")),
+			float(yyjson_get_num(yyjson_obj_get(json, "x"))),
+			float(yyjson_get_num(yyjson_obj_get(json, "y"))),
+			float(yyjson_get_num(yyjson_obj_get(json, "width"))),
+			float(yyjson_get_num(yyjson_obj_get(json, "height"))),
 		},
 		index(yyjson_get_int(yyjson_obj_get(json, "index"))) {}
 };

@@ -2,10 +2,12 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
+#include <fstream>
 #include <string>
 #include <vector>
 
 #include "Animation.hpp"
+#include "yyjson.h"
 
 class Jizz {
   public:
@@ -13,17 +15,50 @@ class Jizz {
 	static const vector<std::string> PLAYER_ANIMATIONS;
 
   private:
+	yyjson_doc* _json;
 	std::string _stylePath;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
 
   public:
-	Jizz(const std::string& stylePath, SDL_Renderer* renderer, const SDL_Color (&palette)[PALETTE_SIZE])
-		: _stylePath(stylePath), _renderer(renderer), _palette(SDL_AllocPalette(PALETTE_SIZE * 2 + 1)) {
-		SDL_SetPaletteColors(_palette, palette, 1, PALETTE_SIZE);
-		SDL_SetPaletteColors(_palette, palette, PALETTE_SIZE + 1, PALETTE_SIZE);
+	Jizz(const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
+		: _json(styleJson), _stylePath(stylePath), _renderer(renderer),
+		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))) {}
+
+	Jizz(const std::string& stylePath, SDL_Renderer* renderer) : Jizz(stylePath, LoadJson(stylePath), renderer) {}
+
+	yyjson_doc* LoadJson(const string& stylePath) const {
+		ifstream jsonFile(stylePath + "/skin.json");
+		if (!jsonFile.good()) {
+			cerr << "ERROR opening skin.json file in " << stylePath << endl;
+		}
+
+		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
+
+		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
+		return json;
 	}
 
+	SDL_Palette* LoadPalette(yyjson_val* json) const {
+		SDL_Palette* palette = SDL_AllocPalette(PALETTE_SIZE + 1);
+		SDL_Color colors[PALETTE_SIZE + 1];
+		colors[0] = {0, 0, 0, 0};
+
+		int color_idx, color_max;
+		yyjson_val* colorArr;
+
+		yyjson_arr_foreach(json, color_idx, color_max, colorArr) {
+			colors[color_idx + 1].r = yyjson_get_int(yyjson_arr_get(colorArr, 0));
+			colors[color_idx + 1].g = yyjson_get_int(yyjson_arr_get(colorArr, 1));
+			colors[color_idx + 1].b = yyjson_get_int(yyjson_arr_get(colorArr, 2));
+			colors[color_idx + 1].a = 255;
+		}
+
+		SDL_SetPaletteColors(palette, colors, 0, PALETTE_SIZE + 1);
+		return palette;
+	}
+
+	/*
 	std::vector<Animation> GetAnimations() const {
 		return {Animation(LoadTexture("duck"), 1, 1.0f, false),
 				Animation(LoadTexture("fly"), 1, 1.0f, false),
@@ -36,6 +71,22 @@ class Jizz {
 				Animation(LoadTexture("slide"), 1, 1.0f, false),
 				Animation(LoadTexture("twerk_down"), 5, 12.0f, false),
 				Animation(LoadTexture("twerk_up"), 5, 12.0f, false)};
+	}
+	*/
+
+	std::vector<Animation> GetAnimations() const {
+		yyjson_val* animations = yyjson_obj_get(yyjson_doc_get_root(_json), "animations");
+		return {Animation(LoadTexture("duck"), yyjson_arr_get(animations, 0)),
+				Animation(LoadTexture("fly"), yyjson_arr_get(animations, 1)),
+				Animation(LoadTexture("idle"), yyjson_arr_get(animations, 2)),
+				Animation(LoadTexture("jump"), yyjson_arr_get(animations, 3)),
+				Animation(LoadTexture("ledge_flip"), yyjson_arr_get(animations, 4)),
+				Animation(LoadTexture("ledge_unflip"), yyjson_arr_get(animations, 5)),
+				Animation(LoadTexture("run"), yyjson_arr_get(animations, 6)),
+				Animation(LoadTexture("slow_run"), yyjson_arr_get(animations, 7)),
+				Animation(LoadTexture("slide"), yyjson_arr_get(animations, 8)),
+				Animation(LoadTexture("twerk_down"), yyjson_arr_get(animations, 9)),
+				Animation(LoadTexture("twerk_up"), yyjson_arr_get(animations, 10))};
 	}
 
 	std::vector<SDL_Texture*> GetOverlayTextures(SDL_Renderer* renderer) const {
@@ -56,6 +107,7 @@ class Jizz {
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {
 		SDL_Surface* surface = IMG_Load((_stylePath + "/" + textureName + ".png").data());
+		std::cout << "Loading " << _stylePath + "/" + textureName + ".png" << std::endl;
 
 		if (surface == NULL) {
 			std::cerr << "ERROR loading character texture " << textureName << ": " << SDL_GetError() << std::endl;

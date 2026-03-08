@@ -32,8 +32,8 @@ class AnimatedSpriteOverlay : public AnimatedSprite {
 			SDL_Texture* texture = _overlayTextures.at(_current);
 			SDL_SetTextureColorMod(texture, _overlayRed, _overlayGreen, _overlayBlue);
 
-			SDL_RenderCopyExF(renderer, _overlayTextures.at(_current), &_source, &destination, _rotation,
-							  &_rotateOrigin, _flip);
+			int error = SDL_RenderCopyExF(renderer, _overlayTextures.at(_current), &_source, &destination, _rotation,
+										  &_rotateOrigin, _flip);
 		}
 	}
 
