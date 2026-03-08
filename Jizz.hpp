@@ -58,22 +58,6 @@ class Jizz {
 		return palette;
 	}
 
-	/*
-	std::vector<Animation> GetAnimations() const {
-		return {Animation(LoadTexture("duck"), 1, 1.0f, false),
-				Animation(LoadTexture("fly"), 1, 1.0f, false),
-				Animation(LoadTexture("idle"), 7, 10.0f, true),
-				Animation(LoadTexture("jump"), 10, 24.0f, false),
-				Animation(LoadTexture("ledge_flip"), 4, 10.0f, false),
-				Animation(LoadTexture("ledge_unflip"), 4, 10.0f, false),
-				Animation(LoadTexture("run"), 16, 24.0f, true),
-				Animation(LoadTexture("slow_run"), 16, 24.0f, true),
-				Animation(LoadTexture("slide"), 1, 1.0f, false),
-				Animation(LoadTexture("twerk_down"), 5, 12.0f, false),
-				Animation(LoadTexture("twerk_up"), 5, 12.0f, false)};
-	}
-	*/
-
 	std::vector<Animation> GetAnimations() const {
 		yyjson_val* animations = yyjson_obj_get(yyjson_doc_get_root(_json), "animations");
 		return {Animation(LoadTexture("duck"), yyjson_arr_get(animations, 0)),

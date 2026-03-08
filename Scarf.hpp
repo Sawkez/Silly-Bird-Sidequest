@@ -93,8 +93,10 @@ class Scarf : IProcessable, IDrawableRect {
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset) const override {
 		SDL_Vertex vertices[SEGMENT_COUNT * 2];
 
-		vertices[0] = {_segmentPositions[0] + drawOffset + Vector2::UP, _currentColor};
-		vertices[1] = {_segmentPositions[0] + drawOffset + Vector2::DOWN, _currentColor};
+		Vector2 firstOffset = {0.0, (_segmentPositions[1] - _segmentPositions[0]).x > 0.0f ? 1.0f : -1.0f};
+
+		vertices[0] = {_segmentPositions[0] + drawOffset + firstOffset, _currentColor};
+		vertices[1] = {_segmentPositions[0] + drawOffset - firstOffset, _currentColor};
 
 		for (int i = 1; i < SEGMENT_COUNT; i++) {
 			Vector2 dir = _segmentPositions[i].DirectionTo(_segmentPositions[i - 1]);
