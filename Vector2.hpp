@@ -24,13 +24,31 @@ class Vector2 : public SDL_FPoint {
 
 	float Length() const { return sqrtf(LengthSquared()); }
 
+	Vector2 Normalized() const {
+		float len = Length();
+		if (len == 0.0)
+			return *this;
+		return Vector2{x / len, y / len};
+	}
+
+	float DistanceSquared(const Vector2& other) const { return (*this - other).LengthSquared(); }
+
+	float Distance(const Vector2& other) const { return (*this - other).Length(); }
+
+	Vector2 DirectionTo(const Vector2& other) const { return (other - *this).Normalized(); }
+
 	float Angle() const {
 		float angle = atan2(y, x);
-
 		return angle;
 	}
 
 	bool IsZeroApprox() const { return abs(x) + abs(y) < ZERO_PRECISION; }
+
+	void MoveToward(const Vector2& target, float moveDistance) {
+		if (DistanceSquared(target) < moveDistance * moveDistance)
+			*this = target;
+		*this += DirectionTo(target) * moveDistance;
+	}
 
 	Vector2 operator+(const Vector2& b) const { return Vector2{x + b.x, y + b.y}; }
 

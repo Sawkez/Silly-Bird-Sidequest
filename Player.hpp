@@ -10,6 +10,7 @@
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Jizz.hpp"
+#include "Scarf.hpp"
 #include "Vector2.hpp"
 
 // Player movement state functions are defined in headers included at the bottom of this one
@@ -140,6 +141,7 @@ class Player : public IProcessable, public IDrawableRect {
 	CollisionRect _floorCheck{0.0, 0.0, 8.0, 12.0};
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
 	AnimatedSpriteOverlay _sprite;
+	Scarf _scarf;
 
 	// timers
 	float _timers[_TIMER_COUNT]{};
@@ -232,14 +234,18 @@ class Player : public IProcessable, public IDrawableRect {
 								SDL_Color{84, 84, 84, 255}, SDL_Color{0, 0, 0, 255}, SDL_Color{0, 0, 0, 255},
 								SDL_Color{255, 153, 0, 255}, SDL_Color{255, 0, 0, 255}, SDL_Color{0, 255, 0, 255},
 								SDL_Color{0, 0, 255, 255}}),
-		  _staticColliders(ref(staticColliders)), _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer),
-														  255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
+		  _staticColliders(ref(staticColliders)), _scarf(position, staticColliders),
+		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,
+				  FEET_POS, BODY_CENTER) {}
 
 	const InputManager& GetInput() const { return _input; }
 
 	const CollisionRect& GetCollision() const { return _collision; }
 
-	void SetStaticColliders(const vector<CollisionRect>& colliders) { _staticColliders = ref(colliders); }
+	void SetStaticColliders(const vector<CollisionRect>& colliders) {
+		_staticColliders = ref(colliders);
+		_scarf.SetColliders(colliders);
+	}
 
 	void SetState(int state) {
 		(this->*_deinitFuncs[_movementStateID])();
@@ -425,12 +431,20 @@ class Player : public IProcessable, public IDrawableRect {
 		_sprite.position = position;
 		_sprite.Process(delta);
 
+		_scarf.Pin(position - Vector2{0.0, 8.0});
+		_scarf.Process(delta);
+
+		_sprite.SetOverlayColor(_scarf.GetColor());
+
 		// cout << velocity << endl;
 		//  cout << _input.GetDir() << endl;
 		// cout << position << endl;
 	}
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const { _sprite.Draw(renderer, drawOffset); }
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const {
+		_scarf.Draw(renderer, drawOffset);
+		_sprite.Draw(renderer, drawOffset);
+	}
 
 	void FlipSprite(bool left) {
 		if (_facingLeft == left)
@@ -455,7 +469,13 @@ class Player : public IProcessable, public IDrawableRect {
 		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
 
-	SDL_FRect GetRect() const override { return _sprite.GetRect(); }
+	SDL_FRect GetRect() const override {
+		SDL_FRect rect;
+		SDL_FRect spriteRect = _sprite.GetRect();
+		SDL_FRect scarfRect = _scarf.GetRect();
+		SDL_UnionFRect(&spriteRect, &scarfRect, &rect);
+		return rect;
+	}
 };
 
 #include "MovementStateDash.hpp"

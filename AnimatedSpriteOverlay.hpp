@@ -43,6 +43,12 @@ class AnimatedSpriteOverlay : public AnimatedSprite {
 		_overlayBlue = blue;
 	}
 
+	void SetOverlayColor(const SDL_Color& color) {
+		_overlayRed = color.r;
+		_overlayGreen = color.g;
+		_overlayBlue = color.b;
+	}
+
 	void EnableOverlay() { _showOverlay = true; }
 
 	void DisableOverlay() { _showOverlay = false; }
