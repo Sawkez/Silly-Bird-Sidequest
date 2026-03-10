@@ -10,6 +10,7 @@
 
 template <typename ParticleType, Uint8 count> class ParticleSpawner : public IProcessable, public IDrawableRect {
   private:
+	bool _emitting = false;
 	float _time = 0.0;
 	SDL_FRect _boundingBox;
 	SDL_Texture* _particleTexture;
@@ -20,17 +21,17 @@ template <typename ParticleType, Uint8 count> class ParticleSpawner : public IPr
 
 	template <std::size_t... Is>
 	ParticleSpawner<ParticleType, count>(SDL_FRect boundingBox, SDL_Texture* particleTexture,
-										 std::index_sequence<Is...>)
+										 std::index_sequence<Is...>, bool emitting = false)
 		: _boundingBox(boundingBox), _particleTexture(particleTexture), _particles{((void)Is, particleTexture)...},
-		  _spawnDelay(ParticleType::GetLifeTime() / float(count)), _poolTop(count) {
+		  _spawnDelay(ParticleType::GetMaxLifeTime() / float(count)), _poolTop(count), _emitting(emitting) {
 		for (Uint8 i = 0; i < count; i++) {
 			_particlePool[i] = i;
 		}
 	}
 
   public:
-	ParticleSpawner<ParticleType, count>(SDL_FRect boundingBox, SDL_Texture* particleTexture)
-		: ParticleSpawner(boundingBox, particleTexture, std::make_index_sequence<count>{}) {}
+	ParticleSpawner<ParticleType, count>(SDL_FRect boundingBox, SDL_Texture* particleTexture, bool emitting = false)
+		: ParticleSpawner(boundingBox, particleTexture, std::make_index_sequence<count>{}, emitting) {}
 
 	Vector2 position = Vector2::ZERO;
 
@@ -43,7 +44,9 @@ template <typename ParticleType, Uint8 count> class ParticleSpawner : public IPr
 	}
 
 	void Process(float delta) override {
-		_time -= delta;
+		if (_emitting) {
+			_time -= delta;
+		}
 
 		while (_time <= 0.0) {
 			_time += _spawnDelay;
@@ -62,7 +65,15 @@ template <typename ParticleType, Uint8 count> class ParticleSpawner : public IPr
 		}
 	}
 
+	void StartEmitting() {
+		_emitting = true;
+		_time = 0.0;
+	}
+
+	void StopEmitting() { _emitting = false; }
+
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset) const override {
+		// TODO render in chunks without parent object
 		for (int i = 0; i < count; i++) {
 			if (_particles[i].IsActive())
 				_particles[i].Draw(renderer, drawOffset);
@@ -72,8 +83,8 @@ template <typename ParticleType, Uint8 count> class ParticleSpawner : public IPr
 		dest.x += drawOffset.x;
 		dest.y += drawOffset.y;
 
-		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 128);
-		SDL_RenderDrawRectF(renderer, &dest);
+		// SDL_SetRenderDrawColor(renderer, 0, 0, 255, 128);
+		// SDL_RenderDrawRectF(renderer, &dest);
 	}
 
 	SDL_FRect GetRect() const override {

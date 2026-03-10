@@ -146,7 +146,7 @@ class Player : public IProcessable, public IDrawableRect {
 	Scarf _scarf;
 
 	// particles
-	ParticleSpawner<DiveParticle, 255> _diveParticles;
+	ParticleSpawner<DiveParticle, 5> _diveParticles;
 
 	// timers
 	float _timers[_TIMER_COUNT]{};
@@ -237,7 +237,7 @@ class Player : public IProcessable, public IDrawableRect {
 		: _input(input), _jizz("content/sidequest/skins/classic", renderer), _staticColliders(ref(staticColliders)),
 		  _scarf(position, staticColliders), _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0,
 													 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-10.0, -10.0, 20.0, 20.0},
+		  _diveParticles({-25.0, -25.0, 50.0, 50.0},
 						 IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
 	const InputManager& GetInput() const { return _input; }
@@ -434,6 +434,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_sprite.Process(delta);
 
 		_diveParticles.position = position;
+		_diveParticles.position.y -= BODY_CENTER.y;
 		_diveParticles.Process(delta);
 
 		// TODO figure out why the offset
@@ -464,9 +465,15 @@ class Player : public IProcessable, public IDrawableRect {
 		_sprite.SetFlip(left ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 	}
 
-	void UnloadDive() { _diveAvailable = false; }
+	void UnloadDive() {
+		_diveAvailable = false;
+		_diveParticles.StartEmitting();
+	}
 
-	void ReloadDive() { _diveAvailable = true; }
+	void ReloadDive() {
+		_diveAvailable = true;
+		_diveParticles.StopEmitting();
+	}
 
 	void UnloadDash() {
 		if (!_dashAvailable)

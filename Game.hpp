@@ -7,6 +7,7 @@
 #include "InputManager.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
+#include "Random.hpp"
 
 /*
 #if __PSP__
@@ -41,6 +42,8 @@ struct Game {
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
+
+		Random::Init();
 
 		while (state.IsRunning()) {
 			GameLoopIteration();

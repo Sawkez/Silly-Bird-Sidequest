@@ -14,5 +14,5 @@ class IParticle : public IDrawable, public IProcessable {
 	IParticle(SDL_Texture* texture) : _texture(texture) {}
 	virtual void Start(Vector2 position) = 0;
 	virtual bool IsActive() const = 0;
-	static float GetLifeTime();
+	static float GetMaxLifeTime();
 };

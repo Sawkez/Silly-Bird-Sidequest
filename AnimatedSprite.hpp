@@ -7,6 +7,7 @@
 #include "Animation.hpp"
 #include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
+#include "Math.hpp"
 #include "PlaybackPosition.hpp"
 #include "Vector2.hpp"
 
@@ -87,10 +88,20 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 	}
 
 	SDL_FRect GetRect() const override {
+		Vector2 frameSize = _animations.at(_current).GetFrameSize();
+		SDL_FRect rect{position.x, position.y, frameSize.x, frameSize.y};
+		rect = Math::ScaleRect(rect, _scaleOrigin, scale);
+		rect.x += _offset.x - _rotateOrigin.x;
+		rect.y += _offset.y - _rotateOrigin.y;
+
+		return rect;
+
+		/*
 		Vector2 sizeScaled = _animations.at(_current).GetFrameSize() * scale;
 		return SDL_FRect{position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x,
 						 position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y,
 						 sizeScaled.x, sizeScaled.y};
+		*/
 	}
 
 	Vector2 TransformPoint(Vector2 point) const {

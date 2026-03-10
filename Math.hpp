@@ -1,5 +1,9 @@
 #pragma once
 
+#include <SDL.h>
+
+#include "Vector2.hpp"
+
 namespace Math {
 
 int Wrap(int value, int min, int max) {
@@ -34,6 +38,17 @@ float MoveTowards(float a, float b, float moveSpeed) {
 		return b;
 	float move = CopySignOrZero(moveSpeed, b - a);
 	return a + move;
+}
+
+float Lerp(float a, float b, float ratio) { return a + ratio * (b - a); }
+
+SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, const Vector2& scale) {
+	return {rect.x - scaleOrigin.x * scale.x + scaleOrigin.x, rect.y - scaleOrigin.y * scale.y + scaleOrigin.y,
+			rect.w * scale.x, rect.h * scale.y};
+}
+
+SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, float scale) {
+	return ScaleRect(rect, scaleOrigin, Vector2{scale, scale});
 }
 
 } // namespace Math
