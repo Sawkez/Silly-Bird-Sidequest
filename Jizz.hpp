@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Animation.hpp"
+#include "PlaybackPosition.hpp"
 #include "yyjson.h"
 
 class Jizz {
@@ -19,11 +20,13 @@ class Jizz {
 	std::string _stylePath;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
+	vector<vector<Vector2>> _scarfPositions;
 
   public:
 	Jizz(const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
 		: _json(styleJson), _stylePath(stylePath), _renderer(renderer),
-		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))) {}
+		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))),
+		  _scarfPositions(LoadScarfPositions(yyjson_obj_get(yyjson_doc_get_root(styleJson), "scarf_positions"))) {}
 
 	Jizz(const std::string& stylePath, SDL_Renderer* renderer) : Jizz(stylePath, LoadJson(stylePath), renderer) {}
 
@@ -58,6 +61,27 @@ class Jizz {
 		return palette;
 	}
 
+	vector<vector<Vector2>> LoadScarfPositions(yyjson_val* json) const {
+		vector<vector<Vector2>> anims;
+
+		int animIdx, animMax;
+		yyjson_val* anim;
+		yyjson_arr_foreach(json, animIdx, animMax, anim) {
+			vector<Vector2> frames;
+
+			int frameIdx, frameMax;
+			yyjson_val* frame;
+			yyjson_arr_foreach(anim, frameIdx, frameMax, frame) {
+				frames.push_back(
+					{float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
+			}
+
+			anims.push_back(frames);
+		}
+
+		return anims;
+	}
+
 	std::vector<Animation> GetAnimations() const {
 		yyjson_val* animations = yyjson_obj_get(yyjson_doc_get_root(_json), "animations");
 		return {Animation(LoadTexture("duck"), yyjson_arr_get(animations, 0)),
@@ -87,6 +111,10 @@ class Jizz {
 			IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_down.png").data()),
 			IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_up.png").data()),
 		};
+	}
+
+	Vector2 GetScarfPosition(PlaybackPosition playback) const {
+		return _scarfPositions.at(playback.animation).at(playback.frame);
 	}
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {

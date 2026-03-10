@@ -6,8 +6,10 @@
 #include <vector>
 
 #include "CollisionRect.hpp"
+#include "FColor.hpp"
 #include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
+#include "Math.hpp"
 
 using namespace std;
 
@@ -20,9 +22,22 @@ class Scarf : IProcessable, IDrawableRect {
 	static constexpr float MAX_DIST = 2.5;
 	static constexpr float TIME_SCALE = 4.2;
 	static constexpr float SINE_SCALE = 0.2;
-	static constexpr float WIND_DIF = -0.25; // icl i've forgotten why i called this that
+	static constexpr float WIND_DIF = -0.25;
 
-	SDL_Color _currentColor{0, 0, 255, 255};
+	static constexpr float COLOR_CHANGE_SPEED = 2.5;
+
+	static constexpr int GEOMETRY_INDEX_COUNT = 18 * 3;
+	static constexpr int GEOMETRY_INDICES[GEOMETRY_INDEX_COUNT] = {
+		0, 1,  2,  1,  2,  3,  2,  3,  4,  3,  4,  5,  4,  5,  6,  5,  6,  7,  6,  7,  8,  7,  8,  9,  8,  9,  10,
+		9, 10, 11, 10, 11, 12, 11, 12, 13, 12, 13, 14, 13, 14, 15, 14, 15, 16, 15, 16, 17, 16, 17, 18, 17, 18, 19};
+
+	FColor _chargedColor{198, 15, 64};
+	FColor _emptyColor{255, 240, 35};
+	FColor _activeColor{255, 255, 255};
+
+	FColor _currentColor;
+	FColor _targetColor;
+
 	Vector2 _segmentPositions[SEGMENT_COUNT];
 	float _windStrength = 60.0;
 	float _windAngle = M_PI / 4.0;
@@ -33,13 +48,15 @@ class Scarf : IProcessable, IDrawableRect {
 	Scarf(Vector2 pinPosition, const vector<CollisionRect>& colliders)
 		: _segmentPositions{pinPosition, pinPosition, pinPosition, pinPosition, pinPosition,
 							pinPosition, pinPosition, pinPosition, pinPosition, pinPosition},
-		  _staticColliders(ref(colliders)) {}
+		  _staticColliders(ref(colliders)), _currentColor(_chargedColor), _targetColor(_chargedColor) {}
 
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
 
 	void Process(float delta) {
 		_windStrength = (M_PI * 0.5) * fabsf(M_PI * 0.5 - _windAngle);
 		_time += delta * _windStrength * TIME_SCALE;
+
+		_currentColor.MoveToward(_targetColor, COLOR_CHANGE_SPEED * delta);
 
 		for (int i = 1; i < SEGMENT_COUNT; i++) {
 			Vector2& pos = _segmentPositions[i];
@@ -80,7 +97,7 @@ class Scarf : IProcessable, IDrawableRect {
 		}
 	}
 
-	SDL_Color GetColor() const { return _currentColor; }
+	SDL_Color GetColor() const { return _currentColor.GetIntColor(); }
 
 	SDL_FRect GetRect() const override {
 		SDL_FRect rect;
@@ -95,25 +112,32 @@ class Scarf : IProcessable, IDrawableRect {
 
 		Vector2 firstOffset = {0.0, (_segmentPositions[1] - _segmentPositions[0]).x > 0.0f ? 1.0f : -1.0f};
 
-		vertices[0] = {_segmentPositions[0] + drawOffset + firstOffset, _currentColor};
-		vertices[1] = {_segmentPositions[0] + drawOffset - firstOffset, _currentColor};
+		vertices[0] = {_segmentPositions[0] + drawOffset + firstOffset, _currentColor.GetIntColor()};
+		vertices[1] = {_segmentPositions[0] + drawOffset - firstOffset, _currentColor.GetIntColor()};
 
 		for (int i = 1; i < SEGMENT_COUNT; i++) {
 			Vector2 dir = _segmentPositions[i].DirectionTo(_segmentPositions[i - 1]);
 			// rotating 90 degrees quickly
 			dir = Vector2{-dir.y, dir.x};
 
-			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir + drawOffset, _currentColor};
+			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir + drawOffset, _currentColor.GetIntColor()};
 
-			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor};
+			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor.GetIntColor()};
 		}
 
-		int indices[18 * 3] = {0,  1,  2,  1,  2,  3,  2,  3,  4,  3,  4,  5,  4,  5,  6,  5,  6,  7,
-							   6,  7,  8,  7,  8,  9,  8,  9,  10, 9,  10, 11, 10, 11, 12, 11, 12, 13,
-							   12, 13, 14, 13, 14, 15, 14, 15, 16, 15, 16, 17, 16, 17, 18, 17, 18, 19};
-
-		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, indices, 18 * 3) < 0) {
+		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT) <
+			0) {
 			cout << "ERROR rendering scarf geometry: " << SDL_GetError() << endl;
 		};
+	}
+
+	void Load() {
+		_currentColor = _activeColor;
+		_targetColor = _chargedColor;
+	}
+
+	void Unload() {
+		_currentColor = _activeColor;
+		_targetColor = _emptyColor;
 	}
 };

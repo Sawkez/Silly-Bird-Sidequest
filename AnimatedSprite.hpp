@@ -7,6 +7,7 @@
 #include "Animation.hpp"
 #include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
+#include "PlaybackPosition.hpp"
 #include "Vector2.hpp"
 
 const float DEGREES_PER_RADIAN = 180.0 / M_PI;
@@ -59,6 +60,8 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 
 	void SetRotationRadians(float radians) { _rotation = radians * DEGREES_PER_RADIAN; }
 
+	float GetRotationRadians() const { return _rotation / DEGREES_PER_RADIAN; }
+
 	void SetFlip(SDL_RendererFlip flip) { _flip = flip; }
 
 	void Play(int animationID, float speed = 1.0) {
@@ -89,4 +92,13 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 						 position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y,
 						 sizeScaled.x, sizeScaled.y};
 	}
+
+	Vector2 TransformPoint(Vector2 point) const {
+		if (_flip & SDL_FLIP_HORIZONTAL != 0)
+			point.x = -point.x;
+		point *= scale * 0.5;
+		return point.Rotated(GetRotationRadians());
+	}
+
+	PlaybackPosition GetPlaybackPosition() const { return {_current, _animations[_current].GetFrame()}; }
 };

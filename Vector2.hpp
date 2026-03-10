@@ -31,6 +31,10 @@ class Vector2 : public SDL_FPoint {
 		return Vector2{x / len, y / len};
 	}
 
+	Vector2 Rotated(float angle) const {
+		return {cosf(angle) * x - sinf(angle) * y, sinf(angle) * x - cosf(angle) * y};
+	}
+
 	float DistanceSquared(const Vector2& other) const { return (*this - other).LengthSquared(); }
 
 	float Distance(const Vector2& other) const { return (*this - other).Length(); }

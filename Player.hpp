@@ -6,10 +6,12 @@
 #include "AnimatedSpriteOverlay.hpp"
 #include "CollisionRect.hpp"
 #include "CollisionResult.hpp"
+#include "DiveParticle.hpp"
 #include "IDrawableRect.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Jizz.hpp"
+#include "ParticleSpawner.hpp"
 #include "Scarf.hpp"
 #include "Vector2.hpp"
 
@@ -143,6 +145,9 @@ class Player : public IProcessable, public IDrawableRect {
 	AnimatedSpriteOverlay _sprite;
 	Scarf _scarf;
 
+	// particles
+	ParticleSpawner<DiveParticle, 255> _diveParticles;
+
 	// timers
 	float _timers[_TIMER_COUNT]{};
 	float _buffers[_BUFFER_COUNT]{};
@@ -231,7 +236,9 @@ class Player : public IProcessable, public IDrawableRect {
 	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders)
 		: _input(input), _jizz("content/sidequest/skins/classic", renderer), _staticColliders(ref(staticColliders)),
 		  _scarf(position, staticColliders), _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0,
-													 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER) {}
+													 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
+		  _diveParticles({-10.0, -10.0, 20.0, 20.0},
+						 IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
 	const InputManager& GetInput() const { return _input; }
 
@@ -426,7 +433,13 @@ class Player : public IProcessable, public IDrawableRect {
 		_sprite.position = position;
 		_sprite.Process(delta);
 
-		_scarf.Pin(position - Vector2{0.0, 8.0});
+		_diveParticles.position = position;
+		_diveParticles.Process(delta);
+
+		// TODO figure out why the offset
+		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition()); // + Vector2(-10.0, -32.0);
+		scarfPosition += Vector2(-6.0, -24.0);
+		_scarf.Pin(position - _sprite.TransformPoint(scarfPosition));
 		_scarf.Process(delta);
 
 		_sprite.SetOverlayColor(_scarf.GetColor());
@@ -437,6 +450,7 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const {
+		_diveParticles.Draw(renderer, drawOffset);
 		_scarf.Draw(renderer, drawOffset);
 		_sprite.Draw(renderer, drawOffset);
 	}
@@ -454,9 +468,19 @@ class Player : public IProcessable, public IDrawableRect {
 
 	void ReloadDive() { _diveAvailable = true; }
 
-	void UnloadDash() { _dashAvailable = false; }
+	void UnloadDash() {
+		if (!_dashAvailable)
+			return;
+		_dashAvailable = false;
+		_scarf.Unload();
+	}
 
-	void ReloadDash() { _dashAvailable = true; }
+	void ReloadDash() {
+		if (_dashAvailable)
+			return;
+		_dashAvailable = true;
+		_scarf.Load();
+	}
 
 	void CeilingDash() {
 		UnsetTimer(TIMER_DASH);
@@ -465,10 +489,11 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	SDL_FRect GetRect() const override {
-		SDL_FRect rect;
-		SDL_FRect spriteRect = _sprite.GetRect();
+		SDL_FRect rect = _sprite.GetRect();
 		SDL_FRect scarfRect = _scarf.GetRect();
-		SDL_UnionFRect(&spriteRect, &scarfRect, &rect);
+		SDL_FRect diveParticleRect = _diveParticles.GetRect();
+		SDL_UnionFRect(&rect, &scarfRect, &rect);
+		SDL_UnionFRect(&rect, &diveParticleRect, &rect);
 		return rect;
 	}
 };

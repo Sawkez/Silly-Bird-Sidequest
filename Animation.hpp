@@ -73,4 +73,6 @@ class Animation {
 	void SetLastFrame() { _frame = _frameCount - 1; }
 
 	void Restart() { SetFrame(0); }
+
+	int GetFrame() const { return _frame; }
 };

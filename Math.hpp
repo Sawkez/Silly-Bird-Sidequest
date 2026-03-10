@@ -29,4 +29,11 @@ float SignOrZero(float value) {
 
 float Radians(float degrees) { return degrees * M_PI / 180.0; }
 
+float MoveTowards(float a, float b, float moveSpeed) {
+	if (fabsf(a - b) < moveSpeed)
+		return b;
+	float move = CopySignOrZero(moveSpeed, b - a);
+	return a + move;
+}
+
 } // namespace Math
