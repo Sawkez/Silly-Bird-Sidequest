@@ -36,7 +36,7 @@ class Level : IProcessable, IDrawable {
 		: _path(pathToFolder), _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
 		  _renderer(renderer),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
-		  _player(Player(inputManager, renderer, _currentRoom.GetColliders())),
+		  _player(Player(inputManager, renderer, _currentRoom.GetColliders(), _currentRoom.GetLedges())),
 		  _roomCamera(_player, _currentRoom, window), _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
 		  _state(state) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
@@ -125,6 +125,7 @@ class Level : IProcessable, IDrawable {
 
 		_currentRoom.CacheTiles(_renderer, _atlases);
 		_player.SetStaticColliders(_currentRoom.GetColliders());
+		_player.SetLedges(_currentRoom.GetLedges());
 		_roomCamera.SetRoom(_currentRoom);
 
 		DestroyRenderChunks();

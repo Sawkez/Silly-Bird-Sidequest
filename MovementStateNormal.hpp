@@ -14,12 +14,16 @@ const float WEAK_GRAVITY = 600.0;
 const float GRAVITY = 900.0;
 const float FAST_FALL_GRAVITY = 1200.0;
 
-const float FAST_FALL_WINDOW = GRAVITY * 10.0 / 120.0; // 10 frames total, 5 frames either direction at 60 fps
+const float FAST_FALL_WINDOW = GRAVITY * 10.0 / 120.0;	// 10 frames total, 5 frames either direction at 60 fps
 const float FALL_SPEED_CAP = 200.0;
 
 const float JUMP_FORCE = 250.0;
 
 const float MAX_DIVE_BUFFER_Y_VELOCITY = 250.0;
+
+const float LEDGE_CHECK_OFFSET_LEFT = -1.2;
+const float LEDGE_CHECK_OFFSET_RIGHT = 0.8;
+const float LEDGE_CHECK_OFFSET_UP = -1.5;
 
 const float SLOW_RUN_SPEED = 100.0;
 
@@ -180,7 +184,18 @@ void Player::NormalProcess(float delta) {
 		// TODO moving platforms
 	}
 
-	// TODO grabbing ledges
+	// grabbing ledges
+	if ((_quickClimb || velocity.y > GRAVITY * delta) && !CooldownActive(COOLDOWN_LEDGE) && _input.GetDir().y < 1.0) {
+		_ledgeTile.x = int(roundf(position.x / WorldConstants::TILE_SIZE_F + (_facingLeft ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT))) *
+					   WorldConstants::TILE_SIZE;
+
+		_ledgeTile.y = int(roundf(position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP)) * WorldConstants::TILE_SIZE;
+
+		if (std::find(_ledges.get().begin(), _ledges.get().end(), _ledgeTile) != _ledges.get().end()) {
+			SetState(MOVEMENT_STATE_LEDGE);
+			return;
+		}
+	}
 
 	// updating animation
 	if (_pushingFloor) {

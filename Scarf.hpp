@@ -62,7 +62,7 @@ class Scarf : IProcessable, IDrawableRect {
 			Vector2& pos = _segmentPositions[i];
 			const Vector2& target = _segmentPositions[i - 1];
 
-			if (isnanf(pos.x) || isnanf(pos.y)) {
+			if (isnan(pos.x) || isnan(pos.y)) {
 				pos = target;
 				return;
 			}

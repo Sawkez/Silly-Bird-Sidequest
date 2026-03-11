@@ -7,7 +7,7 @@ const float LEDGE_OFFSET_RIGHT = -4.0;
 const Vector2 LEDGE_SIDE_JUMP_FORCE{200.0, -125.0};
 const float LEDGE_UP_JUMP_FORCE = 250.0;
 const float LEDGE_UP_COOLDOWN = 5.0 / 60.0;
-const float LEDGE_DOWN_COOLDOWN = 5.0 / 60.0;
+const float LEDGE_DOWN_COOLDOWN = 10.0 / 60.0;
 
 void Player::LedgeInit() {
 	position = _ledgeTile;
@@ -29,8 +29,7 @@ void Player::LedgeInit() {
 }
 
 void Player::LedgeProcess(float delta) {
-	if (_input.IsTapped(ACTION_JUMP) || _input.IsTapped(ACTION_UP) || BufferActive(BUFFER_DASH) ||
-		BufferActive(BUFFER_LEDGE_JUMP)) {
+	if (_input.IsTapped(ACTION_JUMP) || _input.IsTapped(ACTION_UP) || BufferActive(BUFFER_DASH) || BufferActive(BUFFER_LEDGE_JUMP)) {
 		Unbuffer(BUFFER_DASH);
 		Unbuffer(BUFFER_LEDGE_JUMP);
 

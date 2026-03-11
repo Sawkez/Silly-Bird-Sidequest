@@ -1,15 +1,17 @@
 #pragma once
 
 #include <SDL.h>
+
 #include <fstream>
 #include <iostream>
 
-#include "Json.hpp"
+#include "Math.hpp"
+#include "WorldConstants.hpp"
 
 struct Tile {
 	static const int DRAW_SOURCE_SIZE = 14.0;
-	static const int DRAW_DEST_SIZE = 8.0;
-	static const int DRAW_DEST_OFFSET = (DRAW_DEST_SIZE - DRAW_SOURCE_SIZE) / 2.0;
+	static const int DRAW_DEST_OFFSET =
+		(WorldConstants::TILE_SIZE_F - DRAW_SOURCE_SIZE) / 2.0;
 
 	uint16_t x = 0;
 	uint16_t y = 0;
@@ -26,27 +28,25 @@ struct Tile {
 		file.read(reinterpret_cast<char*>(&sourceID), 2);
 	}
 
-	void Draw(SDL_Surface* targetSurface, const vector<SDL_Surface*>& atlases, int xOffset, int yOffset) {
-		SDL_Rect source{xAtlas * DRAW_SOURCE_SIZE, yAtlas * DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
+	void Draw(SDL_Surface* targetSurface, const vector<SDL_Surface*>& atlases,
+			  int xOffset, int yOffset) {
+		SDL_Rect source{xAtlas * DRAW_SOURCE_SIZE, yAtlas * DRAW_SOURCE_SIZE,
+						DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
 
-		SDL_Rect destination{x * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + xOffset,
-							 y * DRAW_DEST_SIZE + DRAW_DEST_OFFSET + yOffset, DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
+		SDL_Rect destination{
+			x * WorldConstants::TILE_SIZE + DRAW_DEST_OFFSET + xOffset,
+			y * WorldConstants::TILE_SIZE + DRAW_DEST_OFFSET + yOffset,
+			DRAW_SOURCE_SIZE, DRAW_SOURCE_SIZE};
 
-		int error = SDL_BlitSurface(atlases.at(sourceID), &source, targetSurface, &destination);
+		int error = SDL_BlitSurface(atlases.at(sourceID), &source,
+									targetSurface, &destination);
 
 		if (error < 0) {
-			cerr << "ERROR when caching tile from source " << sourceID << ": " << SDL_GetError() << endl;
+			cerr << "ERROR when caching tile from source " << sourceID << ": "
+				 << SDL_GetError() << endl;
 		}
 	}
 };
-
-void from_json(const nlohmann::json& json, Tile& tile) {
-	tile.x = json.at("x");
-	tile.y = json.at("y");
-	tile.xAtlas = json.at("atlas_x");
-	tile.yAtlas = json.at("atlas_y");
-	tile.sourceID = json.at("source_id");
-}
 
 std::ostream& operator<<(std::ostream& out, const Tile& tile) {
 	out << "( " << tile.x << ", " << tile.y << " )";

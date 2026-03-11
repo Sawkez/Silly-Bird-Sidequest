@@ -6,7 +6,6 @@
 #include <iostream>
 #include <vector>
 
-#include "Json.hpp"
 #include "Tile.hpp"
 #include "yyjson.h"
 
@@ -20,10 +19,6 @@ class RoomChunk {
 
   public:
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
-
-	RoomChunk(const string& chunkFilePath, const nlohmann::json& chunkJson)
-		: _rect{chunkJson.at("x"), chunkJson.at("y"), chunkJson.at("width"), chunkJson.at("height")},
-		  _tiles(LoadTiles(chunkFilePath, chunkJson.at("tile_count"))) {}
 
 	RoomChunk(const string& chunkFilePath, yyjson_val* chunkJson) :
 		_rect{

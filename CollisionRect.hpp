@@ -2,10 +2,10 @@
 
 #include <SDL.h>
 #include <iostream>
+#include <limits>
 
 #include "CollisionResult.hpp"
 #include "IDrawable.hpp"
-#include "Json.hpp"
 #include "Math.hpp"
 #include "Vector2.hpp"
 #include "yyjson.h"
@@ -82,10 +82,10 @@ struct CollisionRect : SDL_FRect, IDrawable {
 			yInverseEntry = temp;
 		}
 
-		float xEntry = velocity.x == 0.0 ? -MAXFLOAT : xInverseEntry / velocity.x;
-		float xExit = velocity.x == 0.0 ? MAXFLOAT : xInverseExit / velocity.x;
-		float yEntry = velocity.y == 0.0 ? -MAXFLOAT : yInverseEntry / velocity.y;
-		float yExit = velocity.y == 0.0 ? MAXFLOAT : yInverseExit / velocity.y;
+		float xEntry = velocity.x == 0.0 ? -std::numeric_limits<float>::max() : xInverseEntry / velocity.x;
+		float xExit = velocity.x == 0.0 ? std::numeric_limits<float>::max() : xInverseExit / velocity.x;
+		float yEntry = velocity.y == 0.0 ? -std::numeric_limits<float>::max() : yInverseEntry / velocity.y;
+		float yExit = velocity.y == 0.0 ? std::numeric_limits<float>::max() : yInverseExit / velocity.y;
 
 		float entryTime = std::max(xEntry, yEntry);
 		float exitTime = std::min(xExit, yExit);
@@ -106,11 +106,4 @@ std::ostream& operator<<(std::ostream& out, const CollisionRect& rect) {
 	out << "pos: " << rect.x << ", " << rect.y << std::endl << "size: " << rect.w << ", " << rect.h;
 
 	return out;
-}
-
-void from_json(const nlohmann::json& json, CollisionRect& rect) {
-	rect.x = json.at("x");
-	rect.y = json.at("y");
-	rect.w = json.at("width");
-	rect.h = json.at("height");
 }

@@ -3,7 +3,6 @@
 #include <cmath>
 #include <iostream>
 
-#include "Json.hpp"
 #include "yyjson.h"
 
 class Vector2 : public SDL_FPoint {
@@ -107,9 +106,4 @@ Vector2 operator*(float a, const Vector2& b) { return Vector2{a * b.x, a * b.y};
 std::ostream& operator<<(std::ostream& out, const Vector2& vec) {
 	out << "( " << vec.x << ", " << vec.y << " )";
 	return out;
-}
-
-void from_json(const nlohmann::json& json, Vector2& vector) {
-	vector.x = json.at("x");
-	vector.y = json.at("y");
 }

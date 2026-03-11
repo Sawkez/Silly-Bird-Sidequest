@@ -34,3 +34,11 @@ if(PSP)
         VERSION 01.00
     )
 endif()
+
+if(WIN32)
+    target_link_options(sbs-psp PRIVATE 
+        "-static-libgcc" 
+        "-static-libstdc++" 
+        "-Wl,-Bstatic" "-lstdc++" "-lpthread" "-Wl,-Bdynamic"
+    )
+endif()

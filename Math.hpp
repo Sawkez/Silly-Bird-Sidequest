@@ -17,15 +17,14 @@ int Wrap(int value, int min, int max) {
 }
 
 float CopySignOrZero(float magnitude, float sign) {
-	if (sign == 0.0)
-		return 0.0;
+	if (sign == 0.0) return 0.0;
 	return copysignf(magnitude, sign);
 }
 
 float SignOrZero(float value) {
 	if (value == 0.0)
 		return 0.0;
-	else if (signbit(value))
+	else if (std::signbit(value))
 		return -1.0;
 	else
 		return 1.0;
@@ -34,21 +33,27 @@ float SignOrZero(float value) {
 float Radians(float degrees) { return degrees * M_PI / 180.0; }
 
 float MoveTowards(float a, float b, float moveSpeed) {
-	if (fabsf(a - b) < moveSpeed)
-		return b;
+	if (fabsf(a - b) < moveSpeed) return b;
 	float move = CopySignOrZero(moveSpeed, b - a);
 	return a + move;
 }
 
 float Lerp(float a, float b, float ratio) { return a + ratio * (b - a); }
 
-SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, const Vector2& scale) {
-	return {rect.x - scaleOrigin.x * scale.x + scaleOrigin.x, rect.y - scaleOrigin.y * scale.y + scaleOrigin.y,
-			rect.w * scale.x, rect.h * scale.y};
+SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin,
+					const Vector2& scale) {
+	return {rect.x - scaleOrigin.x * scale.x + scaleOrigin.x,
+			rect.y - scaleOrigin.y * scale.y + scaleOrigin.y, rect.w * scale.x,
+			rect.h * scale.y};
 }
 
-SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, float scale) {
+SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin,
+					float scale) {
 	return ScaleRect(rect, scaleOrigin, Vector2{scale, scale});
 }
 
-} // namespace Math
+}  // namespace Math
+
+bool operator==(const SDL_Point& a, const SDL_Point& b) {
+	return a.x == b.x && a.y == b.y;
+}

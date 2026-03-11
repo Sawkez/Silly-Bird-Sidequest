@@ -14,8 +14,10 @@
 #include "ParticleSpawner.hpp"
 #include "Scarf.hpp"
 #include "Vector2.hpp"
+#include "WorldConstants.hpp"
 
-// Player movement state functions are defined in headers included at the bottom of this one
+// Player movement state functions are defined in headers included at the bottom
+// of this one
 
 using namespace std;
 
@@ -45,14 +47,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_MOVEMENT_STATE_COUNT
 	};
 
-	enum Upgrade {
-		UPGRADE_DIVE,
-		UPGRADE_DASH,
-		UPGRADE_SLIDE,
-		UPGRADE_DIVEBOOST,
-		UPGRADE_POWERCORD,
-		UPGRADE_REJUVENATOR
-	};
+	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_POWERCORD, UPGRADE_REJUVENATOR };
 
 	enum Timer {
 		TIMER_COYOTE,
@@ -68,42 +63,34 @@ class Player : public IProcessable, public IDrawableRect {
 	};
 
 	const float TIMER_DURATIONS[_TIMER_COUNT] = {
-		10.0 / 60.0, // coyote
-		30.0 / 60.0, // platform
-		5.0 / 60.0,	 // v reset
-		30.0 / 60.0, // gravity freeze
-		NAN,		 // bored (should be randomized)
-		NAN,		 // twerk (use min &Player:: max)
-		15.0 / 60.0, // dive
-		10.0 / 60.0, // dash
-		15.0 / 60.0	 // slide
+		10.0 / 60.0,  // coyote
+		30.0 / 60.0,  // platform
+		5.0 / 60.0,	  // v reset
+		30.0 / 60.0,  // gravity freeze
+		NAN,		  // bored (should be randomized)
+		NAN,		  // twerk (use min & max)
+		15.0 / 60.0,  // dive
+		10.0 / 60.0,  // dash
+		15.0 / 60.0	  // slide
 	};
 
 	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, _COOLDOWN_COUNT };
 
 	const float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
-		NAN,		 // ledge (use up &Player:: down)
-		15.0 / 60.0, // slide
-		5.0 / 60.0	 // interact
+		NAN,		  // ledge (use up & down)
+		15.0 / 60.0,  // slide
+		5.0 / 60.0	  // interact
 	};
 
-	enum Buffer {
-		BUFFER_JUMP,
-		BUFFER_DIVE,
-		BUFFER_DASH,
-		BUFFER_SLIDE,
-		BUFFER_LEDGE_JUMP,
-		BUFFER_INTERACT,
-		_BUFFER_COUNT
-	};
+	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, _BUFFER_COUNT };
 
 	const float BUFFER_DURATIONS[_BUFFER_COUNT] = {
-		10.0 / 60.0, // jump
-		30.0 / 60.0, // dive
-		30.0 / 60.0, // dash
-		10.0 / 60.0, // slide
-		10.0 / 60.0, // ledge jump
-		15.0 / 60.0	 // interact
+		10.0 / 60.0,  // jump
+		30.0 / 60.0,  // dive
+		30.0 / 60.0,  // dash
+		10.0 / 60.0,  // slide
+		10.0 / 60.0,  // ledge jump
+		15.0 / 60.0	  // interact
 	};
 
 	const Vector2 BODY_CENTER{8.0, 8.0};
@@ -127,14 +114,13 @@ class Player : public IProcessable, public IDrawableRect {
 	const int COLLISION_ITERATIONS = 3;
 	const float MIN_COLLISION_TIME = 0.1;
 	const Vector2 COLLISION_OFFSET_FULL{-4.0, -13.0};
-	const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x,
-										 COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
+	const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x, COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
 	const Vector2 FLOOR_CHECK_OFFSET{-4.0, 0.0};
 	const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL;
 
 	const float CEILING_DASH_VELOCITY = 200.0;
 
-  private:
+   private:
 	// objects
 	const InputManager& _input;
 	Jizz _jizz;
@@ -142,6 +128,7 @@ class Player : public IProcessable, public IDrawableRect {
 	CollisionRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 8.0, 12.0};
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
+	reference_wrapper<const vector<SDL_Point>> _ledges;
 	AnimatedSpriteOverlay _sprite;
 	Scarf _scarf;
 
@@ -167,7 +154,7 @@ class Player : public IProcessable, public IDrawableRect {
 	bool _quickClimb = false;
 	bool _facingLeft = false;
 	bool _shortCollision = false;
-	Vector2 _ledgeTile{0.0, 0.0};
+	SDL_Point _ledgeTile{0, 0};
 
 	// visual variables
 	float _squishVelocity = 0.0;
@@ -215,30 +202,29 @@ class Player : public IProcessable, public IDrawableRect {
 	void DeadDeinit();
 
 	using StateInitFunc = void (Player::*)();
-	StateInitFunc _initFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalInit, &Player::LedgeInit, &Player::DiveInit,
-													&Player::DashInit,	 &Player::SlideInit, &Player::DuckInit,
-													&Player::DeadInit};
+	StateInitFunc _initFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalInit, &Player::LedgeInit, &Player::DiveInit, &Player::DashInit,
+													&Player::SlideInit,	 &Player::DuckInit,	 &Player::DeadInit};
 
 	using StateProcessFunc = void (Player::*)(float);
-	StateProcessFunc _processFuncs[_MOVEMENT_STATE_COUNT]{
-		&Player::NormalProcess, &Player::LedgeProcess, &Player::DiveProcess, &Player::DashProcess,
-		&Player::SlideProcess,	&Player::DuckProcess,  &Player::DeadProcess};
+	StateProcessFunc _processFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalProcess, &Player::LedgeProcess, &Player::DiveProcess, &Player::DashProcess,
+														  &Player::SlideProcess,  &Player::DuckProcess,	 &Player::DeadProcess};
 
 	using StateDeinitFunc = void (Player::*)();
-	StateDeinitFunc _deinitFuncs[_MOVEMENT_STATE_COUNT]{
-		&Player::NormalDeinit, &Player::LedgeDeinit, &Player::DiveDeinit, &Player::DashDeinit,
-		&Player::SlideDeinit,  &Player::DuckDeinit,	 &Player::DeadDeinit};
+	StateDeinitFunc _deinitFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalDeinit, &Player::LedgeDeinit, &Player::DiveDeinit, &Player::DashDeinit,
+														&Player::SlideDeinit,  &Player::DuckDeinit,	 &Player::DeadDeinit};
 
-  public:
+   public:
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders)
-		: _input(input), _jizz("content/sidequest/skins/classic", renderer), _staticColliders(ref(staticColliders)),
-		  _scarf(position, staticColliders), _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0,
-													 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-25.0, -25.0, 50.0, 50.0},
-						 IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
+	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders, const vector<SDL_Point>& ledges)
+		: _input(input),
+		  _jizz("content/sidequest/skins/classic", renderer),
+		  _staticColliders(ref(staticColliders)),
+		  _ledges(ref(ledges)),
+		  _scarf(position, staticColliders),
+		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
+		  _diveParticles({-25.0, -25.0, 50.0, 50.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
 	const InputManager& GetInput() const { return _input; }
 
@@ -248,6 +234,8 @@ class Player : public IProcessable, public IDrawableRect {
 		_staticColliders = ref(colliders);
 		_scarf.SetColliders(colliders);
 	}
+
+	void SetLedges(const vector<SDL_Point>& ledges) { _ledges = ref(ledges); }
 
 	void SetState(int state) {
 		(this->*_deinitFuncs[_movementStateID])();
@@ -261,7 +249,7 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	void SetTimer(int timer) {
-		if (isnanf(TIMER_DURATIONS[timer])) {
+		if (isnan(TIMER_DURATIONS[timer])) {
 			cerr << "ERROR: timer " << timer << " duration is NAN" << endl;
 		}
 		_timers[timer] = TIMER_DURATIONS[timer];
@@ -272,7 +260,7 @@ class Player : public IProcessable, public IDrawableRect {
 	bool TimerActive(int timer) const { return _timers[timer] > 0.0; }
 
 	void Buffer(int buffer) {
-		if (isnanf(BUFFER_DURATIONS[buffer])) {
+		if (isnan(BUFFER_DURATIONS[buffer])) {
 			cerr << "ERROR: buffer " << buffer << " duration is NAN" << endl;
 		}
 		_buffers[buffer] = BUFFER_DURATIONS[buffer];
@@ -383,8 +371,7 @@ class Player : public IProcessable, public IDrawableRect {
 			}
 
 			timeLeft -= depth;
-			if (timeLeft < MIN_COLLISION_TIME)
-				break;
+			if (timeLeft < MIN_COLLISION_TIME) break;
 		}
 
 		_ceilingCheck.x = position.x + CEILING_CHECK_OFFSET.x;
@@ -422,8 +409,7 @@ class Player : public IProcessable, public IDrawableRect {
 		}
 
 		float squishDist = targetSquish - _sprite.scale.x;
-		_squishVelocity =
-			clamp(_squishVelocity + SQUISH_ACCEL * squishDist * delta, -MAX_SQUISH_VELOCITY, MAX_SQUISH_VELOCITY);
+		_squishVelocity = clamp(_squishVelocity + SQUISH_ACCEL * squishDist * delta, -MAX_SQUISH_VELOCITY, MAX_SQUISH_VELOCITY);
 		_squishVelocity *= powf(SQUISH_DAMPENING, delta);
 
 		_sprite.scale.x = clamp(_sprite.scale.x + _squishVelocity * delta, X_SQUISH_MIN, X_SQUISH_MAX);
@@ -438,7 +424,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_diveParticles.Process(delta);
 
 		// TODO figure out why the offset
-		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition()); // + Vector2(-10.0, -32.0);
+		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition());	// + Vector2(-10.0, -32.0);
 		scarfPosition += Vector2(-6.0, -24.0);
 		_scarf.Pin(position - _sprite.TransformPoint(scarfPosition));
 		_scarf.Process(delta);
@@ -457,8 +443,7 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	void FlipSprite(bool left) {
-		if (_facingLeft == left)
-			return;
+		if (_facingLeft == left) return;
 
 		_sprite.scale.x = X_SQUISH_MIN;
 		_facingLeft = left;
@@ -476,15 +461,13 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	void UnloadDash() {
-		if (!_dashAvailable)
-			return;
+		if (!_dashAvailable) return;
 		_dashAvailable = false;
 		_scarf.Unload();
 	}
 
 	void ReloadDash() {
-		if (_dashAvailable)
-			return;
+		if (_dashAvailable) return;
 		_dashAvailable = true;
 		_scarf.Load();
 	}
