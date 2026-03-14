@@ -2,9 +2,7 @@
 
 #include <SDL.h>
 
-#include "IDrawable.hpp"
-
-class IDrawableRect : public IDrawable {
-  public:
-	virtual SDL_FRect GetRect() const = 0;
+class IDrawableRect {
+   public:
+	virtual bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const = 0;
 };

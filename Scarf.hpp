@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+
 #include <cmath>
 #include <functional>
 #include <vector>
@@ -14,7 +15,7 @@
 using namespace std;
 
 class Scarf : IProcessable, IDrawableRect {
-  private:
+   private:
 	static constexpr int SEGMENT_COUNT = 10;
 	static constexpr float MOVE_SPEED = 45.0;
 	static constexpr float LOW_WIND_SPEED = 30.0;
@@ -27,9 +28,9 @@ class Scarf : IProcessable, IDrawableRect {
 	static constexpr float COLOR_CHANGE_SPEED = 2.5;
 
 	static constexpr int GEOMETRY_INDEX_COUNT = 18 * 3;
-	static constexpr int GEOMETRY_INDICES[GEOMETRY_INDEX_COUNT] = {
-		0, 1,  2,  1,  2,  3,  2,  3,  4,  3,  4,  5,  4,  5,  6,  5,  6,  7,  6,  7,  8,  7,  8,  9,  8,  9,  10,
-		9, 10, 11, 10, 11, 12, 11, 12, 13, 12, 13, 14, 13, 14, 15, 14, 15, 16, 15, 16, 17, 16, 17, 18, 17, 18, 19};
+	static constexpr int GEOMETRY_INDICES[GEOMETRY_INDEX_COUNT] = {0,  1,  2,  1,  2,  3,  2,  3,  4,  3,  4,  5,  4,  5,  6,  5,  6,  7,
+																   6,  7,  8,  7,  8,  9,  8,  9,  10, 9,  10, 11, 10, 11, 12, 11, 12, 13,
+																   12, 13, 14, 13, 14, 15, 14, 15, 16, 15, 16, 17, 16, 17, 18, 17, 18, 19};
 
 	FColor _chargedColor{198, 15, 64};
 	FColor _emptyColor{255, 240, 35};
@@ -44,11 +45,13 @@ class Scarf : IProcessable, IDrawableRect {
 	float _time = 0.0;
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
 
-  public:
+   public:
 	Scarf(Vector2 pinPosition, const vector<CollisionRect>& colliders)
 		: _segmentPositions{pinPosition, pinPosition, pinPosition, pinPosition, pinPosition,
 							pinPosition, pinPosition, pinPosition, pinPosition, pinPosition},
-		  _staticColliders(ref(colliders)), _currentColor(_chargedColor), _targetColor(_chargedColor) {}
+		  _staticColliders(ref(colliders)),
+		  _currentColor(_chargedColor),
+		  _targetColor(_chargedColor) {}
 
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
 
@@ -99,7 +102,7 @@ class Scarf : IProcessable, IDrawableRect {
 
 	SDL_Color GetColor() const { return _currentColor.GetIntColor(); }
 
-	SDL_FRect GetRect() const override {
+	SDL_FRect GetRect() const {
 		SDL_FRect rect;
 		SDL_EncloseFPoints(_segmentPositions, SEGMENT_COUNT, NULL, &rect);
 		return rect;
@@ -107,7 +110,15 @@ class Scarf : IProcessable, IDrawableRect {
 
 	void SetColliders(const vector<CollisionRect>& colliders) { _staticColliders = ref(colliders); }
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset) const override {
+	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
+		SDL_FRect rect = GetRect();
+		rect.x += drawOffset.x;
+		rect.y += drawOffset.y;
+
+		if (!SDL_HasIntersectionF(&rect, &drawTargetRect)) {
+			return false;
+		}
+
 		SDL_Vertex vertices[SEGMENT_COUNT * 2];
 
 		Vector2 firstOffset = {0.0, (_segmentPositions[1] - _segmentPositions[0]).x > 0.0f ? 1.0f : -1.0f};
@@ -125,10 +136,12 @@ class Scarf : IProcessable, IDrawableRect {
 			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor.GetIntColor()};
 		}
 
-		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT) <
-			0) {
+		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT) < 0) {
 			cout << "ERROR rendering scarf geometry: " << SDL_GetError() << endl;
+			return false;
 		};
+
+		return true;
 	}
 
 	void Load() {

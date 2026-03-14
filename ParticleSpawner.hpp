@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+
 #include <utility>
 #include <vector>
 
@@ -8,8 +9,9 @@
 #include "IProcessable.hpp"
 #include "Vector2.hpp"
 
-template <typename ParticleType, Uint8 count> class ParticleSpawner : public IProcessable, public IDrawableRect {
-  private:
+template <typename ParticleType, Uint8 count>
+class ParticleSpawner : public IProcessable, public IDrawableRect {
+   private:
 	bool _emitting = false;
 	float _time = 0.0;
 	SDL_FRect _boundingBox;
@@ -20,16 +22,19 @@ template <typename ParticleType, Uint8 count> class ParticleSpawner : public IPr
 	float _spawnDelay;
 
 	template <std::size_t... Is>
-	ParticleSpawner<ParticleType, count>(SDL_FRect boundingBox, SDL_Texture* particleTexture,
-										 std::index_sequence<Is...>, bool emitting = false)
-		: _boundingBox(boundingBox), _particleTexture(particleTexture), _particles{((void)Is, particleTexture)...},
-		  _spawnDelay(ParticleType::GetMaxLifeTime() / float(count)), _poolTop(count), _emitting(emitting) {
+	ParticleSpawner<ParticleType, count>(SDL_FRect boundingBox, SDL_Texture* particleTexture, std::index_sequence<Is...>, bool emitting = false)
+		: _boundingBox(boundingBox),
+		  _particleTexture(particleTexture),
+		  _particles{((void)Is, particleTexture)...},
+		  _spawnDelay(ParticleType::GetMaxLifeTime() / float(count)),
+		  _poolTop(count),
+		  _emitting(emitting) {
 		for (Uint8 i = 0; i < count; i++) {
 			_particlePool[i] = i;
 		}
 	}
 
-  public:
+   public:
 	ParticleSpawner<ParticleType, count>(SDL_FRect boundingBox, SDL_Texture* particleTexture, bool emitting = false)
 		: ParticleSpawner(boundingBox, particleTexture, std::make_index_sequence<count>{}, emitting) {}
 
@@ -72,22 +77,21 @@ template <typename ParticleType, Uint8 count> class ParticleSpawner : public IPr
 
 	void StopEmitting() { _emitting = false; }
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset) const override {
-		// TODO render in chunks without parent object
-		for (int i = 0; i < count; i++) {
-			if (_particles[i].IsActive())
-				_particles[i].Draw(renderer, drawOffset);
-		}
-
+	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		SDL_FRect dest = GetRect();
 		dest.x += drawOffset.x;
 		dest.y += drawOffset.y;
 
-		// SDL_SetRenderDrawColor(renderer, 0, 0, 255, 128);
-		// SDL_RenderDrawRectF(renderer, &dest);
+		if (!SDL_HasIntersectionF(&dest, &drawTargetRect)) {
+			return false;
+		}
+
+		for (int i = 0; i < count; i++) {
+			if (_particles[i].IsActive()) _particles[i].Draw(renderer, drawOffset);
+		}
+
+		return true;
 	}
 
-	SDL_FRect GetRect() const override {
-		return SDL_FRect{position.x + _boundingBox.x, position.y + _boundingBox.y, _boundingBox.w, _boundingBox.h};
-	}
+	SDL_FRect GetRect() const { return SDL_FRect{position.x + _boundingBox.x, position.y + _boundingBox.y, _boundingBox.w, _boundingBox.h}; }
 };

@@ -101,9 +101,11 @@ class Player : public IProcessable, public IDrawableRect {
 	const float SQUISH_BASE_Y_VELOCITY = 250.0;
 	const float SQUISH_ACCEL = 180.0;
 	const float MAX_SQUISH_VELOCITY = 15.0;
+	const float MIN_SQUISH_VELOCITY = 0.25;
 	const float SQUISH_DAMPENING = pow(0.85, 60.0);
 	const float X_SQUISH_MIN = 0.25;
 	const float X_SQUISH_MAX = 1.5;
+	const float X_SQUISH_RESET = 0.075;
 	const float Y_SQUISH_MAX = 1.25;
 
 	const float V_RESET_GRAVITY = 1800.0;
@@ -223,7 +225,7 @@ class Player : public IProcessable, public IDrawableRect {
 		  _room(room),
 		  _scarf(position, room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-25.0, -25.0, 50.0, 50.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
+		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
 	const InputManager& GetInput() const { return _input; }
 
@@ -410,6 +412,12 @@ class Player : public IProcessable, public IDrawableRect {
 		_squishVelocity *= powf(SQUISH_DAMPENING, delta);
 
 		_sprite.scale.x = clamp(_sprite.scale.x + _squishVelocity * delta, X_SQUISH_MIN, X_SQUISH_MAX);
+
+		if (abs(targetSquish - _sprite.scale.x) < X_SQUISH_RESET && abs(_squishVelocity) < MIN_SQUISH_VELOCITY) {
+			_sprite.scale.x = targetSquish;
+			_squishVelocity = 0.0;
+		}
+
 		_sprite.scale.y = min(1.0f / _sprite.scale.x, Y_SQUISH_MAX);
 
 		// updating children
@@ -433,10 +441,17 @@ class Player : public IProcessable, public IDrawableRect {
 		// cout << position << endl;
 	}
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const {
-		_diveParticles.Draw(renderer, drawOffset);
-		_scarf.Draw(renderer, drawOffset);
-		_sprite.Draw(renderer, drawOffset);
+	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {
+		cout << "DRAWING PLAYER! target: " << drawTargetRect.x << " " << drawTargetRect.y << " " << drawTargetRect.w << " " << drawTargetRect.h
+			 << "; offset: " << drawOffset << endl;
+
+		bool parts = _diveParticles.Draw(renderer, drawTargetRect, drawOffset);
+		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
+		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
+
+		cout << "parts: " << parts << ", scarf: " << scarf << ", sprite: " << sprite << endl;
+
+		return parts || scarf || sprite;
 	}
 
 	void FlipSprite(bool left) {
@@ -473,15 +488,6 @@ class Player : public IProcessable, public IDrawableRect {
 		UnsetTimer(TIMER_DASH);
 		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
 		SetTimer(TIMER_GRAVITY_FREEZE);
-	}
-
-	SDL_FRect GetRect() const override {
-		SDL_FRect rect = _sprite.GetRect();
-		SDL_FRect scarfRect = _scarf.GetRect();
-		SDL_FRect diveParticleRect = _diveParticles.GetRect();
-		SDL_UnionFRect(&rect, &scarfRect, &rect);
-		SDL_UnionFRect(&rect, &diveParticleRect, &rect);
-		return rect;
 	}
 };
 

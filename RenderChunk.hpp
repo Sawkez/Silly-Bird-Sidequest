@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+
 #include <functional>
 
 #include "IDrawableRect.hpp"
@@ -10,18 +11,15 @@ class RenderChunk {
 	std::reference_wrapper<const RoomChunk> _roomChunk;
 	SDL_Texture* _renderTexture;
 
-  public:
+   public:
 	RenderChunk(const RoomChunk&) = delete;
 	RenderChunk& operator=(const RoomChunk&) = delete;
 
-	RenderChunk(RenderChunk&& other) noexcept : _roomChunk(other._roomChunk), _renderTexture(other._renderTexture) {
-		other._renderTexture = NULL;
-	}
+	RenderChunk(RenderChunk&& other) noexcept : _roomChunk(other._roomChunk), _renderTexture(other._renderTexture) { other._renderTexture = NULL; }
 
 	RenderChunk& operator=(RenderChunk&& other) noexcept {
 		if (this != &other) {
-			if (_renderTexture)
-				SDL_DestroyTexture(_renderTexture);
+			if (_renderTexture) SDL_DestroyTexture(_renderTexture);
 
 			_roomChunk = other._roomChunk;
 			_renderTexture = other._renderTexture;
@@ -39,8 +37,8 @@ class RenderChunk {
 
 	RenderChunk(const RoomChunk& roomChunk, SDL_Renderer* renderer)
 		: _roomChunk(std::ref(roomChunk)),
-		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET,
-										   _roomChunk.get().GetWidth(), _roomChunk.get().GetHeight())) {
+		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET, _roomChunk.get().GetWidth(),
+										   _roomChunk.get().GetHeight())) {
 		SDL_SetTextureBlendMode(_renderTexture, SDL_BLENDMODE_BLEND);
 	}
 
@@ -52,15 +50,14 @@ class RenderChunk {
 		_roomChunk.get().Draw(renderer);
 	}
 
-	void DrawObject(SDL_Renderer* renderer, const IDrawableRect& object, Vector2 roomPos) const {
+	void DrawObject(SDL_Renderer* renderer, const IDrawableRect& object, const Vector2& roomPos) const {
 		SDL_FRect roomRect = _roomChunk.get().GetFRect();
-		SDL_FRect objectRect = object.GetRect();
 
-		objectRect.x -= roomPos.x;
-		objectRect.y -= roomPos.y;
+		Vector2 drawOffset{-roomRect.x - roomPos.x + 8.0f, -roomRect.y - roomPos.y + 8.0f};
 
-		if (SDL_HasIntersectionF(&roomRect, &objectRect))
-			object.Draw(renderer, Vector2{-roomRect.x - roomPos.x + 8.0f, -roomRect.y - roomPos.y + 8.0f});
+		SDL_FRect localTarget = {8.0f, 8.0f, roomRect.w, roomRect.h};
+
+		object.Draw(renderer, localTarget, drawOffset);
 	}
 
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset, float zoom) const {
@@ -68,9 +65,8 @@ class RenderChunk {
 
 		SDL_Rect destination = _roomChunk.get().GetRect();
 
-		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom,
-							   (float(destination.y) + drawOffset.y - 8) * zoom, float(destination.w) * zoom,
-							   float(destination.h) * zoom};
+		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom, (float(destination.y) + drawOffset.y - 8) * zoom,
+							   float(destination.w) * zoom, float(destination.h) * zoom};
 
 		SDL_RenderCopyF(renderer, _renderTexture, NULL, &FDestination);
 	}
