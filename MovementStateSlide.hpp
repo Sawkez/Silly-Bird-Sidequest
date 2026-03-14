@@ -2,7 +2,7 @@
 
 const float SLIDE_INITIAL_SPEED = 250.0;
 const float SLIDE_SPEED = 200.0;
-const float ULTRASLIDE_VELOCITY_MULT = 0.75;
+const float ULTRASLIDE_VELOCITY_MULT = 0.975;  // i can't figure out why this is different from godot
 const float SLIDE_GRAVITY = 0.01;
 const float SQUISH_SLIDE = 0.5;
 const float SLIDE_FRICTION = 300.0;

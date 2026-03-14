@@ -74,10 +74,15 @@ void Player::NormalProcess(float delta) {
 
 	// fastfalling around peak of jump, maximize downwards velocity
 	else if (!_pushingFloor && abs(velocity.y) < FAST_FALL_WINDOW) {
+		/*
 		float timeFalling = abs(velocity.y) / GRAVITY;
 		float timeFastFalling = sqrtf(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
 
 		velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
+		*/
+
+		velocity.y = abs(velocity.y) * sqrtf(GRAVITY / FAST_FALL_GRAVITY);
+		std::cout << "setting velocity to " << velocity.y << std::endl;
 	}
 
 	// fastfalling normally, cancel up velocity
@@ -191,7 +196,9 @@ void Player::NormalProcess(float delta) {
 
 		_ledgeTile.y = int(roundf(position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP)) * WorldConstants::TILE_SIZE;
 
-		if (std::find(_ledges.get().begin(), _ledges.get().end(), _ledgeTile) != _ledges.get().end()) {
+		const vector<SDL_Point>& ledges = _room.get().GetLedges();
+
+		if (std::find(ledges.begin(), ledges.end(), _ledgeTile) != ledges.end()) {
 			SetState(MOVEMENT_STATE_LEDGE);
 			return;
 		}

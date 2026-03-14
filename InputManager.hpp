@@ -17,6 +17,7 @@ class InputManager {
 	static const Sint16 TRIGGER_DOWN_VALUE = SDL_MAX_SINT16 / 2;
 
 	static constexpr float JOY_DEADZONE = 0.5 * 0.5;
+	static constexpr float JOY_AXIS_DEADZONE = int(float(SDL_MAX_SINT16) * 0.5);
 	static const int JOY_REMAP_COUNT = 7;
 
 	struct JoyRemap {
@@ -131,12 +132,14 @@ class InputManager {
 		switch (event.axis) {
 			case SDL_CONTROLLER_AXIS_LEFTX:
 			case SDL_CONTROLLER_AXIS_LEFTY:
+				if (abs(event.value) > JOY_AXIS_DEADZONE) {
+					_dirJoystickPriority = true;
+				}
 #if !__PSP__
 			case SDL_CONTROLLER_AXIS_RIGHTX:
 			case SDL_CONTROLLER_AXIS_RIGHTY:
 #endif
 				_lastUsedJoystick = event.which;
-				_dirJoystickPriority = true;
 				return true;
 
 #if !__PSP__

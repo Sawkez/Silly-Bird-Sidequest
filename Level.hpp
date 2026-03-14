@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+
 #include <fstream>
 #include <vector>
 
@@ -20,7 +21,7 @@
 using namespace std;
 
 class Level : IProcessable, IDrawable {
-  private:
+   private:
 	string _path;
 	SDL_Renderer* _renderer;
 	vector<SDL_Surface*> _atlases;
@@ -30,14 +31,16 @@ class Level : IProcessable, IDrawable {
 	vector<RenderChunk> _renderChunks;
 	GameState& _state;
 
-  public:
-	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer,
-		  const InputManager& inputManager, SDL_Window* window, GameState& state)
-		: _path(pathToFolder), _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
+   public:
+	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window,
+		  GameState& state)
+		: _path(pathToFolder),
+		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
 		  _renderer(renderer),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
-		  _player(Player(inputManager, renderer, _currentRoom.GetColliders(), _currentRoom.GetLedges())),
-		  _roomCamera(_player, _currentRoom, window), _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
+		  _player(Player(inputManager, renderer, _currentRoom)),
+		  _roomCamera(_player, _currentRoom, window),
+		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
 		  _state(state) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
@@ -48,8 +51,7 @@ class Level : IProcessable, IDrawable {
 		_state.Unpause();
 	}
 
-	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window,
-		  GameState& state)
+	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, GameState& state)
 		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window, state) {}
 
 	yyjson_val* LoadJson(const string& pathToFolder) const {
@@ -124,8 +126,7 @@ class Level : IProcessable, IDrawable {
 		_currentRoom = LoadRoom(room);
 
 		_currentRoom.CacheTiles(_renderer, _atlases);
-		_player.SetStaticColliders(_currentRoom.GetColliders());
-		_player.SetLedges(_currentRoom.GetLedges());
+		_player.SetRoom(_currentRoom);
 		_roomCamera.SetRoom(_currentRoom);
 
 		DestroyRenderChunks();

@@ -12,6 +12,7 @@
 #include "InputManager.hpp"
 #include "Jizz.hpp"
 #include "ParticleSpawner.hpp"
+#include "Room.hpp"
 #include "Scarf.hpp"
 #include "Vector2.hpp"
 #include "WorldConstants.hpp"
@@ -127,8 +128,7 @@ class Player : public IProcessable, public IDrawableRect {
 	CollisionRect _collision = CollisionRect(FULL_COLLISION);
 	CollisionRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 8.0, 12.0};
-	reference_wrapper<const vector<CollisionRect>> _staticColliders;
-	reference_wrapper<const vector<SDL_Point>> _ledges;
+	reference_wrapper<Room> _room;
 	AnimatedSpriteOverlay _sprite;
 	Scarf _scarf;
 
@@ -217,25 +217,17 @@ class Player : public IProcessable, public IDrawableRect {
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(const InputManager& input, SDL_Renderer* renderer, const vector<CollisionRect>& staticColliders, const vector<SDL_Point>& ledges)
+	Player(const InputManager& input, SDL_Renderer* renderer, Room& room)
 		: _input(input),
 		  _jizz("content/sidequest/skins/classic", renderer),
-		  _staticColliders(ref(staticColliders)),
-		  _ledges(ref(ledges)),
-		  _scarf(position, staticColliders),
+		  _room(room),
+		  _scarf(position, room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
 		  _diveParticles({-25.0, -25.0, 50.0, 50.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
 	const InputManager& GetInput() const { return _input; }
 
 	const CollisionRect& GetCollision() const { return _collision; }
-
-	void SetStaticColliders(const vector<CollisionRect>& colliders) {
-		_staticColliders = ref(colliders);
-		_scarf.SetColliders(colliders);
-	}
-
-	void SetLedges(const vector<SDL_Point>& ledges) { _ledges = ref(ledges); }
 
 	void SetState(int state) {
 		(this->*_deinitFuncs[_movementStateID])();
@@ -246,6 +238,11 @@ class Player : public IProcessable, public IDrawableRect {
 	void SetShortCollision(bool isShort) {
 		_shortCollision = isShort;
 		_collision = isShort ? SHORT_COLLISION : FULL_COLLISION;
+	}
+
+	void SetRoom(Room& room) {
+		_room = ref(room);
+		_scarf.SetColliders(room.GetColliders());
 	}
 
 	void SetTimer(int timer) {
@@ -343,7 +340,7 @@ class Player : public IProcessable, public IDrawableRect {
 			CollisionResult firstCollision{};
 			Vector2 frameVelocity = velocity * delta;
 
-			for (auto& collider : _staticColliders.get()) {
+			for (const auto& collider : _room.get().GetColliders()) {
 				CollisionResult newCollision = collider.SweptAABBCollision(_collision, frameVelocity);
 
 				if (newCollision.depth < firstCollision.depth) {
@@ -379,14 +376,14 @@ class Player : public IProcessable, public IDrawableRect {
 		_floorCheck.x = position.x + FLOOR_CHECK_OFFSET.x;
 		_floorCheck.y = position.y + FLOOR_CHECK_OFFSET.y;
 
-		for (auto collider : _staticColliders.get()) {
+		for (const auto& collider : _room.get().GetColliders()) {
 			if (SDL_HasIntersectionF(&_ceilingCheck, &collider)) {
 				_closeToCeiling = true;
 				break;
 			}
 		}
 
-		for (auto collider : _staticColliders.get()) {
+		for (const auto& collider : _room.get().GetColliders()) {
 			if (SDL_HasIntersectionF(&_floorCheck, &collider)) {
 				_closeToFloor = true;
 				break;
