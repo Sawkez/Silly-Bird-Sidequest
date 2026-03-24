@@ -8,9 +8,21 @@
 #include "CollisionResult.hpp"
 #include "DiveParticle.hpp"
 #include "IDrawableRect.hpp"
+#include "IMovementState.hpp"
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Jizz.hpp"
+/*
+#include "MovementStateNormal.hpp"
+#include "MovementStateLedge.hpp"
+#include "MovementStateDive.hpp"
+#include "MovementStateDash.hpp"
+#include "MovementStateDive.hpp"
+#include "MovementStateSlide.hpp"
+#include "MovementStateDuck.hpp"
+#include "MovementStateDead.hpp"
+*/
+#include "IMovementState.hpp"
 #include "ParticleSpawner.hpp"
 #include "Room.hpp"
 #include "Scarf.hpp"
@@ -19,10 +31,14 @@
 
 // Player movement state functions are defined in headers included at the bottom
 // of this one
+class MovementStateNormal;
 
 using namespace std;
 
 class Player : public IProcessable, public IDrawableRect {
+	friend class IMovementState;
+	friend class MovementStateNormal;
+
 	enum PlayerAnimation {
 		ANIM_DUCK,
 		ANIM_FLY,
@@ -34,7 +50,8 @@ class Player : public IProcessable, public IDrawableRect {
 		ANIM_SLOW_RUN,
 		ANIM_SLIDE,
 		ANIM_TWERK_DOWN,
-		ANIM_TWERK_UP
+		ANIM_TWERK_UP,
+		_ANIM_COUNT
 	};
 
 	enum MovementStateID {
@@ -48,7 +65,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_MOVEMENT_STATE_COUNT
 	};
 
-	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_POWERCORD, UPGRADE_REJUVENATOR };
+	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_POWERCORD, UPGRADE_REJUVENATOR, _UPGRADE_COUNT };
 
 	enum Timer {
 		TIMER_COYOTE,
@@ -63,7 +80,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_TIMER_COUNT
 	};
 
-	const float TIMER_DURATIONS[_TIMER_COUNT] = {
+	static inline constexpr float TIMER_DURATIONS[_TIMER_COUNT] = {
 		10.0 / 60.0,  // coyote
 		30.0 / 60.0,  // platform
 		5.0 / 60.0,	  // v reset
@@ -77,7 +94,7 @@ class Player : public IProcessable, public IDrawableRect {
 
 	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, _COOLDOWN_COUNT };
 
-	const float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
+	static inline constexpr float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
 		NAN,		  // ledge (use up & down)
 		15.0 / 60.0,  // slide
 		5.0 / 60.0	  // interact
@@ -85,7 +102,7 @@ class Player : public IProcessable, public IDrawableRect {
 
 	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, _BUFFER_COUNT };
 
-	const float BUFFER_DURATIONS[_BUFFER_COUNT] = {
+	static inline constexpr float BUFFER_DURATIONS[_BUFFER_COUNT] = {
 		10.0 / 60.0,  // jump
 		30.0 / 60.0,  // dive
 		30.0 / 60.0,  // dash
@@ -94,34 +111,34 @@ class Player : public IProcessable, public IDrawableRect {
 		15.0 / 60.0	  // interact
 	};
 
-	const Vector2 BODY_CENTER{8.0, 8.0};
-	const Vector2 FEET_POS{8.0, 16.0};
+	static inline const Vector2 BODY_CENTER{8.0, 8.0};
+	static inline const Vector2 FEET_POS{8.0, 16.0};
 
-	const float SQUISH_BASE_X_VELOCITY = 200.0;
-	const float SQUISH_BASE_Y_VELOCITY = 250.0;
-	const float SQUISH_ACCEL = 180.0;
-	const float MAX_SQUISH_VELOCITY = 15.0;
-	const float MIN_SQUISH_VELOCITY = 0.25;
-	const float SQUISH_DAMPENING = pow(0.85, 60.0);
-	const float X_SQUISH_MIN = 0.25;
-	const float X_SQUISH_MAX = 1.5;
-	const float X_SQUISH_RESET = 0.075;
-	const float Y_SQUISH_MAX = 1.25;
+	static inline constexpr float SQUISH_BASE_X_VELOCITY = 200.0;
+	static inline constexpr float SQUISH_BASE_Y_VELOCITY = 250.0;
+	static inline constexpr float SQUISH_ACCEL = 180.0;
+	static inline constexpr float MAX_SQUISH_VELOCITY = 15.0;
+	static inline constexpr float MIN_SQUISH_VELOCITY = 0.25;
+	static inline constexpr float SQUISH_DAMPENING = 0.000058228f;	// 0.85 ^ 60.0
+	static inline constexpr float X_SQUISH_MIN = 0.25;
+	static inline constexpr float X_SQUISH_MAX = 1.5;
+	static inline constexpr float X_SQUISH_RESET = 0.075;
+	static inline constexpr float Y_SQUISH_MAX = 1.25;
 
-	const float V_RESET_GRAVITY = 1800.0;
+	static inline constexpr float V_RESET_GRAVITY = 1800.0;
 
-	// const float FLOOR_RAY_LENGTH = 12.0;
+	// static inline constexpr float FLOOR_RAY_LENGTH = 12.0;
 
-	const CollisionRect FULL_COLLISION = CollisionRect(0.0, 0.0, 8.0, 13.0);
-	const CollisionRect SHORT_COLLISION = CollisionRect(0.0, 0.0, 8.0, 6.75);
-	const int COLLISION_ITERATIONS = 3;
-	const float MIN_COLLISION_TIME = 0.1;
-	const Vector2 COLLISION_OFFSET_FULL{-4.0, -13.0};
-	const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x, COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
-	const Vector2 FLOOR_CHECK_OFFSET{-4.0, 0.0};
-	const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL;
+	static inline const CollisionRect FULL_COLLISION = CollisionRect(0.0, 0.0, 8.0, 13.0);
+	static inline const CollisionRect SHORT_COLLISION = CollisionRect(0.0, 0.0, 8.0, 6.75);
+	static inline constexpr int COLLISION_ITERATIONS = 3;
+	static inline constexpr float MIN_COLLISION_TIME = 0.1;
+	static inline const Vector2 COLLISION_OFFSET_FULL{-4.0, -13.0};
+	static inline const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x, COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
+	static inline const Vector2 FLOOR_CHECK_OFFSET{-4.0, 0.0};
+	static inline const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL;
 
-	const float CEILING_DASH_VELOCITY = 200.0;
+	static inline constexpr float CEILING_DASH_VELOCITY = 200.0;
 
    private:
 	// objects
@@ -133,6 +150,7 @@ class Player : public IProcessable, public IDrawableRect {
 	reference_wrapper<Room> _room;
 	AnimatedSpriteOverlay _sprite;
 	Scarf _scarf;
+	IMovementState** _movementStates;
 
 	// particles
 	ParticleSpawner<DiveParticle, 5> _diveParticles;
@@ -167,74 +185,27 @@ class Player : public IProcessable, public IDrawableRect {
 	bool _diveAvailable = true;
 	bool _dashAvailable = true;
 
-	// movement state functions
-	// implemented in MovementStateNormal.hpp, included at the bottom
-	void NormalInit();
-	void NormalProcess(float delta);
-	void NormalDeinit();
-
-	// implemented in MovementStateLedge.hpp, included at the bottom
-	void LedgeInit();
-	void LedgeProcess(float delta);
-	void LedgeDeinit();
-
-	// implemented in MovementStateDive.hpp, included at the bottom
-	void DiveInit();
-	void DiveProcess(float delta);
-	void DiveDeinit();
-
-	// implemented in MovementStateDash.hpp, included at the bottom
-	void DashInit();
-	void DashProcess(float delta);
-	void DashDeinit();
-
-	// implemented in MovementStateSlide.hpp, included at the bottom
-	void SlideInit();
-	void SlideProcess(float delta);
-	void SlideDeinit();
-
-	// implemented in MovementStateDuck.hpp, included at the bottom
-	void DuckInit();
-	void DuckProcess(float delta);
-	void DuckDeinit();
-
-	// implemented in MovementStateDead.hpp, included at the bottom
-	void DeadInit();
-	void DeadProcess(float delta);
-	void DeadDeinit();
-
-	using StateInitFunc = void (Player::*)();
-	StateInitFunc _initFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalInit, &Player::LedgeInit, &Player::DiveInit, &Player::DashInit,
-													&Player::SlideInit,	 &Player::DuckInit,	 &Player::DeadInit};
-
-	using StateProcessFunc = void (Player::*)(float);
-	StateProcessFunc _processFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalProcess, &Player::LedgeProcess, &Player::DiveProcess, &Player::DashProcess,
-														  &Player::SlideProcess,  &Player::DuckProcess,	 &Player::DeadProcess};
-
-	using StateDeinitFunc = void (Player::*)();
-	StateDeinitFunc _deinitFuncs[_MOVEMENT_STATE_COUNT]{&Player::NormalDeinit, &Player::LedgeDeinit, &Player::DiveDeinit, &Player::DashDeinit,
-														&Player::SlideDeinit,  &Player::DuckDeinit,	 &Player::DeadDeinit};
-
    public:
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(const InputManager& input, SDL_Renderer* renderer, Room& room)
+	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, IMovementState* movementStates[_MOVEMENT_STATE_COUNT])
 		: _input(input),
 		  _jizz("content/sidequest/skins/classic", renderer),
 		  _room(room),
 		  _scarf(position, room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
+		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
+		  _movementStates(movementStates) {}
 
 	const InputManager& GetInput() const { return _input; }
 
 	const CollisionRect& GetCollision() const { return _collision; }
 
 	void SetState(int state) {
-		(this->*_deinitFuncs[_movementStateID])();
+		_movementStates[_movementStateID]->Deinit(*this);
 		_movementStateID = state;
-		(this->*_initFuncs[_movementStateID])();
+		_movementStates[_movementStateID]->Init(*this);
 	}
 
 	void SetShortCollision(bool isShort) {
@@ -304,7 +275,7 @@ class Player : public IProcessable, public IDrawableRect {
 		}
 
 		// calling movement state function
-		(this->*_processFuncs[_movementStateID])(delta);
+		_movementStates[_movementStateID]->Process(*this, delta);
 
 		// conserving v velocity for ultraslides
 
@@ -484,12 +455,12 @@ class Player : public IProcessable, public IDrawableRect {
 		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
 		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
-};
 
-#include "MovementStateDash.hpp"
-#include "MovementStateDead.hpp"
-#include "MovementStateDive.hpp"
-#include "MovementStateDuck.hpp"
-#include "MovementStateLedge.hpp"
-#include "MovementStateNormal.hpp"
-#include "MovementStateSlide.hpp"
+	~Player() {
+		for (int i = 0; i < _MOVEMENT_STATE_COUNT; i++) {
+			delete _movementStates[i];
+		}
+
+		delete[] _movementStates;
+	}
+};

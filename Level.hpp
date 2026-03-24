@@ -11,6 +11,7 @@
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Player.hpp"
+#include "PlayerFactory.hpp"
 #include "RenderChunk.hpp"
 #include "Room.hpp"
 #include "RoomCamera.hpp"
@@ -38,7 +39,8 @@ class Level : IProcessable, IDrawable {
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
 		  _renderer(renderer),
-		  _player(Player(inputManager, renderer, _currentRoom)),
+		  //_player(Player(inputManager, renderer, _currentRoom)),
+		  _player(PlayerFactory::NewPlayer(inputManager, renderer, _currentRoom)),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
 		  _state(state) {
