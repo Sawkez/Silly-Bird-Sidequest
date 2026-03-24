@@ -35,18 +35,18 @@ class MovementStateNormal : public IMovementState {
 	void Init(Player& p) const override {}
 
 	void Process(Player& p, float delta) const override {
-		if (p._shortCollision && !p._closeToCeiling) {
+		if (p.IsShortCollision() && !p.IsCloseToCeiling()) {
 			p.SetShortCollision(false);
 		}
 
 		// ceiling dash
-		if (p.TimerActive(Player::TIMER_DASH) && p.velocity.y < GRAVITY * delta && p._pushingCeiling) {
+		if (p.TimerActive(Player::TIMER_DASH) && p.velocity.y < GRAVITY * delta && p.IsPushingCeiling()) {
 			p.CeilingDash();
 		}
 
 		// friction
 		// trying to turn around
-		if (p.velocity.x * p._input.GetDir().x <= 0.0) {
+		if (p.velocity.x * p.GetInput().GetDir().x <= 0.0) {
 			// make sure we don't overcompensate
 			float activeFrict = fminf(FRICTION * delta, abs(p.velocity.x));
 			p.velocity.x -= Math::CopySignOrZero(activeFrict, p.velocity.x);
@@ -63,22 +63,22 @@ class MovementStateNormal : public IMovementState {
 
 		// going way too fast
 		else {
-			float activeFrict = p._pushingFloor ? FRICTION : AIR_FRICTION;
+			float activeFrict = p.IsPushingFloor() ? FRICTION : AIR_FRICTION;
 			p.velocity.x -= Math::CopySignOrZero(activeFrict * delta, p.velocity.x);
 		}
 
 		// accelerating
 		if (abs(p.velocity.x) < TOP_SPEED) {
-			p.velocity.x += ACCELERATION * p._input.GetDir().x * delta;
+			p.velocity.x += ACCELERATION * p.GetInput().GetDir().x * delta;
 		}
 
 		// starting a fastfall
 		// not fastfalling, do nothing
-		if (!p._input.IsTapped(ACTION_DOWN)) {
+		if (!p.GetInput().IsTapped(ACTION_DOWN)) {
 		}
 
 		// fastfalling around peak of jump, maximize downwards velocity
-		else if (!p._pushingFloor && abs(p.velocity.y) < FAST_FALL_WINDOW) {
+		else if (!p.IsPushingFloor() && abs(p.velocity.y) < FAST_FALL_WINDOW) {
 			/*
 			float timeFalling = abs(velocity.y) / GRAVITY;
 			float timeFastFalling = sqrtf(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
@@ -100,7 +100,7 @@ class MovementStateNormal : public IMovementState {
 			p.velocity.y += WEAK_GRAVITY * delta;
 		}
 
-		else if (p._input.IsDown(ACTION_DOWN)) {
+		else if (p.GetInput().IsDown(ACTION_DOWN)) {
 			p.velocity.y += FAST_FALL_GRAVITY * delta;
 		}
 
@@ -109,15 +109,15 @@ class MovementStateNormal : public IMovementState {
 		}
 
 		// resetting coyote timer
-		if (p._pushingFloor) {
+		if (p.IsPushingFloor()) {
 			p.SetTimer(Player::TIMER_COYOTE);
 		}
 
 		// jump / dash buffer
-		if (!p._input.IsTapped(ACTION_JUMP)) {
+		if (!p.GetInput().IsTapped(ACTION_JUMP)) {
 		}
 
-		else if (p._closeToFloor || p.TimerActive(Player::TIMER_COYOTE)) {
+		else if (p.IsCloseToFloor() || p.TimerActive(Player::TIMER_COYOTE)) {
 			p.Buffer(Player::BUFFER_JUMP);
 		}
 
@@ -128,21 +128,21 @@ class MovementStateNormal : public IMovementState {
 
 		// dashing
 		bool dashFirst =
-			!p.BufferActive(Player::BUFFER_DIVE) || p._buffers[Player::BUFFER_DASH] < p._buffers[Player::BUFFER_DIVE] || !p._diveAvailable;
+			!p.BufferActive(Player::BUFFER_DIVE) || p.GetBuffer(Player::BUFFER_DASH) < p.GetBuffer(Player::BUFFER_DIVE) || !p.IsDiveAvailable();
 
 		if (!p.BufferActive(Player::BUFFER_DASH)) {
 		}
 
-		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) && p._dashAvailable) {
+		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) && p.IsDashAvailable()) {
 			p.SetState(Player::MOVEMENT_STATE_DASH);
 			return;
 		}
 
 		// dive buffer
-		bool wantsToDive = p.velocity.y < GRAVITY * delta || !p._closeToFloor;
-		bool wantsToUltraslide = p.velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && p._input.IsDown(ACTION_DOWN);
+		bool wantsToDive = p.velocity.y < GRAVITY * delta || !p.IsCloseToFloor();
+		bool wantsToUltraslide = p.velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && p.GetInput().IsDown(ACTION_DOWN);
 
-		if (!p._input.IsTapped(ACTION_DIVE)) {
+		if (!p.GetInput().IsTapped(ACTION_DIVE)) {
 		}
 
 		else if (wantsToDive && !wantsToUltraslide) {
@@ -155,10 +155,10 @@ class MovementStateNormal : public IMovementState {
 		}
 
 		// sliding
-		bool inputtingSlide = p._input.IsDown(ACTION_DIVE) || p.BufferActive(Player::BUFFER_SLIDE);
+		bool inputtingSlide = p.GetInput().IsDown(ACTION_DIVE) || p.BufferActive(Player::BUFFER_SLIDE);
 		bool slideAvailable = p.HasUpgrade(Player::UPGRADE_SLIDE) && !p.CooldownActive(p.COOLDOWN_SLIDE);
 
-		if (!p._pushingFloor || !inputtingSlide || !slideAvailable) {
+		if (!p.IsPushingFloor() || !inputtingSlide || !slideAvailable) {
 		}
 
 		else if (p.velocity.x != 0.0) {
@@ -173,15 +173,15 @@ class MovementStateNormal : public IMovementState {
 		}
 
 		// ducking with down key
-		bool canDuck = p._pushingFloor && !p.BufferActive(Player::BUFFER_JUMP) && p.HasUpgrade(Player::UPGRADE_SLIDE);
+		bool canDuck = p.IsPushingFloor() && !p.BufferActive(Player::BUFFER_JUMP) && p.HasUpgrade(Player::UPGRADE_SLIDE);
 
-		if (canDuck && p.velocity.x == 0.0 && p._input.GetDir() == Vector2{0.0, 1.0}) {
+		if (canDuck && p.velocity.x == 0.0 && p.GetInput().GetDir() == Vector2{0.0, 1.0}) {
 			p.SetState(Player::MOVEMENT_STATE_DUCK);
 			return;
 		}
 
 		// diving
-		if (p.BufferActive(Player::BUFFER_DIVE) && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DIVE) && p._diveAvailable) {
+		if (p.BufferActive(Player::BUFFER_DIVE) && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DIVE) && p.IsDiveAvailable()) {
 			p.SetState(Player::MOVEMENT_STATE_DIVE);
 			return;
 		}
@@ -191,48 +191,49 @@ class MovementStateNormal : public IMovementState {
 			p.UnsetTimer(Player::TIMER_COYOTE);
 			p.velocity.y = -JUMP_FORCE;
 
-			p._sprite.scale.x = Player::X_SQUISH_MIN;
+			p.SetSquish(Player::X_SQUISH_MIN);
 			// TODO moving platforms
 		}
 
 		// grabbing ledges
-		if ((p._quickClimb || p.velocity.y > GRAVITY * delta) && !p.CooldownActive(p.COOLDOWN_LEDGE) && p._input.GetDir().y < 1.0) {
-			p._ledgeTile.x =
-				int(roundf(p.position.x / WorldConstants::TILE_SIZE_F + (p._facingLeft ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT))) *
-				WorldConstants::TILE_SIZE;
+		if ((p.IsQuickClimbActive() || p.velocity.y > GRAVITY * delta) && !p.CooldownActive(p.COOLDOWN_LEDGE) && p.GetInput().GetDir().y < 1.0) {
+			SDL_Point ledgeTile{
+				int(roundf(p.position.x / WorldConstants::TILE_SIZE_F + (p.IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT))) *
+					WorldConstants::TILE_SIZE,
+				int(roundf(p.position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP)) * WorldConstants::TILE_SIZE};
 
-			p._ledgeTile.y = int(roundf(p.position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP)) * WorldConstants::TILE_SIZE;
+			p.SetLedgeTile(ledgeTile);
 
-			const vector<SDL_Point>& ledges = p._room.get().GetLedges();
+			const vector<SDL_Point>& ledges = p.GetRoom().GetLedges();
 
-			if (std::find(ledges.begin(), ledges.end(), p._ledgeTile) != ledges.end()) {
+			if (std::find(ledges.begin(), ledges.end(), ledgeTile) != ledges.end()) {
 				p.SetState(Player::MOVEMENT_STATE_LEDGE);
 				return;
 			}
 		}
 
 		// updating animation
-		if (p._pushingFloor) {
-			if (p.velocity.x == 0.0 || p._pushingWall) {
+		if (p.IsPushingFloor()) {
+			if (p.velocity.x == 0.0 || p.IsPushingWall()) {
 				// TODO bored and twerk
-				p._sprite.Play(Player::ANIM_IDLE);
+				p.PlayAnimation(Player::ANIM_IDLE);
 			}
 
 			else if (abs(p.velocity.x) <= SLOW_RUN_SPEED) {
-				p._sprite.Play(Player::ANIM_SLOW_RUN, abs(p.velocity.x) / TOP_SPEED);
+				p.PlayAnimation(Player::ANIM_SLOW_RUN, abs(p.velocity.x) / TOP_SPEED);
 			}
 
 			else {
-				p._sprite.Play(Player::ANIM_RUN, abs(p.velocity.x) / TOP_SPEED);
+				p.PlayAnimation(Player::ANIM_RUN, abs(p.velocity.x) / TOP_SPEED);
 			}
 		}
 
 		else {
-			p._sprite.Play(Player::ANIM_JUMP);
+			p.PlayAnimation(Player::ANIM_JUMP);
 		}
 
 		// flipping sprite
-		if (p.velocity.x < 0.0 && !p._facingLeft)
+		if (p.velocity.x < 0.0 && !p.IsFacingLeft())
 			p.FlipSprite(true);
 		else if (p.velocity.x > 0.0)
 			p.FlipSprite(false);

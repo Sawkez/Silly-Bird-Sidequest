@@ -1,65 +1,72 @@
 #pragma once
 
-const float LEDGE_OFFSET_HEIGHT = 10.0;
-const float LEDGE_OFFSET_LEFT = 12.0;
-const float LEDGE_OFFSET_RIGHT = -4.0;
+#include "IMovementState.hpp"
+#include "Player.hpp"
+#include "Vector2.hpp"
 
-const Vector2 LEDGE_SIDE_JUMP_FORCE{200.0, -125.0};
-const float LEDGE_UP_JUMP_FORCE = 250.0;
-const float LEDGE_UP_COOLDOWN = 5.0 / 60.0;
-const float LEDGE_DOWN_COOLDOWN = 10.0 / 60.0;
+class MovementStateLedge : public IMovementState {
+	static inline constexpr float LEDGE_OFFSET_HEIGHT = 10.0;
+	static inline constexpr float LEDGE_OFFSET_LEFT = 12.0;
+	static inline constexpr float LEDGE_OFFSET_RIGHT = -4.0;
 
-void Player::LedgeInit() {
-	position = _ledgeTile;
-	position.y += LEDGE_OFFSET_HEIGHT;
+	static inline const Vector2 LEDGE_SIDE_JUMP_FORCE{200.0, -125.0};
+	static inline constexpr float LEDGE_UP_JUMP_FORCE = 250.0;
+	static inline constexpr float LEDGE_UP_COOLDOWN = 5.0 / 60.0;
+	static inline constexpr float LEDGE_DOWN_COOLDOWN = 10.0 / 60.0;
 
-	if (_facingLeft) {
-		position.x += LEDGE_OFFSET_LEFT;
-	}
+	void Init(Player& p) const override {
+		p.position = p.GetLedgeTile();
+		p.position.y += LEDGE_OFFSET_HEIGHT;
 
-	else {
-		position.x += LEDGE_OFFSET_RIGHT;
-	}
-
-	velocity = Vector2::ZERO;
-	_quickClimb = true;
-
-	_sprite.PlayLastFrame(ANIM_LEDGE_UNFLIP);
-	_sprite.scale.x = X_SQUISH_MAX;
-}
-
-void Player::LedgeProcess(float delta) {
-	if (_input.IsTapped(ACTION_JUMP) || _input.IsTapped(ACTION_UP) || BufferActive(BUFFER_DASH) || BufferActive(BUFFER_LEDGE_JUMP)) {
-		Unbuffer(BUFFER_DASH);
-		Unbuffer(BUFFER_LEDGE_JUMP);
-
-		if (_input.GetDir().x != 0.0 && (_input.GetDir().x < 0.0 != _facingLeft)) {
-			velocity = {LEDGE_SIDE_JUMP_FORCE.x * _input.GetDir().x, LEDGE_SIDE_JUMP_FORCE.y};
+		if (p.IsFacingLeft()) {
+			p.position.x += LEDGE_OFFSET_LEFT;
 		}
 
 		else {
-			velocity.y = -LEDGE_UP_JUMP_FORCE;
+			p.position.x += LEDGE_OFFSET_RIGHT;
 		}
 
-		_cooldowns[COOLDOWN_LEDGE] = LEDGE_UP_COOLDOWN;
-		SetState(MOVEMENT_STATE_NORMAL);
+		p.velocity = Vector2::ZERO;
+		p.EnableQuickClimb();
+
+		p.PlayAnimationLastFrame(Player::Player::ANIM_LEDGE_UNFLIP);
+		p.SetSquish(Player::X_SQUISH_MAX);
 	}
 
-	else if (_input.IsTapped(ACTION_DOWN)) {
-		_cooldowns[COOLDOWN_LEDGE] = LEDGE_DOWN_COOLDOWN;
-		SetState(MOVEMENT_STATE_NORMAL);
+	void Process(Player& p, float delta) const override {
+		if (p.GetInput().IsTapped(ACTION_JUMP) || p.GetInput().IsTapped(ACTION_UP) || p.BufferActive(Player::BUFFER_DASH) ||
+			p.BufferActive(Player::BUFFER_LEDGE_JUMP)) {
+			p.Unbuffer(Player::BUFFER_DASH);
+			p.Unbuffer(Player::BUFFER_LEDGE_JUMP);
+
+			if (p.GetInput().GetDir().x != 0.0 && (p.GetInput().GetDir().x < 0.0 != p.IsFacingLeft())) {
+				p.velocity = {LEDGE_SIDE_JUMP_FORCE.x * p.GetInput().GetDir().x, LEDGE_SIDE_JUMP_FORCE.y};
+			}
+
+			else {
+				p.velocity.y = -LEDGE_UP_JUMP_FORCE;
+			}
+
+			p.SetCooldown(Player::COOLDOWN_LEDGE, LEDGE_UP_COOLDOWN);
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+		}
+
+		else if (p.GetInput().IsTapped(ACTION_DOWN)) {
+			p.SetCooldown(Player::COOLDOWN_LEDGE, LEDGE_DOWN_COOLDOWN);
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+		}
+
+		else if (p.GetInput().GetDir().x == 0.0 || (p.GetInput().GetDir().x < 0.0 == p.IsFacingLeft())) {
+			p.PlayAnimation(Player::ANIM_LEDGE_UNFLIP);
+		}
+
+		else {
+			p.PlayAnimation(Player::ANIM_LEDGE_FLIP);
+		}
 	}
 
-	else if (_input.GetDir().x == 0.0 || (_input.GetDir().x < 0.0 == _facingLeft)) {
-		_sprite.Play(ANIM_LEDGE_UNFLIP);
+	void Deinit(Player& p) const override {
+		p.SetSquish(Player::X_SQUISH_MIN);
+		p.UnsetTimer(Player::TIMER_COYOTE);
 	}
-
-	else {
-		_sprite.Play(ANIM_LEDGE_FLIP);
-	}
-}
-
-void Player::LedgeDeinit() {
-	_sprite.scale.x = X_SQUISH_MIN;
-	UnsetTimer(TIMER_COYOTE);
-}
+};

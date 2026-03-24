@@ -86,7 +86,7 @@ struct Game {
 		input.UpdateDir();
 
 		// game logic
-		level.Process(delta * 3.0);
+		level.Process(delta);
 
 		input.UpdateTapStates();
 

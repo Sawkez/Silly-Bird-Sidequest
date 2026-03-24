@@ -1,54 +1,61 @@
 #pragma once
 
-const float SQUISH_DUCK = 0.5;
-const float SQUISH_STAND_UP = 1.5;
-const float DUCK_GRAVITY = 0.01;
-const float DUCK_JUMP_FORCE = 250.0;
+#include "IMovementState.hpp"
+#include "Player.hpp"
 
-void Player::DuckInit() {
-    Unbuffer(BUFFER_SLIDE);
+class MovementStateDuck : public IMovementState {
+	const float SQUISH_DUCK = 0.5;
+	const float SQUISH_STAND_UP = 1.5;
+	const float DUCK_GRAVITY = 0.01;
+	const float DUCK_JUMP_FORCE = 250.0;
 
-    SetShortCollision(true);
-    _sprite.scale.x = SQUISH_DUCK;
-    _sprite.Play(ANIM_DUCK);
-}
+	void Init(Player& p) const override {
+		p.Unbuffer(Player::BUFFER_SLIDE);
 
-void Player::DuckProcess(float delta) {
-    velocity = Vector2 {0.0, DUCK_GRAVITY * delta};
+		p.SetShortCollision(true);
+		p.SetSquish(SQUISH_DUCK);
+		p.PlayAnimation(Player::ANIM_DUCK);
+	}
 
-    // sliding
-    if (_input.GetDir().x != 0.0 && (_input.IsDown(ACTION_DIVE) || _closeToCeiling) && !CooldownActive(COOLDOWN_SLIDE)) {
+	void Process(Player& p, float delta) const override {
+		p.velocity = Vector2{0.0, DUCK_GRAVITY * delta};
 
-        // duck double-jump
-        if (!_closeToCeiling && _input.IsTapped(ACTION_JUMP)) {
-            velocity.y = -DUCK_JUMP_FORCE;
-            SetState(MOVEMENT_STATE_NORMAL);
-            return;
-        }
+		// sliding
+		if (p.GetInput().GetDir().x != 0.0 && (p.GetInput().IsDown(ACTION_DIVE) || p.IsCloseToCeiling()) &&
+			!p.CooldownActive(Player::COOLDOWN_SLIDE)) {
+			// duck double-jump
+			if (!p.IsCloseToCeiling() && p.GetInput().IsTapped(ACTION_JUMP)) {
+				p.velocity.y = -DUCK_JUMP_FORCE;
+				p.SetState(Player::MOVEMENT_STATE_NORMAL);
+				return;
+			}
 
-        velocity.x = _input.GetDir().x;
-        SetState(MOVEMENT_STATE_SLIDE);
-        return;
-    }
+			p.velocity.x = p.GetInput().GetDir().x;
+			p.SetState(Player::MOVEMENT_STATE_SLIDE);
+			return;
+		}
 
-    if (_closeToCeiling) { return; }
+		if (p.IsCloseToCeiling()) {
+			return;
+		}
 
-    // unducking
-    if (!_pushingFloor || !(_input.IsDown(ACTION_DIVE) || _input.GetDir() == Vector2{0.0, 1.0})) {
-        SetState(MOVEMENT_STATE_NORMAL);
-        return;
-    }
+		// unducking
+		if (!p.IsPushingFloor() || !(p.GetInput().IsDown(ACTION_DIVE) || p.GetInput().GetDir() == Vector2{0.0, 1.0})) {
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+			return;
+		}
 
-    // jumping
-    if (_input.IsTapped(ACTION_JUMP)) {
-        SetCooldown(COOLDOWN_SLIDE);
-        Buffer(BUFFER_JUMP);
-        SetState(MOVEMENT_STATE_NORMAL);
-    }
-}
+		// jumping
+		if (p.GetInput().IsTapped(ACTION_JUMP)) {
+			p.SetCooldown(Player::COOLDOWN_SLIDE);
+			p.Buffer(Player::BUFFER_JUMP);
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+		}
+	}
 
-void Player::DuckDeinit() {
-    SetTimer(TIMER_COYOTE);
-    _sprite.scale.x = SQUISH_STAND_UP;
-    SetShortCollision(false);
-}
+	void Deinit(Player& p) const override {
+		p.SetTimer(Player::TIMER_COYOTE);
+		p.SetSquish(SQUISH_STAND_UP);
+		p.SetShortCollision(false);
+	}
+};

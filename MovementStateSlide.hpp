@@ -1,100 +1,106 @@
 #pragma once
 
-const float SLIDE_INITIAL_SPEED = 250.0;
-const float SLIDE_SPEED = 200.0;
-const float ULTRASLIDE_VELOCITY_MULT = 0.975;  // i can't figure out why this is different from godot
-const float SLIDE_GRAVITY = 0.01;
-const float SQUISH_SLIDE = 0.5;
-const float SLIDE_FRICTION = 300.0;
+#include "IMovementState.hpp"
+#include "Player.hpp"
 
-void Player::SlideInit() {
-	Unbuffer(BUFFER_SLIDE);
-	SetTimer(TIMER_SLIDE);
+class MovementStateSlide : public IMovementState {
+	static inline constexpr float SLIDE_INITIAL_SPEED = 250.0;
+	static inline constexpr float SLIDE_SPEED = 200.0;
+	static inline constexpr float ULTRASLIDE_VELOCITY_MULT = 0.975;	 // i can't figure out why this is different from godot
+	static inline constexpr float SLIDE_GRAVITY = 0.01;
+	static inline constexpr float SQUISH_SLIDE = 0.5;
+	static inline constexpr float SLIDE_FRICTION = 300.0;
+	static inline constexpr float SLIDE_JUMP_FORCE = 250.0;
 
-	SetShortCollision(true);
-	FlipSprite(velocity.x < 0.0);
+	void Init(Player& p) const override {
+		p.Unbuffer(Player::BUFFER_SLIDE);
+		p.SetTimer(Player::TIMER_SLIDE);
 
-	if (_input.GetDir().y <= 0.0) {
-		_lastVerticalVelocity = 0.0;
+		p.SetShortCollision(true);
+		p.FlipSprite(p.velocity.x < 0.0);
+
+		if (p.GetInput().GetDir().y <= 0.0) {
+			p.ResetLastVerticalVelocity();
+		}
+
+		float maxSpeed = max(abs(p.velocity.x), SLIDE_INITIAL_SPEED);
+		if (p.GetInput().GetDir().y == 1.0) {
+			maxSpeed = max(maxSpeed, p.GetLastVerticalVelocity() * ULTRASLIDE_VELOCITY_MULT);
+		}
+
+		p.velocity.x = copysignf(maxSpeed, p.velocity.x);
+
+		p.SetSquish(SQUISH_SLIDE);
+		p.PlayAnimation(Player::ANIM_SLIDE);
+
+		if (abs(p.velocity.x) > SLIDE_INITIAL_SPEED) {
+			cout << "Ultrasliding with " << p.velocity.x << endl;
+		}
 	}
 
-	float maxSpeed = max(abs(velocity.x), SLIDE_INITIAL_SPEED);
-	if (_input.GetDir().y == 1.0) {
-		maxSpeed = max(maxSpeed, _lastVerticalVelocity * ULTRASLIDE_VELOCITY_MULT);
+	void Process(Player& p, float delta) const override {
+		// jump buffer
+		if (p.GetInput().IsTapped(ACTION_JUMP)) {
+			p.Buffer(Player::BUFFER_JUMP);
+		}
+
+		// jumping
+		else if (p.BufferActive(Player::BUFFER_JUMP) && !p.IsCloseToCeiling()) {
+			p.Unbuffer(Player::BUFFER_JUMP);
+
+			p.velocity.y = -SLIDE_JUMP_FORCE;
+			p.SetSquish(Player::X_SQUISH_MIN);
+
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+			return;
+		}
+
+		// sliding off ledge
+		else if (!p.IsPushingFloor()) {
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+			return;
+		}
+
+		// crashing into a wall
+		if (p.IsPushingWall()) {
+			p.SetState(p.IsCloseToCeiling() ? Player::MOVEMENT_STATE_DUCK : Player::MOVEMENT_STATE_NORMAL);
+			return;
+		}
+
+		// nothing happens
+		else if (p.TimerActive(Player::TIMER_SLIDE)) {
+		} else if (p.IsCloseToCeiling()) {
+		}
+
+		// releasing slide after time runs out
+		else if (!p.GetInput().IsDown(ACTION_DIVE)) {
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+			return;
+		}
+
+		// pressing opposite direction
+		else if (p.GetInput().GetDir().x * p.velocity.x < 0.0) {
+			p.velocity = Vector2::ZERO;
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+			return;
+		}
+
+		p.velocity.y = SLIDE_GRAVITY * delta;
+
+		p.velocity.x = abs(p.velocity.x) - SLIDE_FRICTION * delta;
+		p.velocity.x = max(p.velocity.x, SLIDE_SPEED);
+		if (p.IsFacingLeft()) {
+			p.velocity.x = -p.velocity.x;
+		}
 	}
 
-	velocity.x = copysignf(maxSpeed, velocity.x);
-
-	_sprite.scale.x = SQUISH_SLIDE;
-	_sprite.Play(ANIM_SLIDE);
-
-	if (abs(velocity.x) > SLIDE_INITIAL_SPEED) {
-		cout << "Ultrasliding with " << velocity.x << endl;
+	void Deinit(Player& p) const override {
+		p.SetTimer(Player::TIMER_COYOTE);
+		p.velocity.y = min(p.velocity.y, 0.0f);
+		if (p.IsCloseToCeiling()) {
+			p.SetShortCollision(false);
+		}
+		p.Unbuffer(Player::BUFFER_DIVE);
+		p.SetCooldown(Player::COOLDOWN_SLIDE);
 	}
-}
-
-void Player::SlideProcess(float delta) {
-	// jump buffer
-	if (_input.IsTapped(ACTION_JUMP)) {
-		Buffer(BUFFER_JUMP);
-	}
-
-	// jumping
-	else if (BufferActive(BUFFER_JUMP) && !_closeToCeiling) {
-		Unbuffer(BUFFER_JUMP);
-
-		velocity.y = -JUMP_FORCE;
-		_sprite.scale.x = X_SQUISH_MIN;
-
-		SetState(MOVEMENT_STATE_NORMAL);
-		return;
-	}
-
-	// sliding off ledge
-	else if (!_pushingFloor) {
-		SetState(MOVEMENT_STATE_NORMAL);
-		return;
-	}
-
-	// crashing into a wall
-	if (_pushingWall) {
-		SetState(_closeToCeiling ? MOVEMENT_STATE_DUCK : MOVEMENT_STATE_NORMAL);
-		return;
-	}
-
-	// nothing happens
-	else if (TimerActive(TIMER_SLIDE)) {
-	} else if (_closeToCeiling) {
-	}
-
-	// releasing slide after time runs out
-	else if (!_input.IsDown(ACTION_DIVE)) {
-		SetState(MOVEMENT_STATE_NORMAL);
-		return;
-	}
-
-	// pressing opposite direction
-	else if (_input.GetDir().x * velocity.x < 0.0) {
-		velocity = Vector2::ZERO;
-		SetState(MOVEMENT_STATE_NORMAL);
-		return;
-	}
-
-	velocity.y = SLIDE_GRAVITY * delta;
-
-	velocity.x = abs(velocity.x) - SLIDE_FRICTION * delta;
-	velocity.x = max(velocity.x, SLIDE_SPEED);
-	if (_facingLeft) {
-		velocity.x = -velocity.x;
-	}
-}
-
-void Player::SlideDeinit() {
-	SetTimer(TIMER_COYOTE);
-	velocity.y = min(velocity.y, 0.0f);
-	if (_closeToCeiling) {
-		SetShortCollision(false);
-	}
-	Unbuffer(BUFFER_DIVE);
-	SetCooldown(COOLDOWN_SLIDE);
-}
+};

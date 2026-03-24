@@ -69,7 +69,7 @@ class RoomChunk {
 		vector<Tile> tiles;
 
 		for (int i = 0; i < tileCount; i++) {
-			tiles.push_back(Tile(file));
+			tiles.emplace_back(file);
 		}
 
 		file.close();

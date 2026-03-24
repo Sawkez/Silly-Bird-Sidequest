@@ -1,7 +1,12 @@
 #pragma once
 
-void Player::DeadInit() {}
+#include "IMovementState.hpp"
+#include "Player.hpp"
 
-void Player::DeadProcess(float delta) {}
+class MovementStateDead : public IMovementState {
+	void Init(Player& p) const override {}
 
-void Player::DeadDeinit() {}
+	void Process(Player& p, float delta) const override {}
+
+	void Deinit(Player& p) const override {}
+};

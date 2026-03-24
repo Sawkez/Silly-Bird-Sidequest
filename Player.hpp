@@ -12,33 +12,16 @@
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Jizz.hpp"
-/*
-#include "MovementStateNormal.hpp"
-#include "MovementStateLedge.hpp"
-#include "MovementStateDive.hpp"
-#include "MovementStateDash.hpp"
-#include "MovementStateDive.hpp"
-#include "MovementStateSlide.hpp"
-#include "MovementStateDuck.hpp"
-#include "MovementStateDead.hpp"
-*/
-#include "IMovementState.hpp"
 #include "ParticleSpawner.hpp"
 #include "Room.hpp"
 #include "Scarf.hpp"
 #include "Vector2.hpp"
 #include "WorldConstants.hpp"
 
-// Player movement state functions are defined in headers included at the bottom
-// of this one
-class MovementStateNormal;
-
 using namespace std;
 
 class Player : public IProcessable, public IDrawableRect {
-	friend class IMovementState;
-	friend class MovementStateNormal;
-
+   public:
 	enum PlayerAnimation {
 		ANIM_DUCK,
 		ANIM_FLY,
@@ -67,6 +50,7 @@ class Player : public IProcessable, public IDrawableRect {
 
 	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_POWERCORD, UPGRADE_REJUVENATOR, _UPGRADE_COUNT };
 
+   public:
 	enum Timer {
 		TIMER_COYOTE,
 		TIMER_PLATFORM,
@@ -80,6 +64,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_TIMER_COUNT
 	};
 
+   private:
 	static inline constexpr float TIMER_DURATIONS[_TIMER_COUNT] = {
 		10.0 / 60.0,  // coyote
 		30.0 / 60.0,  // platform
@@ -92,16 +77,20 @@ class Player : public IProcessable, public IDrawableRect {
 		15.0 / 60.0	  // slide
 	};
 
+   public:
 	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, _COOLDOWN_COUNT };
 
+   private:
 	static inline constexpr float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
 		NAN,		  // ledge (use up & down)
 		15.0 / 60.0,  // slide
 		5.0 / 60.0	  // interact
 	};
 
+   public:
 	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, _BUFFER_COUNT };
 
+   private:
 	static inline constexpr float BUFFER_DURATIONS[_BUFFER_COUNT] = {
 		10.0 / 60.0,  // jump
 		30.0 / 60.0,  // dive
@@ -111,6 +100,7 @@ class Player : public IProcessable, public IDrawableRect {
 		15.0 / 60.0	  // interact
 	};
 
+   public:
 	static inline const Vector2 BODY_CENTER{8.0, 8.0};
 	static inline const Vector2 FEET_POS{8.0, 16.0};
 
@@ -125,6 +115,7 @@ class Player : public IProcessable, public IDrawableRect {
 	static inline constexpr float X_SQUISH_RESET = 0.075;
 	static inline constexpr float Y_SQUISH_MAX = 1.25;
 
+   private:
 	static inline constexpr float V_RESET_GRAVITY = 1800.0;
 
 	// static inline constexpr float FLOOR_RAY_LENGTH = 12.0;
@@ -140,7 +131,6 @@ class Player : public IProcessable, public IDrawableRect {
 
 	static inline constexpr float CEILING_DASH_VELOCITY = 200.0;
 
-   private:
 	// objects
 	const InputManager& _input;
 	Jizz _jizz;
@@ -218,16 +208,20 @@ class Player : public IProcessable, public IDrawableRect {
 		_scarf.SetColliders(room.GetColliders());
 	}
 
+	void SetTimer(int timer, float time) { _timers[timer] = time; }
+
 	void SetTimer(int timer) {
 		if (isnan(TIMER_DURATIONS[timer])) {
 			cerr << "ERROR: timer " << timer << " duration is NAN" << endl;
 		}
-		_timers[timer] = TIMER_DURATIONS[timer];
+		SetTimer(timer, TIMER_DURATIONS[timer]);
 	}
 
 	void UnsetTimer(int timer) { _timers[timer] = 0.0; }
 
 	bool TimerActive(int timer) const { return _timers[timer] > 0.0; }
+
+	float GetTimer(int timer) const { return _timers[timer]; }
 
 	void Buffer(int buffer) {
 		if (isnan(BUFFER_DURATIONS[buffer])) {
@@ -240,13 +234,17 @@ class Player : public IProcessable, public IDrawableRect {
 
 	bool BufferActive(int buffer) const { return _buffers[buffer] > 0.0; }
 
+	float GetBuffer(int buffer) const { return _buffers[buffer]; }
+
 	bool UseBuffer(int buffer) {
 		bool active = BufferActive(buffer);
 		Unbuffer(buffer);
 		return active;
 	}
 
-	void SetCooldown(int cooldown) { _cooldowns[cooldown] = COOLDOWN_DURATIONS[cooldown]; }
+	void SetCooldown(int cooldown, float time) { _cooldowns[cooldown] = time; }
+
+	void SetCooldown(int cooldown) { SetCooldown(cooldown, COOLDOWN_DURATIONS[cooldown]); }
 
 	void UnsetCooldown(int cooldown) { _cooldowns[cooldown] = 0.0; }
 
@@ -433,7 +431,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_diveParticles.StartEmitting();
 	}
 
-	void ReloadDive() {
+	void ReloadDive(bool invisible = false) {
 		_diveAvailable = true;
 		_diveParticles.StopEmitting();
 	}
@@ -455,6 +453,43 @@ class Player : public IProcessable, public IDrawableRect {
 		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
 		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
+
+	bool IsShortCollision() const { return _shortCollision; }
+	bool IsCloseToCeiling() const { return _closeToCeiling; }
+	bool IsPushingCeiling() const { return _pushingCeiling; }
+	bool IsCloseToFloor() const { return _closeToFloor; }
+	bool IsPushingFloor() const { return _pushingFloor; }
+	bool IsPushingWall() const { return _pushingWall; }
+
+	bool IsDashAvailable() const { return _dashAvailable; }
+	bool IsDiveAvailable() const { return _diveAvailable; }
+
+	bool IsQuickClimbActive() const { return _quickClimb; }
+	void EnableQuickClimb() { _quickClimb = true; }
+	void DisableQuickClimb() { _quickClimb = false; }
+
+	bool IsFacingLeft() const { return _facingLeft; }
+
+	float GetSquish() const { return _sprite.scale.x; }
+	void SetSquish(float squish) { _sprite.scale.x = squish; }
+
+	void PlayAnimation(int animation, float speed = 1.0) { _sprite.Play(animation, speed); }
+	void PlayAnimationFromStart(int animation, float speed = 1.0) { _sprite.PlayFromStart(animation, speed); }
+	void PlayAnimationLastFrame(int animation, float speed = 1.0) { _sprite.PlayLastFrame(animation, speed); }
+
+	const Room& GetRoom() const { return _room; }
+
+	void SetLedgeTile(const SDL_Point& tile) { _ledgeTile = tile; }
+	const SDL_Point& GetLedgeTile() const { return _ledgeTile; }
+
+	float GetCurrentDiveGravity() const { return _currentDiveGravity; }
+	void SetCurrentDiveGravity(float gravity) { _currentDiveGravity = gravity; }
+
+	void SetSpriteRotationRadians(float radians) { _sprite.SetRotationRadians(radians); }
+	void SetSpriteRotationDegrees(float degrees) { _sprite.SetRotationDegrees(degrees); }
+
+	float GetLastVerticalVelocity() const { return _lastVerticalVelocity; }
+	void ResetLastVerticalVelocity() { _lastVerticalVelocity = 0.0; }
 
 	~Player() {
 		for (int i = 0; i < _MOVEMENT_STATE_COUNT; i++) {
