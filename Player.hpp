@@ -442,14 +442,9 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {
-		cout << "DRAWING PLAYER! target: " << drawTargetRect.x << " " << drawTargetRect.y << " " << drawTargetRect.w << " " << drawTargetRect.h
-			 << "; offset: " << drawOffset << endl;
-
 		bool parts = _diveParticles.Draw(renderer, drawTargetRect, drawOffset);
 		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
-
-		cout << "parts: " << parts << ", scarf: " << scarf << ", sprite: " << sprite << endl;
 
 		return parts || scarf || sprite;
 	}

@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
+
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -12,39 +13,46 @@
 class RoomChunk {
 	const int OVERLAP_OFFSET = 8;
 
-  private:
+   private:
 	SDL_Rect _rect;
 	SDL_Texture* _cache = NULL;
-	std::vector<Tile> _tiles;
 
-  public:
+   public:
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
 
-	RoomChunk(const string& chunkFilePath, yyjson_val* chunkJson) :
+	RoomChunk(const string& chunkFilePath, yyjson_val* chunkJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases) :
 		_rect{
 			yyjson_get_int(yyjson_obj_get(chunkJson, "x")),
 			yyjson_get_int(yyjson_obj_get(chunkJson, "y")),
 			yyjson_get_int(yyjson_obj_get(chunkJson, "width")),
 			yyjson_get_int(yyjson_obj_get(chunkJson, "height")),
-		}, _tiles(LoadTiles(chunkFilePath, yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count"))))
+		}, _cache(
+			CacheTiles(
+				renderer, 
+				atlases, 
+				chunkFilePath, 
+				yyjson_get_int(
+					yyjson_obj_get(
+						chunkJson, 
+						"tile_count"
+					)
+				)
+			)
+		)
 		{
 	}
 
 	RoomChunk(const RoomChunk&) = delete;
 	RoomChunk& operator=(const RoomChunk&) = delete;
 
-	RoomChunk(RoomChunk&& other) noexcept : _rect(other._rect), _cache(other._cache), _tiles(std::move(other._tiles)) {
-		other._cache = NULL;
-	}
+	RoomChunk(RoomChunk&& other) noexcept : _rect(other._rect), _cache(other._cache) { other._cache = NULL; }
 
 	RoomChunk& operator=(RoomChunk&& other) noexcept {
 		if (this != &other) {
-			if (_cache)
-				SDL_DestroyTexture(_cache);
+			if (_cache) SDL_DestroyTexture(_cache);
 
 			_rect = other._rect;
 			_cache = other._cache;
-			_tiles = std::move(other._tiles);
 
 			other._cache = NULL;
 		}
@@ -69,19 +77,23 @@ class RoomChunk {
 		return tiles;
 	}
 
-	void CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases) {
+	SDL_Texture* CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases, const string& chunkFilePath, int tileCount) {
 		SDL_Surface* cacheSurface = SDL_CreateRGBSurface(0, _rect.w, _rect.h, 16, 0xF000, 0x0F00, 0x00F0, 0x000F);
 
 		if (cacheSurface == NULL) {
 			std::cerr << "ERROR when caching chunk: " << SDL_GetError() << std::endl;
 		}
 
-		for (auto tile : _tiles) {
+		vector<Tile> tiles = LoadTiles(chunkFilePath, tileCount);
+
+		for (auto tile : tiles) {
 			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
 
-		_cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
+		SDL_Texture* cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
 		SDL_FreeSurface(cacheSurface);
+
+		return cache;
 	}
 
 	void UncacheTiles() {
@@ -108,8 +120,5 @@ class RoomChunk {
 
 	SDL_FRect GetFRect() const { return SDL_FRect{float(_rect.x), float(_rect.y), float(_rect.w), float(_rect.h)}; }
 
-	~RoomChunk() {
-		UncacheTiles();
-		_tiles.clear();
-	}
+	~RoomChunk() { UncacheTiles(); }
 };

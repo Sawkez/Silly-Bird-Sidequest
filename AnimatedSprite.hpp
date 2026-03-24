@@ -48,8 +48,6 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 		destination.x += drawOffset.x;
 		destination.y += drawOffset.y;
 
-		std::cout << "Sprite rect: " << destination.x << " " << destination.y << " " << destination.w << " " << destination.h << std::endl;
-
 		if (!SDL_HasIntersectionF(&drawTargetRect, &destination)) {
 			return false;
 		}

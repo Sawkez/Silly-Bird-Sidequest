@@ -25,18 +25,16 @@ class Room {
 	vector<RoomNeighbor> _neighbors;
 
    public:
-	Room(const string& folderPath)
-		: Room(folderPath, LoadJson(folderPath + "/room.json")) {}
-	Room(const string& folderPath, yyjson_val* roomJson)
+	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases)
+		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases) {}
+	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
-		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"))),
+		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases)),
 		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
 		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
 		  _height(yyjson_get_num(yyjson_obj_get(roomJson, "height"))),
-		  _targetWidth(
-			  yyjson_get_num(yyjson_obj_get(roomJson, "target_width"))),
-		  _targetHeight(
-			  yyjson_get_num(yyjson_obj_get(roomJson, "target_height"))),
+		  _targetWidth(yyjson_get_num(yyjson_obj_get(roomJson, "target_width"))),
+		  _targetHeight(yyjson_get_num(yyjson_obj_get(roomJson, "target_height"))),
 		  _xPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_x"))),
 		  _yPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_y"))),
 		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))) {
@@ -70,11 +68,9 @@ class Room {
 			cerr << "ERROR opening file: " << jsonPath << endl;
 		}
 
-		std::string jsonString((istreambuf_iterator<char>(jsonFile)),
-							   (istreambuf_iterator<char>()));
+		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
 
-		yyjson_doc* json =
-			yyjson_read(jsonString.data(), jsonString.length(), 0);
+		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
 		return yyjson_doc_get_root(json);
 	}
 
@@ -84,15 +80,12 @@ class Room {
 
 		size_t idx, max;
 		yyjson_val* collider;
-		yyjson_arr_foreach(collidersJson, idx, max, collider) {
-			colliders.push_back(CollisionRect(collider));
-		}
+		yyjson_arr_foreach(collidersJson, idx, max, collider) { colliders.push_back(CollisionRect(collider)); }
 
 		return colliders;
 	}
 
-	vector<RoomChunk> LoadChunks(const string& folderPath,
-								 yyjson_val* chunksJson) const {
+	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases) const {
 		vector<RoomChunk> chunks;
 
 		size_t idx, max;
@@ -100,8 +93,7 @@ class Room {
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
 			cout << SDL_GetTicks64() << ": loading chunk " << idx << endl;
-			chunks.push_back(
-				RoomChunk(folderPath + "/" + to_string(idx) + ".chunk", chunk));
+			chunks.push_back(RoomChunk(folderPath + "/" + to_string(idx) + ".chunk", chunk, renderer, atlases));
 		}
 
 		return chunks;
@@ -115,8 +107,7 @@ class Room {
 		yyjson_val* ledge;
 
 		yyjson_arr_foreach(ledgesJson, idx, max, ledge) {
-			ledges.push_back({yyjson_get_int(yyjson_obj_get(ledge, "x")),
-							  yyjson_get_int(yyjson_obj_get(ledge, "y"))});
+			ledges.push_back({yyjson_get_int(yyjson_obj_get(ledge, "x")), yyjson_get_int(yyjson_obj_get(ledge, "y"))});
 		}
 		return ledges;
 	}
@@ -128,27 +119,11 @@ class Room {
 		size_t idx, max;
 		yyjson_val* neighbor;
 
-		yyjson_arr_foreach(neighborsJson, idx, max, neighbor) {
-			neighbors.push_back(RoomNeighbor(neighbor));
-		}
+		yyjson_arr_foreach(neighborsJson, idx, max, neighbor) { neighbors.push_back(RoomNeighbor(neighbor)); }
 		return neighbors;
 	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
-
-	void CacheTiles(SDL_Renderer* renderer,
-					const vector<SDL_Surface*>& atlases) {
-		cout << SDL_GetTicks64() << ": caching tiles" << endl;
-		for (auto& chunk : _chunks) {
-			chunk.CacheTiles(renderer, atlases);
-		}
-	}
-
-	void UncacheTiles() {
-		for (auto& chunk : _chunks) {
-			chunk.UncacheTiles();
-		}
-	}
 
 	void Draw(SDL_Renderer* renderer) const {
 		for (const auto& chunk : _chunks) {
@@ -158,9 +133,7 @@ class Room {
 		}
 	}
 
-	Vector2 GetPosition() const {
-		return Vector2{float(_xPosition), float(_yPosition)};
-	}
+	Vector2 GetPosition() const { return Vector2{float(_xPosition), float(_yPosition)}; }
 
 	Vector2 GetSize() const { return Vector2{float(_width), float(_height)}; }
 
@@ -168,14 +141,9 @@ class Room {
 
 	int GetHeight() const { return _height; }
 
-	SDL_FRect GetFRect() const {
-		return SDL_FRect{float(_xPosition), float(_yPosition), float(_width),
-						 float(_height)};
-	}
+	SDL_FRect GetFRect() const { return SDL_FRect{float(_xPosition), float(_yPosition), float(_width), float(_height)}; }
 
-	Vector2 GetTargetSize() const {
-		return Vector2{float(_targetWidth), float(_targetHeight)};
-	}
+	Vector2 GetTargetSize() const { return Vector2{float(_targetWidth), float(_targetHeight)}; }
 
 	const vector<SDL_Point>& GetLedges() const { return _ledges; }
 

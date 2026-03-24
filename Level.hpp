@@ -35,9 +35,9 @@ class Level : IProcessable, IDrawable {
 	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window,
 		  GameState& state)
 		: _path(pathToFolder),
+		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
 		  _renderer(renderer),
-		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _player(Player(inputManager, renderer, _currentRoom)),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
@@ -45,8 +45,6 @@ class Level : IProcessable, IDrawable {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
 		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
-
-		_currentRoom.CacheTiles(renderer, _atlases);
 
 		_state.Unpause();
 	}
@@ -86,7 +84,7 @@ class Level : IProcessable, IDrawable {
 
 	Room LoadRoom(int index) {
 		cout << SDL_GetTicks64() << ": starting room load" << endl;
-		return Room(_path + "/rooms/" + to_string(index));
+		return Room(_path + "/rooms/" + to_string(index), _renderer, _atlases);
 	}
 
 	void Process(float delta) override {
@@ -125,7 +123,6 @@ class Level : IProcessable, IDrawable {
 		_state.Pause();
 		_currentRoom = LoadRoom(room);
 
-		_currentRoom.CacheTiles(_renderer, _atlases);
 		_player.SetRoom(_currentRoom);
 		_roomCamera.SetRoom(_currentRoom);
 

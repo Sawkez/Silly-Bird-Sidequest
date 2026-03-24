@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
+
 #include <iostream>
 
 #include "CollisionRect.hpp"
@@ -35,10 +36,11 @@ struct Game {
 	Level level;
 
 	Game()
-		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES,
-									  SDL_WINDOW_RESIZABLE)),
+		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE)),
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
-		  input(), state(), level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state) {}
+		  input(),
+		  state(),
+		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state) {}
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
@@ -69,8 +71,7 @@ struct Game {
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event) != 0) {
-			if (input.HandleEvent(event))
-				continue;
+			if (input.HandleEvent(event)) continue;
 
 			if (event.type == SDL_QUIT) {
 				state.SetRunning(false);
@@ -85,7 +86,7 @@ struct Game {
 		input.UpdateDir();
 
 		// game logic
-		level.Process(delta);
+		level.Process(delta * 3.0);
 
 		input.UpdateTapStates();
 
