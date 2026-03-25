@@ -140,7 +140,7 @@ class Player : public IProcessable, public IDrawableRect {
 	reference_wrapper<Room> _room;
 	AnimatedSpriteOverlay _sprite;
 	Scarf _scarf;
-	IMovementState** _movementStates;
+	static const IMovementState* _movementStates[_MOVEMENT_STATE_COUNT];
 
 	// particles
 	ParticleSpawner<DiveParticle, 5> _diveParticles;
@@ -179,14 +179,13 @@ class Player : public IProcessable, public IDrawableRect {
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, IMovementState* movementStates[_MOVEMENT_STATE_COUNT])
+	Player(const InputManager& input, SDL_Renderer* renderer, Room& room)
 		: _input(input),
 		  _jizz("content/sidequest/skins/classic", renderer),
 		  _room(room),
 		  _scarf(position, room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
-		  _movementStates(movementStates) {}
+		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
 	const InputManager& GetInput() const { return _input; }
 
@@ -490,12 +489,4 @@ class Player : public IProcessable, public IDrawableRect {
 
 	float GetLastVerticalVelocity() const { return _lastVerticalVelocity; }
 	void ResetLastVerticalVelocity() { _lastVerticalVelocity = 0.0; }
-
-	~Player() {
-		for (int i = 0; i < _MOVEMENT_STATE_COUNT; i++) {
-			delete _movementStates[i];
-		}
-
-		delete[] _movementStates;
-	}
 };

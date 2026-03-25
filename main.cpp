@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "MovementStateManager.hpp"
 
 int main(int argc, char* argv[]) {
 	Game game;

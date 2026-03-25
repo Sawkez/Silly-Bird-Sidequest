@@ -11,7 +11,7 @@
 #include "IProcessable.hpp"
 #include "InputManager.hpp"
 #include "Player.hpp"
-#include "PlayerFactory.hpp"
+// #include "PlayerFactory.hpp"
 #include "RenderChunk.hpp"
 #include "Room.hpp"
 #include "RoomCamera.hpp"
@@ -39,8 +39,8 @@ class Level : IProcessable, IDrawable {
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
 		  _renderer(renderer),
-		  //_player(Player(inputManager, renderer, _currentRoom)),
-		  _player(PlayerFactory::NewPlayer(inputManager, renderer, _currentRoom)),
+		  _player(Player(inputManager, renderer, _currentRoom)),
+		  //_player(PlayerFactory::NewPlayer(inputManager, renderer, _currentRoom)),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
 		  _state(state) {
@@ -93,8 +93,13 @@ class Level : IProcessable, IDrawable {
 		_player.Process(delta);
 		_roomCamera.Process(delta);
 
+		SDL_FRect currentRoomRect = _currentRoom.GetFRect();
+
+		if (SDL_HasIntersectionF(&_player.GetCollision(), &currentRoomRect)) {
+			return;
+		}
+
 		for (const auto& neighbor : _currentRoom.GetNeighbors()) {
-			// TODO prevent player from getting stuck in a loop of re-entering the same 2 rooms
 			if (SDL_HasIntersectionF(&_player.GetCollision(), &neighbor)) {
 				SetCurrentRoom(neighbor.index);
 			}

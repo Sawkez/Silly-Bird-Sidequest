@@ -76,6 +76,7 @@ class MovementStateDive : public IMovementState {
 		}
 
 		else if (!p.TimerActive(Player::TIMER_DIVE) && !p.GetInput().IsDown(ACTION_DIVE)) {
+			// FIXME dive refunding doesn't seem to work
 			if (p.GetTimer(Player::TIMER_DIVE) > DIVE_CANCEL_DURATION) {
 				p.ReloadDive(true);
 			}

@@ -35,11 +35,13 @@ struct Game {
 	GameState state;
 	Level level;
 
+	Uint64 lastPerfCounter = 0;
+
 	Game()
 		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE)),
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
 		  input(),
-		  state(),
+		  state(60.0),
 		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state) {}
 
 	int Run(int argc, char* argv[]) {
@@ -106,5 +108,9 @@ struct Game {
 			SDL_Delay(state.frameDuration - frameTimeMs);
 			state.UpdateFrameEnd();
 		}
+
+		// cout << "FPS: " << 1.0 / (double(SDL_GetPerformanceCounter() - lastPerfCounter) / double(SDL_GetPerformanceFrequency())) << endl;
+
+		lastPerfCounter = SDL_GetPerformanceCounter();
 	}
 };

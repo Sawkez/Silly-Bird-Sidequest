@@ -3,16 +3,18 @@
 #include <SDL.h>
 
 class GameState {
-  private:
+   public:
+	unsigned long frameDuration;
+
+   private:
 	bool _running = true;
 	bool _paused = false;
 	unsigned long _frameStartMs = 0;
 	unsigned long _frameEndMs = 0;
 
-  public:
-	const unsigned long frameDuration = 1000 / 60;
-
-	GameState() : _frameStartMs(SDL_GetTicks64()), _frameEndMs(_frameStartMs + frameDuration) {}
+   public:
+	GameState(float targetFPS = 60.0)
+		: frameDuration(1000.0 / targetFPS), _frameStartMs(SDL_GetTicks64()), _frameEndMs(_frameStartMs + frameDuration) {}
 
 	void SetRunning(bool value) { _running = value; }
 	void Pause() { _paused = true; }
