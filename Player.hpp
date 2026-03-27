@@ -490,4 +490,6 @@ class Player : public IProcessable, public IDrawableRect {
 
 	float GetLastVerticalVelocity() const { return _lastVerticalVelocity; }
 	void ResetLastVerticalVelocity() { _lastVerticalVelocity = 0.0; }
+
+	const vector<CollisionRect>& GetStaticColliders() const { return _room.get().GetColliders(); }
 };
