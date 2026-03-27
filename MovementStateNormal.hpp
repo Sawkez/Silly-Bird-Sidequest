@@ -26,10 +26,6 @@ struct MovementStateNormal : public IMovementState {
 
 	static inline constexpr float MAX_DIVE_BUFFER_Y_VELOCITY = 250.0;
 
-	static inline constexpr float LEDGE_CHECK_OFFSET_LEFT = -1.2;
-	static inline constexpr float LEDGE_CHECK_OFFSET_RIGHT = 0.8;
-	static inline constexpr float LEDGE_CHECK_OFFSET_UP = -1.5;
-
 	static inline constexpr float SLOW_RUN_SPEED = 100.0;
 
 	void Init(Player& p) const override {}
@@ -196,24 +192,13 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// grabbing ledges
-		if ((p.IsQuickClimbActive() || p.velocity.y > GRAVITY * delta) && !p.CooldownActive(p.COOLDOWN_LEDGE) && p.GetInput().GetDir().y < 1.0) {
-			SDL_Point ledgeTile{
-				int(roundf(p.position.x / WorldConstants::TILE_SIZE_F + (p.IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT))) *
-					WorldConstants::TILE_SIZE,
-				int(roundf(p.position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP)) * WorldConstants::TILE_SIZE};
-
-			p.SetLedgeTile(ledgeTile);
-
-			const vector<SDL_Point>& ledges = p.GetRoom().GetLedges();
-
-			if (std::find(ledges.begin(), ledges.end(), ledgeTile) != ledges.end()) {
-				p.SetState(Player::MOVEMENT_STATE_LEDGE);
-				return;
-			}
+		p.UpdateLedgeTile();
+		if (p.CanGrabLedge()) {
+			p.SetState(Player::MOVEMENT_STATE_LEDGE);
 		}
 
 		// wallrunning
-		if (p.IsPushingWall() && p.velocity.y < 0.0) {
+		if (p.IsPushingWall() && p.velocity.y < 0.0 && !p.CooldownActive(Player::COOLDOWN_WALLRUN)) {
 			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
 			return;
 		}

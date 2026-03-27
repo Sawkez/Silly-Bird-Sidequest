@@ -79,13 +79,14 @@ class Player : public IProcessable, public IDrawableRect {
 	};
 
    public:
-	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, _COOLDOWN_COUNT };
+	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, COOLDOWN_WALLRUN, _COOLDOWN_COUNT };
 
    private:
 	static inline constexpr float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
 		NAN,		  // ledge (use up & down)
 		15.0 / 60.0,  // slide
-		5.0 / 60.0	  // interact
+		5.0 / 60.0,	  // interact
+		15.0 / 60.0	  // wallrun
 	};
 
    public:
@@ -115,6 +116,10 @@ class Player : public IProcessable, public IDrawableRect {
 	static inline constexpr float X_SQUISH_MAX = 1.5;
 	static inline constexpr float X_SQUISH_RESET = 0.075;
 	static inline constexpr float Y_SQUISH_MAX = 1.25;
+
+	static inline constexpr float LEDGE_CHECK_OFFSET_LEFT = -1.2;
+	static inline constexpr float LEDGE_CHECK_OFFSET_RIGHT = 0.8;
+	static inline constexpr float LEDGE_CHECK_OFFSET_UP = -1.5;
 
    private:
 	static inline constexpr float V_RESET_GRAVITY = 1800.0;
@@ -480,6 +485,7 @@ class Player : public IProcessable, public IDrawableRect {
 	const Room& GetRoom() const { return _room; }
 
 	void SetLedgeTile(const SDL_Point& tile) { _ledgeTile = tile; }
+	void SetLedgeTile(int x, int y) { _ledgeTile = SDL_Point{x, y}; }
 	const SDL_Point& GetLedgeTile() const { return _ledgeTile; }
 
 	float GetCurrentDiveGravity() const { return _currentDiveGravity; }
@@ -490,6 +496,24 @@ class Player : public IProcessable, public IDrawableRect {
 
 	float GetLastVerticalVelocity() const { return _lastVerticalVelocity; }
 	void ResetLastVerticalVelocity() { _lastVerticalVelocity = 0.0; }
+
+	void UpdateLedgeTile() {
+		float tileX = roundf(position.x / WorldConstants::TILE_SIZE_F + (IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT));
+		float tileY = roundf(position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP);
+
+		_ledgeTile.x = static_cast<int>(tileX) * WorldConstants::TILE_SIZE;
+		_ledgeTile.y = static_cast<int>(tileY) * WorldConstants::TILE_SIZE;
+	}
+
+	bool CanGrabLedge() {
+		if (!IsQuickClimbActive() && velocity.y <= 0.0) return false;
+		if (CooldownActive(COOLDOWN_LEDGE)) return false;
+		if (GetInput().GetDir().y == 1.0) return false;
+
+		const vector<SDL_Point>& ledges = GetRoom().GetLedges();
+
+		return std::find(ledges.begin(), ledges.end(), _ledgeTile) != ledges.end();
+	}
 
 	const vector<CollisionRect>& GetStaticColliders() const { return _room.get().GetColliders(); }
 };

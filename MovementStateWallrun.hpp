@@ -10,13 +10,14 @@
 
 class MovementStateWallrun : public IMovementState {
 	static inline constexpr float STICK_ACCEL = 1800;
-	static inline constexpr float DROP_ACCEL = 900;
+	static inline constexpr float DROP_ACCEL = 450;
 	static inline constexpr float STICK_VELOCITY = 150.0;
 	static inline constexpr float GRAVITY = 500.0;
 	static inline constexpr float MAX_DIST = 6.0;
 	static inline constexpr float INITIAL_VELOCITY = MovementStateNormal::JUMP_FORCE;
 	static inline constexpr float INITIAL_SQUARED = INITIAL_VELOCITY * INITIAL_VELOCITY;
 	static inline constexpr float GRAVITY_RATIO = GRAVITY / MovementStateNormal::GRAVITY;
+	static inline const Vector2 JUMP_FORCE = Vector2(250.0, 200.0);
 
 	void Init(Player& p) const override {
 		p.PlayAnimationLastFrame(Player::ANIM_LEDGE_UNFLIP);
@@ -24,6 +25,8 @@ class MovementStateWallrun : public IMovementState {
 		// setting the player's velocity so that the reached height is always the same given the same ground height
 		p.velocity.y = -sqrtf(INITIAL_SQUARED - GRAVITY_RATIO * (INITIAL_SQUARED - p.velocity.y * p.velocity.y));
 		std::cout << "Setting velocity to " << p.velocity.y;
+
+		p.EnableQuickClimb();
 	}
 
 	void Process(Player& p, float delta) const override {
@@ -34,12 +37,17 @@ class MovementStateWallrun : public IMovementState {
 		if (wallDir * p.GetInput().GetDir().x < 0.0) {
 			p.velocity.x -= wallDir * DROP_ACCEL * delta;
 
-			// TODO walljump
+			if (p.GetInput().IsTapped(ACTION_JUMP)) {
+				p.velocity.x = copysignf(JUMP_FORCE.x, -wallDir);
+				p.velocity.y -= JUMP_FORCE.y;
+			}
 		}
 
 		else {
 			p.velocity.x += wallDir * STICK_ACCEL * delta;
 			p.velocity.x = clamp(p.velocity.x, -STICK_VELOCITY, STICK_VELOCITY);
+
+			if (p.GetInput().IsTapped(ACTION_JUMP)) p.Buffer(Player::BUFFER_DASH);
 		}
 
 		p.velocity.y += GRAVITY * delta;
@@ -47,7 +55,16 @@ class MovementStateWallrun : public IMovementState {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 			return;
 		}
+
+		p.UpdateLedgeTile();
+		if (p.CanGrabLedge()) {
+			p.SetState(Player::MOVEMENT_STATE_LEDGE);
+			return;
+		}
 	}
 
-	void Deinit(Player& p) const override { std::cout << "; exiting at y = " << p.position.y << endl; }
+	void Deinit(Player& p) const override {
+		p.SetCooldown(Player::COOLDOWN_WALLRUN);
+		std::cout << "; exiting at y = " << p.position.y << endl;
+	}
 };

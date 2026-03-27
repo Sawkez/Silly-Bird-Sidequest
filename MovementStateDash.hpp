@@ -40,5 +40,5 @@ class MovementStateDash : public IMovementState {
 		}
 	}
 
-	void Deinit(Player& p) const override {}
+	void Deinit(Player& p) const override { p.UnsetCooldown(Player::COOLDOWN_WALLRUN); }
 };

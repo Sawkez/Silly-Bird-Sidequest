@@ -9,7 +9,7 @@ class MovementStateLedge : public IMovementState {
 	static inline constexpr float LEDGE_OFFSET_LEFT = 12.0;
 	static inline constexpr float LEDGE_OFFSET_RIGHT = -4.0;
 
-	static inline const Vector2 LEDGE_SIDE_JUMP_FORCE{200.0, -125.0};
+	static inline const Vector2 LEDGE_SIDE_JUMP_FORCE{200.0, -200.0};
 	static inline constexpr float LEDGE_UP_JUMP_FORCE = 250.0;
 	static inline constexpr float LEDGE_UP_COOLDOWN = 5.0 / 60.0;
 	static inline constexpr float LEDGE_DOWN_COOLDOWN = 10.0 / 60.0;
@@ -29,7 +29,7 @@ class MovementStateLedge : public IMovementState {
 		p.velocity = Vector2::ZERO;
 		p.EnableQuickClimb();
 
-		p.PlayAnimationLastFrame(Player::Player::ANIM_LEDGE_UNFLIP);
+		p.PlayAnimationLastFrame(Player::Player::ANIM_LEDGE_UNFLIP, 0.0);
 		p.SetSquish(Player::X_SQUISH_MAX);
 	}
 
@@ -68,5 +68,6 @@ class MovementStateLedge : public IMovementState {
 	void Deinit(Player& p) const override {
 		p.SetSquish(Player::X_SQUISH_MIN);
 		p.UnsetTimer(Player::TIMER_COYOTE);
+		p.UnsetCooldown(Player::COOLDOWN_WALLRUN);
 	}
 };
