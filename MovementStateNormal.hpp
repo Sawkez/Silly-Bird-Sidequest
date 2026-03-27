@@ -212,6 +212,12 @@ class MovementStateNormal : public IMovementState {
 			}
 		}
 
+		// wallrunning
+		if (p.IsPushingWall() && p.velocity.y < 0.0) {
+			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
+			return;
+		}
+
 		// updating animation
 		if (p.IsPushingFloor()) {
 			if (p.velocity.x == 0.0 || p.IsPushingWall()) {

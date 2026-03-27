@@ -45,6 +45,7 @@ class Player : public IProcessable, public IDrawableRect {
 		MOVEMENT_STATE_SLIDE,
 		MOVEMENT_STATE_DUCK,
 		MOVEMENT_STATE_DEAD,
+		MOVEMENT_STATE_WALLRUN,
 		_MOVEMENT_STATE_COUNT
 	};
 
