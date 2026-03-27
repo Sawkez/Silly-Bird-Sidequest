@@ -4,6 +4,7 @@
 
 #include "IMovementState.hpp"
 #include "Math.hpp"
+#include "MovementStateNormal.hpp"
 #include "Player.hpp"
 #include "Raycast.hpp"
 
@@ -13,8 +14,17 @@ class MovementStateWallrun : public IMovementState {
 	static inline constexpr float STICK_VELOCITY = 150.0;
 	static inline constexpr float GRAVITY = 500.0;
 	static inline constexpr float MAX_DIST = 6.0;
+	static inline constexpr float INITIAL_VELOCITY = MovementStateNormal::JUMP_FORCE;
+	static inline constexpr float INITIAL_SQUARED = INITIAL_VELOCITY * INITIAL_VELOCITY;
+	static inline constexpr float GRAVITY_RATIO = GRAVITY / MovementStateNormal::GRAVITY;
 
-	void Init(Player& p) const override { p.PlayAnimationLastFrame(Player::ANIM_LEDGE_UNFLIP); }
+	void Init(Player& p) const override {
+		p.PlayAnimationLastFrame(Player::ANIM_LEDGE_UNFLIP);
+
+		// setting the player's velocity so that the reached height is always the same given the same ground height
+		p.velocity.y = -sqrtf(INITIAL_SQUARED - GRAVITY_RATIO * (INITIAL_SQUARED - p.velocity.y * p.velocity.y));
+		std::cout << "Setting velocity to " << p.velocity.y;
+	}
 
 	void Process(Player& p, float delta) const override {
 		float wallDir = p.IsFacingLeft() ? -1.0 : 1.0;
@@ -39,5 +49,5 @@ class MovementStateWallrun : public IMovementState {
 		}
 	}
 
-	void Deinit(Player& p) const override {}
+	void Deinit(Player& p) const override { std::cout << "; exiting at y = " << p.position.y << endl; }
 };

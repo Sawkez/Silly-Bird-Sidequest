@@ -9,7 +9,7 @@
 
 // TODO unfriend
 
-class MovementStateNormal : public IMovementState {
+struct MovementStateNormal : public IMovementState {
 	static inline constexpr float ACCELERATION = 600.0;
 	static inline constexpr float TOP_SPEED = 125.0;
 	static inline constexpr float FRICTION = 1200.0;
@@ -19,7 +19,7 @@ class MovementStateNormal : public IMovementState {
 	static inline constexpr float GRAVITY = 900.0;
 	static inline constexpr float FAST_FALL_GRAVITY = 1200.0;
 
-	static inline constexpr float FAST_FALL_WINDOW = GRAVITY * 10.0 / 120.0;  // 10 frames total, 5 frames either direction at 60 fps
+	static inline constexpr float FAST_FALL_WINDOW = GRAVITY * 14.0 / 120.0;  // 10 frames total, 5 frames either direction at 60 fps
 	static inline constexpr float FALL_SPEED_CAP = 200.0;
 
 	static inline constexpr float JUMP_FORCE = 250.0;
@@ -86,7 +86,7 @@ class MovementStateNormal : public IMovementState {
 			velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
 			*/
 
-			p.velocity.y = abs(p.velocity.y) * sqrtf(GRAVITY / FAST_FALL_GRAVITY);
+			p.velocity.y = abs(p.velocity.y) * sqrtf(FAST_FALL_GRAVITY / GRAVITY);
 			std::cout << "setting velocity to " << p.velocity.y << std::endl;
 		}
 
