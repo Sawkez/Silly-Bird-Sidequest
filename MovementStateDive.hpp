@@ -71,16 +71,24 @@ class MovementStateDive : public IMovementState {
 		}
 
 		// undiving
-		if (p.IsPushingFloor() || p.IsPushingWall()) {
+		if (p.IsPushingFloor()) {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 		}
 
-		else if (!p.TimerActive(Player::TIMER_DIVE) && !p.GetInput().IsDown(ACTION_DIVE)) {
-			// FIXME dive refunding doesn't seem to work
+		else if (p.IsPushingWall()) {
+			if (p.GetInput().IsDown(ACTION_DIVE)) {
+				p.SetState(Player::MOVEMENT_STATE_WALLRUN);
+				return;
+			}
+
 			if (p.GetTimer(Player::TIMER_DIVE) > DIVE_CANCEL_DURATION) {
 				p.ReloadDive(true);
 			}
 
+			p.SetState(Player::MOVEMENT_STATE_NORMAL);
+		}
+
+		else if (!p.TimerActive(Player::TIMER_DIVE) && !p.GetInput().IsDown(ACTION_DIVE)) {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 		}
 	}

@@ -197,12 +197,6 @@ struct MovementStateNormal : public IMovementState {
 			p.SetState(Player::MOVEMENT_STATE_LEDGE);
 		}
 
-		// wallrunning
-		if (p.IsPushingWall() && p.velocity.y < 0.0 && !p.CooldownActive(Player::COOLDOWN_WALLRUN)) {
-			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
-			return;
-		}
-
 		// updating animation
 		if (p.IsPushingFloor()) {
 			if (p.velocity.x == 0.0 || p.IsPushingWall()) {

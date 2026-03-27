@@ -23,8 +23,9 @@ class MovementStateWallrun : public IMovementState {
 		p.PlayAnimationLastFrame(Player::ANIM_LEDGE_UNFLIP);
 
 		// setting the player's velocity so that the reached height is always the same given the same ground height
-		p.velocity.y = -sqrtf(INITIAL_SQUARED - GRAVITY_RATIO * (INITIAL_SQUARED - p.velocity.y * p.velocity.y));
-		std::cout << "Setting velocity to " << p.velocity.y;
+		// p.velocity.y = -sqrtf(INITIAL_SQUARED - GRAVITY_RATIO * (INITIAL_SQUARED - p.velocity.y * p.velocity.y));
+		// std::cout << "Setting velocity to " << p.velocity.y;
+		p.velocity.y = -INITIAL_VELOCITY;
 
 		p.EnableQuickClimb();
 	}
@@ -40,6 +41,8 @@ class MovementStateWallrun : public IMovementState {
 			if (p.GetInput().IsTapped(ACTION_JUMP)) {
 				p.velocity.x = copysignf(JUMP_FORCE.x, -wallDir);
 				p.velocity.y -= JUMP_FORCE.y;
+				p.SetState(Player::MOVEMENT_STATE_NORMAL);
+				return;
 			}
 		}
 
@@ -51,7 +54,7 @@ class MovementStateWallrun : public IMovementState {
 		}
 
 		p.velocity.y += GRAVITY * delta;
-		if (p.velocity.y > 0.0 || !ray.CheckCollision(p.GetStaticColliders())) {
+		if (p.velocity.y > 0.0 || !ray.CheckCollision(p.GetStaticColliders()) || !p.GetInput().IsDown(ACTION_DIVE)) {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 			return;
 		}
@@ -63,8 +66,5 @@ class MovementStateWallrun : public IMovementState {
 		}
 	}
 
-	void Deinit(Player& p) const override {
-		p.SetCooldown(Player::COOLDOWN_WALLRUN);
-		std::cout << "; exiting at y = " << p.position.y << endl;
-	}
+	void Deinit(Player& p) const override { p.SetCooldown(Player::COOLDOWN_WALLRUN); }
 };
