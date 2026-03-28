@@ -134,6 +134,13 @@ struct MovementStateNormal : public IMovementState {
 			return;
 		}
 
+		// wallrunning
+		if (!p.IsPushingFloor() && p.IsPushingWall() && p.IsDiveAvailable() && p.GetInput().IsDown(ACTION_DIVE)) {
+			p.UnloadDive();
+			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
+			return;
+		}
+
 		// dive buffer
 		bool wantsToDive = p.velocity.y < GRAVITY * delta || !p.IsCloseToFloor();
 		bool wantsToUltraslide = p.velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && p.GetInput().IsDown(ACTION_DOWN);

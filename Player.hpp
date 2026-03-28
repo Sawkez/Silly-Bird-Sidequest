@@ -166,7 +166,7 @@ class Player : public IProcessable, public IDrawableRect {
 
 	// movement variables
 	int _movementStateID = MOVEMENT_STATE_NORMAL;
-	float _lastVerticalVelocity = 0.0;
+	float _lastDownVelocity = 0.0;
 	bool _quickClimb = false;
 	bool _facingLeft = false;
 	bool _shortCollision = false;
@@ -280,16 +280,15 @@ class Player : public IProcessable, public IDrawableRect {
 		// calling movement state function
 		_movementStates[_movementStateID]->Process(*this, delta);
 
-		// conserving v velocity for ultraslides
-
-		_lastVerticalVelocity = max(_lastVerticalVelocity, velocity.y);
+		// conserving down velocity for ultraslides
+		_lastDownVelocity = max(_lastDownVelocity, velocity.y);
 
 		if (velocity.y > V_RESET_GRAVITY * delta) {
 			SetTimer(TIMER_V_RESET);
 		}
 
 		if (!TimerActive(TIMER_V_RESET)) {
-			_lastVerticalVelocity = 0.0;
+			_lastDownVelocity = 0.0;
 		}
 
 		// TODO moving platforms
@@ -420,6 +419,9 @@ class Player : public IProcessable, public IDrawableRect {
 		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
 
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		SDL_RenderDrawPointF(renderer, position.x + drawOffset.x, position.y + drawOffset.y);
+
 		return parts || scarf || sprite;
 	}
 
@@ -494,8 +496,8 @@ class Player : public IProcessable, public IDrawableRect {
 	void SetSpriteRotationRadians(float radians) { _sprite.SetRotationRadians(radians); }
 	void SetSpriteRotationDegrees(float degrees) { _sprite.SetRotationDegrees(degrees); }
 
-	float GetLastVerticalVelocity() const { return _lastVerticalVelocity; }
-	void ResetLastVerticalVelocity() { _lastVerticalVelocity = 0.0; }
+	float GetLastDownVelocity() const { return _lastDownVelocity; }
+	void ResetLastDownVelocity() { _lastDownVelocity = 0.0; }
 
 	void UpdateLedgeTile() {
 		float tileX = roundf(position.x / WorldConstants::TILE_SIZE_F + (IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT));

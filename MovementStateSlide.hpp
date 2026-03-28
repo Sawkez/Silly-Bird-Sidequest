@@ -20,12 +20,12 @@ class MovementStateSlide : public IMovementState {
 		p.FlipSprite(p.velocity.x < 0.0);
 
 		if (p.GetInput().GetDir().y <= 0.0) {
-			p.ResetLastVerticalVelocity();
+			p.ResetLastDownVelocity();
 		}
 
 		float maxSpeed = max(abs(p.velocity.x), SLIDE_INITIAL_SPEED);
 		if (p.GetInput().GetDir().y == 1.0) {
-			maxSpeed = max(maxSpeed, p.GetLastVerticalVelocity() * ULTRASLIDE_VELOCITY_MULT);
+			maxSpeed = max(maxSpeed, p.GetLastDownVelocity() * ULTRASLIDE_VELOCITY_MULT);
 		}
 
 		p.velocity.x = copysignf(maxSpeed, p.velocity.x);

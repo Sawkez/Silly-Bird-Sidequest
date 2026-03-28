@@ -14,18 +14,13 @@ class MovementStateWallrun : public IMovementState {
 	static inline constexpr float STICK_VELOCITY = 150.0;
 	static inline constexpr float GRAVITY = 500.0;
 	static inline constexpr float MAX_DIST = 6.0;
-	static inline constexpr float INITIAL_VELOCITY = MovementStateNormal::JUMP_FORCE;
-	static inline constexpr float INITIAL_SQUARED = INITIAL_VELOCITY * INITIAL_VELOCITY;
-	static inline constexpr float GRAVITY_RATIO = GRAVITY / MovementStateNormal::GRAVITY;
+	static inline constexpr float INITIAL_VELOCITY = 250.0;
 	static inline const Vector2 JUMP_FORCE = Vector2(250.0, 200.0);
 
 	void Init(Player& p) const override {
 		p.PlayAnimationLastFrame(Player::ANIM_LEDGE_UNFLIP);
 
-		// setting the player's velocity so that the reached height is always the same given the same ground height
-		// p.velocity.y = -sqrtf(INITIAL_SQUARED - GRAVITY_RATIO * (INITIAL_SQUARED - p.velocity.y * p.velocity.y));
-		// std::cout << "Setting velocity to " << p.velocity.y;
-		p.velocity.y = -INITIAL_VELOCITY;
+		p.velocity.y = min(p.velocity.y, -INITIAL_VELOCITY);
 
 		p.EnableQuickClimb();
 	}
@@ -36,7 +31,9 @@ class MovementStateWallrun : public IMovementState {
 		Raycast ray(p.position, p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT, MAX_DIST);
 
 		if (wallDir * p.GetInput().GetDir().x < 0.0) {
-			p.velocity.x -= wallDir * DROP_ACCEL * delta;
+			if (!p.GetInput().IsDown(ACTION_DIVE)) {
+				p.velocity.x -= wallDir * DROP_ACCEL * delta;
+			}
 
 			if (p.GetInput().IsTapped(ACTION_JUMP)) {
 				p.velocity.x = copysignf(JUMP_FORCE.x, -wallDir);
@@ -54,7 +51,7 @@ class MovementStateWallrun : public IMovementState {
 		}
 
 		p.velocity.y += GRAVITY * delta;
-		if (p.velocity.y > 0.0 || !ray.CheckCollision(p.GetStaticColliders()) || !p.GetInput().IsDown(ACTION_DIVE)) {
+		if (p.velocity.y > 0.0 || !ray.CheckCollision(p.GetStaticColliders())) {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 			return;
 		}

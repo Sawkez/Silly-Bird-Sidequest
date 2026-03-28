@@ -1,4 +1,6 @@
-export_linux/*
-export_psp/*
-build_linux/*
-build_psp/*
+export_linux/
+export_psp/
+export_windows/
+build_linux/
+build_psp/
+build_windows/
