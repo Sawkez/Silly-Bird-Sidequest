@@ -34,6 +34,7 @@ class Player : public IProcessable, public IDrawableRect {
 		ANIM_SLIDE,
 		ANIM_TWERK_DOWN,
 		ANIM_TWERK_UP,
+		ANIM_WALLRUN,
 		_ANIM_COUNT
 	};
 

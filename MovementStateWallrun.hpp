@@ -18,7 +18,7 @@ class MovementStateWallrun : public IMovementState {
 	static inline const Vector2 JUMP_FORCE = Vector2(250.0, 200.0);
 
 	void Init(Player& p) const override {
-		p.PlayAnimationLastFrame(Player::ANIM_LEDGE_UNFLIP);
+		p.PlayAnimation(Player::ANIM_WALLRUN);
 
 		p.velocity.y = min(p.velocity.y, -INITIAL_VELOCITY);
 
@@ -28,7 +28,7 @@ class MovementStateWallrun : public IMovementState {
 	void Process(Player& p, float delta) const override {
 		float wallDir = p.IsFacingLeft() ? -1.0 : 1.0;
 
-		Raycast ray(p.position, p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT, MAX_DIST);
+		Raycast ray(p.position + Vector2(0, -p.BODY_CENTER.y), p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT, MAX_DIST);
 
 		if (wallDir * p.GetInput().GetDir().x < 0.0) {
 			if (!p.GetInput().IsDown(ACTION_DIVE)) {

@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
+
 #include <fstream>
 #include <string>
 #include <vector>
@@ -11,20 +12,22 @@
 #include "yyjson.h"
 
 class Jizz {
-  public:
+   public:
 	static const int PALETTE_SIZE = 10;
 	static const vector<std::string> PLAYER_ANIMATIONS;
 
-  private:
+   private:
 	yyjson_doc* _json;
 	std::string _stylePath;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
 	vector<vector<Vector2>> _scarfPositions;
 
-  public:
+   public:
 	Jizz(const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
-		: _json(styleJson), _stylePath(stylePath), _renderer(renderer),
+		: _json(styleJson),
+		  _stylePath(stylePath),
+		  _renderer(renderer),
 		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))),
 		  _scarfPositions(LoadScarfPositions(yyjson_obj_get(yyjson_doc_get_root(styleJson), "scarf_positions"))) {}
 
@@ -72,8 +75,7 @@ class Jizz {
 			int frameIdx, frameMax;
 			yyjson_val* frame;
 			yyjson_arr_foreach(anim, frameIdx, frameMax, frame) {
-				frames.push_back(
-					{float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
+				frames.push_back({float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
 			}
 
 			anims.push_back(frames);
@@ -94,28 +96,26 @@ class Jizz {
 				Animation(LoadTexture("slow_run"), yyjson_arr_get(animations, 7)),
 				Animation(LoadTexture("slide"), yyjson_arr_get(animations, 8)),
 				Animation(LoadTexture("twerk_down"), yyjson_arr_get(animations, 9)),
-				Animation(LoadTexture("twerk_up"), yyjson_arr_get(animations, 10))};
+				Animation(LoadTexture("twerk_up"), yyjson_arr_get(animations, 10)),
+				Animation(LoadTexture("wallrun"), yyjson_arr_get(animations, 11))};
 	}
 
 	std::vector<SDL_Texture*> GetOverlayTextures(SDL_Renderer* renderer) const {
-		return {
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/duck.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/fly.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/idle.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/jump.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/ledge_flip.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/ledge_unflip.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/run.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/slow_run.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/slide.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_down.png").data()),
-			IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_up.png").data()),
-		};
+		return {IMG_LoadTexture(renderer, (_stylePath + "/scarf/duck.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/fly.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/idle.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/jump.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/ledge_flip.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/ledge_unflip.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/run.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/slow_run.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/slide.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_down.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_up.png").data()),
+				IMG_LoadTexture(renderer, (_stylePath + "/scarf/wallrun.png").data())};
 	}
 
-	Vector2 GetScarfPosition(PlaybackPosition playback) const {
-		return _scarfPositions.at(playback.animation).at(playback.frame);
-	}
+	Vector2 GetScarfPosition(PlaybackPosition playback) const { return _scarfPositions.at(playback.animation).at(playback.frame); }
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {
 		SDL_Surface* surface = IMG_Load((_stylePath + "/" + textureName + ".png").data());
@@ -130,8 +130,7 @@ class Jizz {
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
 
 		if (texture == NULL) {
-			std::cerr << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError()
-					  << std::endl;
+			std::cerr << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << std::endl;
 		}
 
 		SDL_FreeSurface(surface);
