@@ -16,6 +16,7 @@ class MovementStateWallrun : public IMovementState {
 	static inline constexpr float MAX_DIST = 6.0;
 	static inline constexpr float INITIAL_VELOCITY = 250.0;
 	static inline const Vector2 JUMP_FORCE = Vector2(250.0, 200.0);
+	static inline constexpr float DROP_VELOCITY = 300.0;
 
 	void Init(Player& p) const override {
 		p.PlayAnimation(Player::ANIM_WALLRUN);
@@ -28,16 +29,17 @@ class MovementStateWallrun : public IMovementState {
 	void Process(Player& p, float delta) const override {
 		float wallDir = p.IsFacingLeft() ? -1.0 : 1.0;
 
-		Raycast ray(p.position + Vector2(0, -p.BODY_CENTER.y), p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT, MAX_DIST);
+		if (p.GetInput().IsTapped(ACTION_JUMP)) {
+			p.Buffer(Player::BUFFER_WALLJUMP);
+		}
 
 		if (wallDir * p.GetInput().GetDir().x < 0.0) {
 			if (!p.GetInput().IsDown(ACTION_DIVE)) {
 				p.velocity.x -= wallDir * DROP_ACCEL * delta;
 			}
 
-			if (p.GetInput().IsTapped(ACTION_JUMP)) {
+			if (p.BufferActive(Player::BUFFER_WALLJUMP)) {
 				p.velocity.x = copysignf(JUMP_FORCE.x, -wallDir);
-				p.velocity.y -= JUMP_FORCE.y;
 				p.SetState(Player::MOVEMENT_STATE_NORMAL);
 				return;
 			}
@@ -46,12 +48,15 @@ class MovementStateWallrun : public IMovementState {
 		else {
 			p.velocity.x += wallDir * STICK_ACCEL * delta;
 			p.velocity.x = clamp(p.velocity.x, -STICK_VELOCITY, STICK_VELOCITY);
-
-			if (p.GetInput().IsTapped(ACTION_JUMP)) p.Buffer(Player::BUFFER_DASH);
 		}
 
-		p.velocity.y += GRAVITY * delta;
-		if (p.velocity.y > 0.0 || !ray.CheckCollision(p.GetStaticColliders())) {
+		bool shouldLetGoAtTop = !p.GetInput().IsDown(ACTION_DIVE) || p.BufferActive(Player::BUFFER_WALLJUMP);
+		bool isAtTop = p.velocity.y >= 0.0;
+		bool isAtBottom = p.velocity.y > DROP_VELOCITY || p.IsPushingFloor();
+		bool hasWall = Raycast(p.position + Vector2(0, -p.BODY_CENTER.y), p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT, MAX_DIST)
+						   .CheckCollision(p.GetStaticColliders());
+
+		if (isAtTop && shouldLetGoAtTop || isAtBottom || !hasWall) {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 			return;
 		}
@@ -61,7 +66,16 @@ class MovementStateWallrun : public IMovementState {
 			p.SetState(Player::MOVEMENT_STATE_LEDGE);
 			return;
 		}
+
+		p.velocity.y += GRAVITY * delta;
 	}
 
-	void Deinit(Player& p) const override { p.SetCooldown(Player::COOLDOWN_WALLRUN); }
+	void Deinit(Player& p) const override {
+		if (p.UseBuffer(Player::BUFFER_WALLJUMP)) {
+			std::cout << "Piss !" << std::endl;
+			p.velocity.y = min(0.0f, p.velocity.y) - JUMP_FORCE.y;
+		}
+
+		p.SetCooldown(Player::COOLDOWN_WALLRUN);
+	}
 };

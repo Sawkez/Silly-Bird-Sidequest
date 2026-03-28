@@ -91,7 +91,7 @@ class Player : public IProcessable, public IDrawableRect {
 	};
 
    public:
-	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, _BUFFER_COUNT };
+	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, BUFFER_WALLJUMP, _BUFFER_COUNT };
 
    private:
 	static inline constexpr float BUFFER_DURATIONS[_BUFFER_COUNT] = {
@@ -100,7 +100,8 @@ class Player : public IProcessable, public IDrawableRect {
 		30.0 / 60.0,  // dash
 		10.0 / 60.0,  // slide
 		10.0 / 60.0,  // ledge jump
-		15.0 / 60.0	  // interact
+		15.0 / 60.0,  // interact
+		30.0 / 60.0	  // wall jump
 	};
 
    public:
