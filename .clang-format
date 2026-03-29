@@ -46,7 +46,7 @@ AlignOperands: true
 AlignTrailingComments: true
 
 # --- Includes ---
-# Keeps <cmath> separate from "InputManager.hpp"
+# Keeps <cmath> separate from "engine/input/InputManager.hpp"
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex:           '^<.*'

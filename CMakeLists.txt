@@ -5,9 +5,11 @@ project("Silly Bird PSPquel")
 set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(sbs-psp
-    main.cpp
-    yyjson.c
+    code/engine/main.cpp
+    code/yyjson.c
 )
+
+include_directories(code)
 
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)

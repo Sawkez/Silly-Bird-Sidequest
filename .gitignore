@@ -1,6 +1,2 @@
-export_linux/
-export_psp/
-export_windows/
-build_linux/
-build_psp/
-build_windows/
+export_*/
+build_*/
