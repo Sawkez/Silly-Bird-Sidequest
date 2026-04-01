@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.11)
 project("Silly Bird PSPquel")
 
 set(CMAKE_BUILD_TYPE Debug)
+set(YYJSON_DIR "code/3rdparty/yyjson/src")
 
 add_executable(sbs-psp
     code/engine/main.cpp
-    code/yyjson.c
+    ${YYJSON_DIR}/yyjson.c
 )
 
 include_directories(code)
@@ -18,6 +19,7 @@ pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
 target_include_directories(sbs-psp PRIVATE
     ${SDL2_INCLUDE_DIRS}
     ${SDL2_IMAGE_INCLUDE_DIRS}
+    ${YYJSON_DIR}
 )
 
 target_link_libraries(sbs-psp PRIVATE
