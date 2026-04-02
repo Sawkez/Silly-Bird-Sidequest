@@ -4,13 +4,17 @@ project("Silly Bird PSPquel")
 
 set(CMAKE_BUILD_TYPE Debug)
 set(YYJSON_DIR "code/3rdparty/yyjson/src")
+set(LVGL_DIR "code/3rdparty/lvgl")
 
 add_executable(sbs-psp
     code/engine/main.cpp
     ${YYJSON_DIR}/yyjson.c
 )
 
+set(LV_BUILD_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h")
+
 include_directories(code)
+add_subdirectory(code/3rdparty/lvgl)
 
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
@@ -25,6 +29,7 @@ target_include_directories(sbs-psp PRIVATE
 target_link_libraries(sbs-psp PRIVATE
     ${SDL2_LIBRARIES}
     ${SDL2_IMAGE_LIBRARIES}
+    lvgl
 )
 
 if(PSP)

@@ -7,6 +7,7 @@
 #include "engine/Random.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"
 #include "game/player/Player.hpp"
 
@@ -34,6 +35,7 @@ struct Game {
 	InputManager input;
 	GameState state;
 	Level level;
+	UIManager ui;
 
 	Uint64 lastPerfCounter = 0;
 
@@ -42,7 +44,8 @@ struct Game {
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
 		  input(),
 		  state(60.0),
-		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state) {}
+		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state),
+		  ui(mainRenderer) {}
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
@@ -92,11 +95,15 @@ struct Game {
 
 		input.UpdateTapStates();
 
+		ui.Process();
+
 		// render
 		SDL_SetRenderDrawColor(mainRenderer, 0, 0, 0, 0);
 		SDL_RenderClear(mainRenderer);
 
 		level.Draw(mainRenderer);
+
+		ui.Draw(mainRenderer);
 
 		SDL_RenderPresent(mainRenderer);
 
