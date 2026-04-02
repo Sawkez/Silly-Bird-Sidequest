@@ -65,7 +65,7 @@ class InputManager {
    public:
 	InputManager() : _dir(Vector2(0.0, 0.0)) {}
 
-	bool HandleEvent(SDL_Event event) {
+	bool HandleEvent(const SDL_Event& event) {
 		switch (event.type) {
 			case SDL_CONTROLLERDEVICEADDED:
 			case SDL_CONTROLLERDEVICEREMOVED:
@@ -93,7 +93,7 @@ class InputManager {
 		return false;
 	}
 
-	void HandleEvent(SDL_KeyboardEvent event) {
+	void HandleEvent(const SDL_KeyboardEvent& event) {
 		int actionId = -1;
 
 		for (int i = 0; i < ACTION_COUNT; i++) {
@@ -110,7 +110,7 @@ class InputManager {
 		_actions[actionId].SetDown(event.state == SDL_PRESSED);
 	}
 
-	void HandleEvent(SDL_ControllerButtonEvent event) {
+	void HandleEvent(const SDL_ControllerButtonEvent& event) {
 		_lastUsedJoystick = event.which;
 
 		ButtonEvent(event.button, event.state == SDL_PRESSED);
@@ -128,7 +128,7 @@ class InputManager {
 		return false;
 	}
 
-	bool HandleEvent(SDL_ControllerAxisEvent event) {
+	bool HandleEvent(const SDL_ControllerAxisEvent& event) {
 		switch (event.axis) {
 			case SDL_CONTROLLER_AXIS_LEFTX:
 			case SDL_CONTROLLER_AXIS_LEFTY:
@@ -154,7 +154,7 @@ class InputManager {
 		return false;
 	}
 
-	void HandleEvent(SDL_ControllerDeviceEvent event) { SDL_GameControllerOpen(event.which); }
+	void HandleEvent(const SDL_ControllerDeviceEvent& event) { SDL_GameControllerOpen(event.which); }
 
 	void UpdateDir() {
 		if (_dirJoystickPriority) {
