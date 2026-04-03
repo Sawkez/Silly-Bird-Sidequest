@@ -21,8 +21,6 @@
 
 using namespace std;
 
-const float MAX_DELTA = 1.0;
-
 #if __PSP__
 #define INITIAL_WINDOW_RES 480, 272
 #else
@@ -33,7 +31,6 @@ struct Game {
 	SDL_Window* mainWindow;
 	SDL_Renderer* mainRenderer;
 	InputManager input;
-	GameState state;
 	Level level;
 	UIManager ui;
 
@@ -43,8 +40,7 @@ struct Game {
 		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE)),
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
 		  input(),
-		  state(60.0),
-		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state),
+		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow),
 		  ui(mainRenderer) {}
 
 	int Run(int argc, char* argv[]) {
@@ -52,7 +48,7 @@ struct Game {
 
 		Random::Init();
 
-		while (state.IsRunning()) {
+		while (GameState::IsRunning()) {
 			GameLoopIteration();
 		}
 
@@ -64,13 +60,9 @@ struct Game {
 	}
 
 	void GameLoopIteration() {
-		unsigned long lastFrameTimeMs = state.GetFrameEndMs() - state.GetFrameStartMs();
-		float delta = float(lastFrameTimeMs / 1000.0);
-		if (delta > MAX_DELTA) {
-			delta = state.frameDuration / 1000.0;
-		}
+		float delta = GameState::GetDelta();
 
-		state.UpdateFrameStart();
+		GameState::UpdateFrameStart();
 
 		// event handling
 		SDL_Event event;
@@ -79,7 +71,7 @@ struct Game {
 			if (input.HandleEvent(event)) continue;
 
 			if (event.type == SDL_QUIT) {
-				state.SetRunning(false);
+				GameState::SetRunning(false);
 				continue;
 			}
 
@@ -108,12 +100,12 @@ struct Game {
 		SDL_RenderPresent(mainRenderer);
 
 		// frame limiting
-		state.UpdateFrameEnd();
-		unsigned long frameTimeMs = state.GetFrameEndMs() - state.GetFrameStartMs();
+		GameState::UpdateFrameEnd();
+		unsigned long frameTimeMs = GameState::GetFrameEndMs() - GameState::GetFrameStartMs();
 
-		if (frameTimeMs < state.frameDuration) {
-			SDL_Delay(state.frameDuration - frameTimeMs);
-			state.UpdateFrameEnd();
+		if (frameTimeMs < GameState::GetFrameDuration()) {
+			SDL_Delay(GameState::GetFrameDuration() - frameTimeMs);
+			GameState::UpdateFrameEnd();
 		}
 
 		// cout << "FPS: " << 1.0 / (double(SDL_GetPerformanceCounter() - lastPerfCounter) / double(SDL_GetPerformanceFrequency())) << endl;
