@@ -8,6 +8,7 @@
 #include "3rdparty/lvgl/lvgl.h"
 #include "engine/input/UIInputManager.hpp"
 #include "engine/ui/Menu.hpp"
+#include "game/ui/Styles.hpp"
 
 class UIManager {
    private:
@@ -71,6 +72,7 @@ class UIManager {
 	static void Init(SDL_Renderer* renderer, SDL_Point windowSize) {
 		_display = InitLVGL(windowSize);
 		UIInputManager::Init();
+		Styles::Init();
 		_renderer = renderer;
 		Resize(windowSize.x, windowSize.y);
 	}
