@@ -92,11 +92,13 @@ class UIInputManager {
 				}
 				break;
 
+#if __PSP__
 			case SDL_MOUSEMOTION:
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 				lv_indev_read(_mouseInput);
 				return true;
+#endif
 		}
 
 		if (out < 0) {
