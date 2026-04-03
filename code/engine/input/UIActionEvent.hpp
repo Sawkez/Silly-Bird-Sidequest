@@ -7,5 +7,6 @@ struct UIActionEvent {
 	lv_key_t key;
 	bool pressed;
 
+	UIActionEvent() : UIActionEvent(LV_KEY_HOME, false) {};
 	UIActionEvent(lv_key_t actionKey, bool actionPressed) : key(actionKey), pressed(actionPressed) {}
 };

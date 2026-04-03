@@ -2,8 +2,6 @@
 
 #include <SDL.h>
 
-#include <queue>
-
 #include "engine/input/UIAction.hpp"
 #include "engine/input/UIActionEvent.hpp"
 #include "lvgl/lvgl.h"
@@ -12,7 +10,8 @@ enum UIActionID { UI_ACTION_LEFT, UI_ACTION_RIGHT, UI_ACTION_UP, UI_ACTION_DOWN,
 
 class UIInputManager {
    private:
-	std::queue<UIActionEvent> _events;
+	UIActionEvent _event;
+	bool _hasEvent;
 
 #if !__PSP__
 	lv_indev_t* _mouseInput;
@@ -41,16 +40,10 @@ class UIInputManager {
 	static void KeypadReadCallback(lv_indev_t* keypadInput, lv_indev_data_t* data) {
 		auto* instance = (UIInputManager*)lv_indev_get_user_data(keypadInput);
 
-		if (instance->IsQueueEmpty()) {
-			data->continue_reading = false;
-			return;
-		}
-
-		UIActionEvent event = instance->PopQueue();
+		const UIActionEvent& event = instance->GetEvent();
 
 		data->key = (uint32_t)event.key;
 		data->state = event.pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
-		data->continue_reading = true;
 	}
 
 	UIInputManager()
@@ -70,6 +63,7 @@ class UIInputManager {
 		lv_indev_set_read_cb(_keypadInput, KeypadReadCallback);
 		lv_indev_set_user_data(_keypadInput, this);
 		lv_indev_set_group(_keypadInput, _mainGroup);
+		lv_indev_set_mode(_keypadInput, LV_INDEV_MODE_EVENT);
 
 		lv_group_set_default(_mainGroup);
 	}
@@ -97,23 +91,24 @@ class UIInputManager {
 					}
 				}
 				break;
+
+			case SDL_MOUSEMOTION:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+				lv_indev_read(_mouseInput);
+				return true;
 		}
 
 		if (out < 0) {
 			return false;
 		}
 
-		_events.emplace(out, event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN);
+		_event = UIActionEvent(out, event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN);
+		lv_indev_read(_keypadInput);
 		return true;
 	}
 
-	bool IsQueueEmpty() const { return _events.empty(); }
-
-	UIActionEvent PopQueue() {
-		UIActionEvent event = _events.front();
-		_events.pop();
-		return event;
-	}
+	const UIActionEvent& GetEvent() { return _event; }
 
 	lv_group_t* GetMainGroup() const { return _mainGroup; }
 };
