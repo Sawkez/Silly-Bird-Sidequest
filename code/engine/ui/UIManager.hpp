@@ -8,26 +8,19 @@
 #include "3rdparty/lvgl/lvgl.h"
 #include "engine/input/UIInputManager.hpp"
 #include "engine/ui/Menu.hpp"
-#include "game/ui/PauseMenu.hpp"
 
 class UIManager {
-   public:
-	enum Menus { MENU_PAUSE, _MENU_COUNT };
-
    private:
-	lv_display_t* _display = NULL;
+	UIManager() = delete;
+	static inline lv_display_t* _display = NULL;
 	static inline std::vector<uint8_t> _buf;
 
-	SDL_Texture* _texture = NULL;
-	SDL_Renderer* _renderer;
+	static inline SDL_Texture* _texture = NULL;
+	static inline SDL_Renderer* _renderer;
 
-	UIInputManager _input;
-
-	Menu* _menus[_MENU_COUNT];
+	static inline bool _visible = false;
 
 	static void FlushCallback(lv_display_t* display, const lv_area_t* area, uint8_t* pixelData) {
-		auto* instance = (UIManager*)lv_display_get_user_data(display);
-
 		void* outPixels;
 		int pitch;
 
@@ -36,7 +29,7 @@ class UIManager {
 
 		SDL_Rect rect = {area->x1, area->y1, w, h};
 
-		if (SDL_LockTexture(instance->_texture, &rect, &outPixels, &pitch) < 0) {
+		if (SDL_LockTexture(_texture, &rect, &outPixels, &pitch) < 0) {
 			std::cerr << "Failed to lock UI texture!" << std::endl;
 			lv_display_flush_ready(display);
 			return;
@@ -52,41 +45,53 @@ class UIManager {
 			memcpy(dst, src, bytesPerRow);
 		}
 
-		SDL_UnlockTexture(instance->_texture);
+		SDL_UnlockTexture(_texture);
 
 		lv_display_flush_ready(display);
 	}
 
-	SDL_Point GetWindowSize(SDL_Window* window) {
+	static SDL_Point GetWindowSize(SDL_Window* window) {
 		int w, h;
 		SDL_GetWindowSizeInPixels(window, &w, &h);
 		return {w, h};
 	}
 
    public:
+	/*
 	UIManager(SDL_Renderer* renderer, SDL_Window* window) : UIManager(renderer, GetWindowSize(window)) {}
 
-	UIManager(SDL_Renderer* renderer, SDL_Point windowSize)
-		: _display(InitLVGL(windowSize)), _renderer(renderer), _input(), _menus{new PauseMenu(_input.GetMainGroup())} {
+	UIManager(SDL_Renderer* renderer, SDL_Point windowSize) : _display(InitLVGL(windowSize)), _renderer(renderer), UIInputManager::) {
 		Resize(windowSize.x, windowSize.y);
-		_menus[MENU_PAUSE]->Activate();
+		Menus::Init(*this, GetMainGroup());
+	}
+	*/
+
+	static void Init(SDL_Renderer* renderer, SDL_Window* window) { Init(renderer, GetWindowSize(window)); }
+
+	static void Init(SDL_Renderer* renderer, SDL_Point windowSize) {
+		_display = InitLVGL(windowSize);
+		UIInputManager::Init();
+		_renderer = renderer;
+		Resize(windowSize.x, windowSize.y);
 	}
 
-	lv_display_t* InitLVGL(SDL_Point windowSize) {
+	static lv_display_t* InitLVGL(SDL_Point windowSize) {
 		lv_init();
 
 		lv_tick_set_cb(SDL_GetTicks);
 		lv_display_t* display = lv_display_create(windowSize.x, windowSize.y);
-		lv_display_set_user_data(display, this);
 		lv_display_set_color_format(display, LV_COLOR_FORMAT_ARGB8888);
 		lv_display_set_flush_cb(display, FlushCallback);
 
 		return display;
 	}
 
-	void Process() { lv_timer_handler(); }
+	static void Process() {
+		if (!_visible) return;
+		lv_timer_handler();
+	}
 
-	void Resize(int windowWidth, int windowHeight) {
+	static void Resize(int windowWidth, int windowHeight) {
 		_buf.resize(windowWidth * windowHeight * 10 / 4);
 
 		lv_display_set_resolution(_display, windowWidth, windowHeight);
@@ -106,20 +111,44 @@ class UIManager {
 		SDL_SetTextureBlendMode(_texture, SDL_BLENDMODE_BLEND);
 	}
 
-	bool HandleEvent(const SDL_Event& event) {
+	static bool HandleEvent(const SDL_Event& event) {
+		if (!_visible) return false;
+
 		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
 			Resize(event.window.data1, event.window.data2);
 			return true;
 		}
 
-		return (_input.HandleEvent(event));
+		return (UIInputManager::HandleEvent(event));
 	}
 
-	void Draw() { SDL_RenderCopy(_renderer, _texture, NULL, NULL); }
+	static void Draw() {
+		if (!_visible) return;
+		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+	}
 
-	~UIManager() {
-		for (int i = 0; i < _MENU_COUNT; i++) {
-			delete _menus[i];
+	static void Show() {
+		GameState::Pause();
+		_visible = true;
+	}
+
+	static void Show(Menu* menu) {
+		menu->Activate();
+		Show();
+	}
+
+	static void Hide() {
+		GameState::Unpause();
+		_visible = false;
+	}
+
+	static void Toggle() {
+		if (!_visible) {
+			Show();
+		} else {
+			Hide();
 		}
 	}
+
+	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
 };
