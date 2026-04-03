@@ -4,6 +4,3 @@
 [submodule "code/3rdparty/lvgl"]
 	path = code/3rdparty/lvgl
 	url = https://github.com/lvgl/lvgl.git
-[submodule "code/3rdparty/imgui"]
-	path = code/3rdparty/imgui
-	url = https://github.com/ocornut/imgui.git
