@@ -11,6 +11,7 @@
 #include "engine/world/Level.hpp"
 #include "game/player/Player.hpp"
 #include "game/ui/Menus.hpp"
+#include "game/ui/TitleScreen.hpp"
 
 /*
 #if __PSP__
@@ -48,6 +49,11 @@ struct Game {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
 
 		GameState::Unpause();
+
+		static auto titleScreen = TitleScreenMenu();
+
+		UIManager::Show(&titleScreen);
+
 		while (GameState::IsRunning()) {
 			GameLoopIteration();
 		}
