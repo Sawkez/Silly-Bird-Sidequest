@@ -73,9 +73,8 @@ struct Game {
 				continue;
 			}
 
-			if (UIManager::HandleEvent(event)) continue;
-
-			if (GameState::GetInput().HandleEvent(event)) continue;
+			GameState::GetInput().HandleEvent(event);
+			UIManager::HandleEvent(event);
 
 			if (event.type == SDL_QUIT) {
 				GameState::SetRunning(false);

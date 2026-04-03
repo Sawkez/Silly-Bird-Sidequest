@@ -3,6 +3,7 @@
 #include <SDL.h>
 
 #include "engine/input/InputManager.hpp"
+#include "engine/input/UIInputManager.hpp"
 
 class GameState {
    private:
@@ -17,9 +18,16 @@ class GameState {
 
    public:
 	static void SetRunning(bool value) { _running = value; }
-	static void Pause() { _paused = true; }
+
+	static void Pause() {
+		_paused = true;
+		_input.DisableTap();
+		UIInputManager::Reset();
+	}
+
 	static void Unpause() {
 		_paused = false;
+		_input.EnableTap();
 		_frameEndMs = SDL_GetTicks64();
 		_frameStartMs = _frameEndMs - _frameDuration;
 		_input.Reset();

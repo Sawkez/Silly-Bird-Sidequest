@@ -51,6 +51,7 @@ class InputManager {
 	Vector2 _dir = Vector2(0.0, 0.0);
 	SDL_JoystickID _lastUsedJoystick;
 	bool _dirJoystickPriority = false;
+	bool _tapEnabled = false;
 
 	Action _actions[_ACTION_COUNT]{
 		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_INVALID),		// jump
@@ -111,7 +112,7 @@ class InputManager {
 
 		if (event.state == SDL_PRESSED && IsDirectionAction(actionId)) _dirJoystickPriority = false;
 
-		_actions[actionId].SetDown(event.state == SDL_PRESSED);
+		_actions[actionId].SetDown(event.state == SDL_PRESSED, _tapEnabled);
 	}
 
 	void HandleEvent(const SDL_ControllerButtonEvent& event) {
@@ -124,7 +125,7 @@ class InputManager {
 		for (int i = 0; i < _ACTION_COUNT; i++) {
 			if (_actions[i].HasButton(button)) {
 				if (pressed && IsDirectionAction(i)) _dirJoystickPriority = false;
-				_actions[i].SetDown(pressed);
+				_actions[i].SetDown(pressed, _tapEnabled);
 				return true;
 			}
 		}
@@ -181,10 +182,10 @@ class InputManager {
 				_dir = Vector2::ZERO;
 			}
 
-			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0);
-			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0);
-			_actions[ACTION_UP].SetDown(_dir.y < 0.0);
-			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0);
+			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0, _tapEnabled);
+			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0, _tapEnabled);
+			_actions[ACTION_UP].SetDown(_dir.y < 0.0, _tapEnabled);
+			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0, _tapEnabled);
 		}
 
 		else {
@@ -203,7 +204,7 @@ class InputManager {
 
 	void Reset() {
 		for (int i = 0; i < _ACTION_COUNT; i++) {
-			_actions[i].SetDown(false);
+			_actions[i].SetDown(false, _tapEnabled);
 		}
 	}
 
@@ -212,4 +213,7 @@ class InputManager {
 	bool IsTapped(int id) const { return _actions[id].IsTapped(); }
 
 	Vector2 GetDir() const { return _dir; }
+
+	void EnableTap() { _tapEnabled = true; }
+	void DisableTap() { _tapEnabled = false; }
 };

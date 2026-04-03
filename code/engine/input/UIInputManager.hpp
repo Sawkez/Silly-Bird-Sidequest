@@ -69,6 +69,8 @@ class UIInputManager {
 						break;
 					}
 				}
+
+				if (event.key.repeat && out == LV_KEY_ESC) return true;
 				break;
 
 			case SDL_CONTROLLERBUTTONDOWN:
@@ -94,9 +96,18 @@ class UIInputManager {
 			return false;
 		}
 
+		if (_event.key != out && _event.pressed) {
+			_event.pressed = false;
+			lv_indev_read(_keypadInput);
+		}
 		_event = UIActionEvent(out, event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN);
 		lv_indev_read(_keypadInput);
 		return true;
+	}
+
+	static void Reset() {
+		_event = UIActionEvent();
+		lv_indev_read(_keypadInput);
 	}
 
 	static const UIActionEvent& GetEvent() { return _event; }
