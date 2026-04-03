@@ -95,11 +95,17 @@ class UIInputManager {
 		if (out < 0) {
 			return false;
 		}
+		bool pressed = event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN;
+
+		if (!pressed && out != _event.key) {
+			return true;
+		}
 
 		if (_event.key != out && _event.pressed) {
 			_event.pressed = false;
 			lv_indev_read(_keypadInput);
 		}
+
 		_event = UIActionEvent(out, event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN);
 		lv_indev_read(_keypadInput);
 		return true;
