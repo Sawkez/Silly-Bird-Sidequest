@@ -9,5 +9,5 @@ class Menu {
    public:
 	Menu() : _screen(lv_obj_create(NULL)) {};
 
-	void Activate() { lv_screen_load(_screen); }
+	virtual void Activate() { lv_screen_load(_screen); }
 };

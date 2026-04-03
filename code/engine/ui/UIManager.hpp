@@ -6,24 +6,24 @@
 #include <vector>
 
 #include "3rdparty/lvgl/lvgl.h"
+#include "engine/input/UIInputManager.hpp"
 #include "engine/ui/Menu.hpp"
 #include "game/ui/PauseMenu.hpp"
 
 class UIManager {
+   public:
+	enum Menus { MENU_PAUSE, _MENU_COUNT };
+
    private:
 	lv_display_t* _display = NULL;
 	static inline std::vector<uint8_t> _buf;
-	lv_indev_t* _mouseInput = NULL;
-	lv_indev_t* _keypadInput = NULL;
-	lv_obj_t* _label = NULL;
-	lv_group_t* _group = NULL;
 
 	SDL_Texture* _texture = NULL;
 	SDL_Renderer* _renderer;
 
-	std::queue<SDL_Event> _eventQueue;
+	UIInputManager _input;
 
-	Menu* _menus[1];
+	Menu* _menus[_MENU_COUNT];
 
 	static void FlushCallback(lv_display_t* display, const lv_area_t* area, uint8_t* pixelData) {
 		auto* instance = (UIManager*)lv_display_get_user_data(display);
@@ -63,116 +63,25 @@ class UIManager {
 		return {w, h};
 	}
 
-#if !__PSP__
-	static void TouchReadCallback(lv_indev_t* mouseInput, lv_indev_data_t* data) {
-		Uint32 buttons = SDL_GetMouseState(&(data->point.x), &(data->point.y));
-
-		data->state = buttons & SDL_BUTTON_LEFT > 0 ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
-	}
-#endif
-
-	static void KeypadReadCallback(lv_indev_t* keypadInput, lv_indev_data_t* data) {
-		auto* instance = (UIManager*)lv_indev_get_user_data(keypadInput);
-		if (instance->_eventQueue.empty()) {
-			return;
-		}
-		SDL_Event event = instance->_eventQueue.front();
-		instance->_eventQueue.pop();
-
-		switch (event.type) {
-			case SDL_KEYDOWN:
-				data->key = KeySDLtoLVGL(event.key.keysym.scancode);
-				data->state = LV_INDEV_STATE_PRESSED;
-				break;
-
-			case SDL_KEYUP:
-				data->key = KeySDLtoLVGL(event.key.keysym.scancode);
-				data->state = LV_INDEV_STATE_RELEASED;
-				break;
-
-			case SDL_CONTROLLERBUTTONDOWN:
-				data->key = ButtonSDLtoLVGL(event.cbutton.button);
-				data->state = LV_INDEV_STATE_PRESSED;
-				break;
-
-			case SDL_CONTROLLERBUTTONUP:
-				data->key = ButtonSDLtoLVGL(event.cbutton.button);
-				data->state = LV_INDEV_STATE_RELEASED;
-				break;
-		}
-
-		data->continue_reading = true;
-	}
-
-	static uint32_t KeySDLtoLVGL(SDL_Scancode key) {
-		switch (key) {
-			case SDL_SCANCODE_A:
-				return LV_KEY_LEFT;
-			case SDL_SCANCODE_D:
-				return LV_KEY_RIGHT;
-			case SDL_SCANCODE_W:
-				return LV_KEY_UP;
-			case SDL_SCANCODE_S:
-				return LV_KEY_DOWN;
-			case SDL_SCANCODE_SPACE:
-				return LV_KEY_ENTER;
-			default:
-				return 6767;
-		}
-	}
-
-	static uint32_t ButtonSDLtoLVGL(Uint8 button) {
-		switch (button) {
-			case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-				return LV_KEY_LEFT;
-			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-				return LV_KEY_RIGHT;
-			case SDL_CONTROLLER_BUTTON_DPAD_UP:
-				return LV_KEY_UP;
-			case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-				return LV_KEY_DOWN;
-			case SDL_CONTROLLER_BUTTON_A:
-				return LV_KEY_ENTER;
-			default:
-				return 6767;
-		}
-	}
-
    public:
 	UIManager(SDL_Renderer* renderer, SDL_Window* window) : UIManager(renderer, GetWindowSize(window)) {}
 
-	UIManager(SDL_Renderer* renderer, SDL_Point windowSize) : _renderer(renderer) {
-		SDL_SetTextureBlendMode(_texture, SDL_BLENDMODE_BLEND);
+	UIManager(SDL_Renderer* renderer, SDL_Point windowSize)
+		: _display(InitLVGL(windowSize)), _renderer(renderer), _input(), _menus{new PauseMenu(_input.GetMainGroup())} {
+		Resize(windowSize.x, windowSize.y);
+		_menus[MENU_PAUSE]->Activate();
+	}
+
+	lv_display_t* InitLVGL(SDL_Point windowSize) {
 		lv_init();
 
 		lv_tick_set_cb(SDL_GetTicks);
+		lv_display_t* display = lv_display_create(windowSize.x, windowSize.y);
+		lv_display_set_user_data(display, this);
+		lv_display_set_color_format(display, LV_COLOR_FORMAT_ARGB8888);
+		lv_display_set_flush_cb(display, FlushCallback);
 
-		_display = lv_display_create(windowSize.x, windowSize.y);
-		lv_display_set_user_data(_display, this);
-		lv_display_set_color_format(_display, LV_COLOR_FORMAT_ARGB8888);
-
-		Resize(windowSize.x, windowSize.y);
-
-		lv_display_set_flush_cb(_display, FlushCallback);
-
-#if !__PSP__
-		_mouseInput = lv_indev_create();
-		lv_indev_set_type(_mouseInput, LV_INDEV_TYPE_POINTER);
-		lv_indev_set_read_cb(_mouseInput, TouchReadCallback);
-#endif
-
-		_keypadInput = lv_indev_create();
-		lv_indev_set_type(_keypadInput, LV_INDEV_TYPE_KEYPAD);
-		lv_indev_set_read_cb(_keypadInput, KeypadReadCallback);
-		lv_indev_set_user_data(_keypadInput, this);
-
-		_group = lv_group_create();
-		lv_group_set_default(_group);
-		lv_indev_set_group(_keypadInput, _group);
-
-		_menus[0] = new PauseMenu(_group);
-
-		_menus[0]->Activate();
+		return display;
 	}
 
 	void Process() { lv_timer_handler(); }
@@ -203,12 +112,14 @@ class UIManager {
 			return true;
 		}
 
-		if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP || event.type == SDL_CONTROLLERBUTTONDOWN || event.type == SDL_CONTROLLERBUTTONUP) {
-			_eventQueue.push(event);
-		}
-
-		return false;
+		return (_input.HandleEvent(event));
 	}
 
 	void Draw() { SDL_RenderCopy(_renderer, _texture, NULL, NULL); }
+
+	~UIManager() {
+		for (int i = 0; i < _MENU_COUNT; i++) {
+			delete _menus[i];
+		}
+	}
 };
