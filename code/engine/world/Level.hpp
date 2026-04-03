@@ -30,11 +30,9 @@ class Level : IProcessable, IDrawable {
 	Player _player;
 	RoomCamera _roomCamera;
 	vector<RenderChunk> _renderChunks;
-	GameState& _state;
 
    public:
-	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window,
-		  GameState& state)
+	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
@@ -42,17 +40,16 @@ class Level : IProcessable, IDrawable {
 		  _player(Player(inputManager, renderer, _currentRoom)),
 		  //_player(PlayerFactory::NewPlayer(inputManager, renderer, _currentRoom)),
 		  _roomCamera(_player, _currentRoom, window),
-		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)),
-		  _state(state) {
+		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
 		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
 
-		_state.Unpause();
+		GameState::Unpause();
 	}
 
-	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, GameState& state)
-		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window, state) {}
+	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
+		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window) {}
 
 	yyjson_val* LoadJson(const string& pathToFolder) const {
 		ifstream jsonFile(pathToFolder + "/level.json");
@@ -127,7 +124,7 @@ class Level : IProcessable, IDrawable {
 
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
-		_state.Pause();
+		GameState::Pause();
 		_currentRoom = LoadRoom(room);
 
 		_player.SetRoom(_currentRoom);
@@ -135,7 +132,7 @@ class Level : IProcessable, IDrawable {
 
 		DestroyRenderChunks();
 		_renderChunks = CreateRenderChunks(_currentRoom, _renderer);
-		_state.Unpause();
+		GameState::Unpause();
 	}
 
 	vector<RenderChunk> CreateRenderChunks(const Room& room, SDL_Renderer* renderer) const {

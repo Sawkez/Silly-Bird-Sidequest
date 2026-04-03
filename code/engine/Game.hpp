@@ -7,8 +7,10 @@
 #include "engine/Random.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"
 #include "game/player/Player.hpp"
+#include "game/ui/Menus.hpp"
 
 /*
 #if __PSP__
@@ -20,8 +22,6 @@
 
 using namespace std;
 
-const float MAX_DELTA = 1.0;
-
 #if __PSP__
 #define INITIAL_WINDOW_RES 480, 272
 #else
@@ -31,8 +31,6 @@ const float MAX_DELTA = 1.0;
 struct Game {
 	SDL_Window* mainWindow;
 	SDL_Renderer* mainRenderer;
-	InputManager input;
-	GameState state;
 	Level level;
 
 	Uint64 lastPerfCounter = 0;
@@ -40,16 +38,17 @@ struct Game {
 	Game()
 		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE)),
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
-		  input(),
-		  state(60.0),
-		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow, state) {}
+		  level("mods/test-sbmaker-project", mainRenderer, GameState::GetInput(), mainWindow) {
+		UIManager::Init(mainRenderer, mainWindow);
+		Menus::Init();
+		Random::Init();
+	}
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
 
-		Random::Init();
-
-		while (state.IsRunning()) {
+		GameState::Unpause();
+		while (GameState::IsRunning()) {
 			GameLoopIteration();
 		}
 
@@ -61,36 +60,42 @@ struct Game {
 	}
 
 	void GameLoopIteration() {
-		unsigned long lastFrameTimeMs = state.GetFrameEndMs() - state.GetFrameStartMs();
-		float delta = float(lastFrameTimeMs / 1000.0);
-		if (delta > MAX_DELTA) {
-			delta = state.frameDuration / 1000.0;
-		}
+		float delta = GameState::GetDelta();
 
-		state.UpdateFrameStart();
+		GameState::UpdateFrameStart();
 
 		// event handling
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event) != 0) {
-			if (input.HandleEvent(event)) continue;
-
-			if (event.type == SDL_QUIT) {
-				state.SetRunning(false);
-				continue;
-			}
-
 			if (event.type == SDL_WINDOWEVENT) {
 				level.GetCamera().UpdateZoom();
 				continue;
 			}
+
+			GameState::GetInput().HandleEvent(event);
+			UIManager::HandleEvent(event);
+
+			if (event.type == SDL_QUIT) {
+				GameState::SetRunning(false);
+				continue;
+			}
 		}
-		input.UpdateDir();
+
+		if (GameState::GetInput().IsTapped(ACTION_PAUSE)) {
+			UIManager::Show(Menus::pause);
+		}
+
+		GameState::GetInput().UpdateDir();
 
 		// game logic
-		level.Process(delta);
+		if (!GameState::IsPaused()) {
+			level.Process(delta);
+		}
 
-		input.UpdateTapStates();
+		GameState::GetInput().UpdateTapStates();
+
+		UIManager::Process();
 
 		// render
 		SDL_SetRenderDrawColor(mainRenderer, 0, 0, 0, 0);
@@ -98,15 +103,17 @@ struct Game {
 
 		level.Draw(mainRenderer);
 
+		UIManager::Draw();
+
 		SDL_RenderPresent(mainRenderer);
 
 		// frame limiting
-		state.UpdateFrameEnd();
-		unsigned long frameTimeMs = state.GetFrameEndMs() - state.GetFrameStartMs();
+		GameState::UpdateFrameEnd();
+		unsigned long frameTimeMs = GameState::GetFrameEndMs() - GameState::GetFrameStartMs();
 
-		if (frameTimeMs < state.frameDuration) {
-			SDL_Delay(state.frameDuration - frameTimeMs);
-			state.UpdateFrameEnd();
+		if (frameTimeMs < GameState::GetFrameDuration()) {
+			SDL_Delay(GameState::GetFrameDuration() - frameTimeMs);
+			GameState::UpdateFrameEnd();
 		}
 
 		// cout << "FPS: " << 1.0 / (double(SDL_GetPerformanceCounter() - lastPerfCounter) / double(SDL_GetPerformanceFrequency())) << endl;

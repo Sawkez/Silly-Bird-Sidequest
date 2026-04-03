@@ -2,32 +2,52 @@
 
 #include <SDL.h>
 
+#include "engine/input/InputManager.hpp"
+#include "engine/input/UIInputManager.hpp"
+
 class GameState {
-   public:
-	unsigned long frameDuration;
-
    private:
-	bool _running = true;
-	bool _paused = false;
-	unsigned long _frameStartMs = 0;
-	unsigned long _frameEndMs = 0;
+	static inline constexpr float MAX_DELTA = 1.0;
+
+	static inline auto _input = InputManager();
+	static inline bool _running = true;
+	static inline bool _paused = true;
+	static inline unsigned long _frameStartMs = 0;
+	static inline unsigned long _frameEndMs = 0;
+	static inline unsigned long _frameDuration = 16;
 
    public:
-	GameState(float targetFPS = 60.0)
-		: frameDuration(1000.0 / targetFPS), _frameStartMs(SDL_GetTicks64()), _frameEndMs(_frameStartMs + frameDuration) {}
+	static void SetRunning(bool value) { _running = value; }
 
-	void SetRunning(bool value) { _running = value; }
-	void Pause() { _paused = true; }
-	void Unpause() {
+	static void Pause() {
 		_paused = true;
-		_frameEndMs = SDL_GetTicks64();
-		_frameStartMs = _frameEndMs - frameDuration;
+		_input.DisableTap();
+		UIInputManager::Reset();
 	}
 
-	bool IsPaused() const { return _paused; }
-	bool IsRunning() const { return _running; }
-	const unsigned long& GetFrameStartMs() const { return _frameStartMs; }
-	const unsigned long& GetFrameEndMs() const { return _frameEndMs; }
-	void UpdateFrameStart() { _frameStartMs = _frameEndMs; }
-	void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks64(); }
+	static void Unpause() {
+		_paused = false;
+		_input.EnableTap();
+		_frameEndMs = SDL_GetTicks64();
+		_frameStartMs = _frameEndMs - _frameDuration;
+		_input.Reset();
+	}
+
+	static bool IsPaused() { return _paused; }
+	static bool IsRunning() { return _running; }
+	static const unsigned long& GetFrameStartMs() { return _frameStartMs; }
+	static const unsigned long& GetFrameEndMs() { return _frameEndMs; }
+	static const unsigned long& GetFrameDuration() { return _frameDuration; }
+
+	static float GetDelta() {
+		float delta = (_frameEndMs - _frameStartMs) / 1000.0f;
+		return delta < MAX_DELTA ? delta : _frameDuration / 1000.0f;
+	}
+
+	static void UpdateFrameStart() { _frameStartMs = _frameEndMs; }
+	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks64(); }
+
+	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
+
+	static InputManager& GetInput() { return _input; }
 };

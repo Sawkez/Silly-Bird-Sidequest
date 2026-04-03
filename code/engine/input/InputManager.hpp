@@ -8,7 +8,18 @@
 #include "engine/Vector2.hpp"
 #include "engine/input/Action.hpp"
 
-enum ActionID { ACTION_JUMP, ACTION_DIVE, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, ACTION_DOWN, ACTION_INTERACT, ACTION_PAN_CAMERA, ACTION_COUNT };
+enum ActionID {
+	ACTION_JUMP,
+	ACTION_DIVE,
+	ACTION_LEFT,
+	ACTION_RIGHT,
+	ACTION_UP,
+	ACTION_DOWN,
+	ACTION_INTERACT,
+	ACTION_PAN_CAMERA,
+	ACTION_PAUSE,
+	_ACTION_COUNT
+};
 
 class InputManager {
 	static const int LEFT_TRIGGER_BUTTON = SDL_CONTROLLER_BUTTON_MAX + 1;
@@ -40,24 +51,18 @@ class InputManager {
 	Vector2 _dir = Vector2(0.0, 0.0);
 	SDL_JoystickID _lastUsedJoystick;
 	bool _dirJoystickPriority = false;
+	bool _tapEnabled = false;
 
-	Action _actions[ACTION_COUNT]{
-		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_A,
-			   SDL_CONTROLLER_BUTTON_INVALID),	// jump
-		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
-			   LEFT_TRIGGER_BUTTON),  // dive
-		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT,
-			   SDL_CONTROLLER_BUTTON_INVALID),	// left
-		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
-			   SDL_CONTROLLER_BUTTON_INVALID),	// right
-		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_UP,
-			   SDL_CONTROLLER_BUTTON_INVALID),	// up
-		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN,
-			   SDL_CONTROLLER_BUTTON_INVALID),	// down
-		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_X,
-			   SDL_CONTROLLER_BUTTON_INVALID),	// interact
-		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_B,
-			   SDL_CONTROLLER_BUTTON_INVALID)  // pan camera
+	Action _actions[_ACTION_COUNT]{
+		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_INVALID),		// jump
+		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, LEFT_TRIGGER_BUTTON),		// dive
+		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_INVALID),	// left
+		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_INVALID),	// right
+		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_INVALID),		// up
+		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_INVALID),	// down
+		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_INVALID),			// interact
+		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_INVALID),			// pan camera
+		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_INVALID)	// pause
 	};
 
 	bool IsDirectionAction(int id) { return id >= ACTION_LEFT && id <= ACTION_DOWN; }
@@ -65,7 +70,7 @@ class InputManager {
    public:
 	InputManager() : _dir(Vector2(0.0, 0.0)) {}
 
-	bool HandleEvent(SDL_Event event) {
+	bool HandleEvent(const SDL_Event& event) {
 		switch (event.type) {
 			case SDL_CONTROLLERDEVICEADDED:
 			case SDL_CONTROLLERDEVICEREMOVED:
@@ -93,10 +98,10 @@ class InputManager {
 		return false;
 	}
 
-	void HandleEvent(SDL_KeyboardEvent event) {
+	void HandleEvent(const SDL_KeyboardEvent& event) {
 		int actionId = -1;
 
-		for (int i = 0; i < ACTION_COUNT; i++) {
+		for (int i = 0; i < _ACTION_COUNT; i++) {
 			if (_actions[i].HasKey(event.keysym.scancode)) {
 				actionId = i;
 				break;
@@ -107,20 +112,20 @@ class InputManager {
 
 		if (event.state == SDL_PRESSED && IsDirectionAction(actionId)) _dirJoystickPriority = false;
 
-		_actions[actionId].SetDown(event.state == SDL_PRESSED);
+		_actions[actionId].SetDown(event.state == SDL_PRESSED, _tapEnabled);
 	}
 
-	void HandleEvent(SDL_ControllerButtonEvent event) {
+	void HandleEvent(const SDL_ControllerButtonEvent& event) {
 		_lastUsedJoystick = event.which;
 
 		ButtonEvent(event.button, event.state == SDL_PRESSED);
 	}
 
 	bool ButtonEvent(int button, bool pressed) {  // separated so we can handle triggers as buttons
-		for (int i = 0; i < ACTION_COUNT; i++) {
+		for (int i = 0; i < _ACTION_COUNT; i++) {
 			if (_actions[i].HasButton(button)) {
 				if (pressed && IsDirectionAction(i)) _dirJoystickPriority = false;
-				_actions[i].SetDown(pressed);
+				_actions[i].SetDown(pressed, _tapEnabled);
 				return true;
 			}
 		}
@@ -128,7 +133,7 @@ class InputManager {
 		return false;
 	}
 
-	bool HandleEvent(SDL_ControllerAxisEvent event) {
+	bool HandleEvent(const SDL_ControllerAxisEvent& event) {
 		switch (event.axis) {
 			case SDL_CONTROLLER_AXIS_LEFTX:
 			case SDL_CONTROLLER_AXIS_LEFTY:
@@ -154,7 +159,7 @@ class InputManager {
 		return false;
 	}
 
-	void HandleEvent(SDL_ControllerDeviceEvent event) { SDL_GameControllerOpen(event.which); }
+	void HandleEvent(const SDL_ControllerDeviceEvent& event) { SDL_GameControllerOpen(event.which); }
 
 	void UpdateDir() {
 		if (_dirJoystickPriority) {
@@ -177,10 +182,10 @@ class InputManager {
 				_dir = Vector2::ZERO;
 			}
 
-			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0);
-			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0);
-			_actions[ACTION_UP].SetDown(_dir.y < 0.0);
-			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0);
+			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0, _tapEnabled);
+			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0, _tapEnabled);
+			_actions[ACTION_UP].SetDown(_dir.y < 0.0, _tapEnabled);
+			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0, _tapEnabled);
 		}
 
 		else {
@@ -188,14 +193,18 @@ class InputManager {
 			_dir.y = float(IsDown(ACTION_DOWN)) - float(IsDown(ACTION_UP));
 		}
 
-		// TODO set dir actions to true when joy inputting
-
 		return;
 	}
 
 	void UpdateTapStates() {
-		for (int i = 0; i < ACTION_COUNT; i++) {
+		for (int i = 0; i < _ACTION_COUNT; i++) {
 			_actions[i].UpdateTapState();
+		}
+	}
+
+	void Reset() {
+		for (int i = 0; i < _ACTION_COUNT; i++) {
+			_actions[i].SetDown(false, _tapEnabled);
 		}
 	}
 
@@ -204,4 +213,7 @@ class InputManager {
 	bool IsTapped(int id) const { return _actions[id].IsTapped(); }
 
 	Vector2 GetDir() const { return _dir; }
+
+	void EnableTap() { _tapEnabled = true; }
+	void DisableTap() { _tapEnabled = false; }
 };
