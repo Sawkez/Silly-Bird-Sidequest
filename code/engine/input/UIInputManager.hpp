@@ -25,7 +25,7 @@ class UIInputManager {
 														 {SDL_SCANCODE_W, SDL_CONTROLLER_BUTTON_DPAD_UP, LV_KEY_UP},		// up
 														 {SDL_SCANCODE_S, SDL_CONTROLLER_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	// down
 														 {SDL_SCANCODE_SPACE, SDL_CONTROLLER_BUTTON_A, LV_KEY_ENTER},		// enter
-														 {SDL_SCANCODE_ESCAPE, SDL_CONTROLLER_BUTTON_B, LV_KEY_ESC}};		// esc
+														 {SDL_SCANCODE_ESCAPE, SDL_CONTROLLER_BUTTON_START, LV_KEY_ESC}};	// esc
 
    public:
 #if !__PSP__
