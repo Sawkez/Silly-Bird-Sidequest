@@ -41,7 +41,7 @@ struct Game {
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
 		  input(),
 		  level("mods/test-sbmaker-project", mainRenderer, input, mainWindow),
-		  ui(mainRenderer) {}
+		  ui(mainRenderer, mainWindow) {}
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
@@ -68,15 +68,18 @@ struct Game {
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event) != 0) {
+			if (event.type == SDL_WINDOWEVENT) {
+				level.GetCamera().UpdateZoom();
+				ui.HandleEvent(event);
+				continue;
+			}
+
+			if (ui.HandleEvent(event)) continue;
+
 			if (input.HandleEvent(event)) continue;
 
 			if (event.type == SDL_QUIT) {
 				GameState::SetRunning(false);
-				continue;
-			}
-
-			if (event.type == SDL_WINDOWEVENT) {
-				level.GetCamera().UpdateZoom();
 				continue;
 			}
 		}
@@ -95,7 +98,7 @@ struct Game {
 
 		level.Draw(mainRenderer);
 
-		ui.Draw(mainRenderer);
+		ui.Draw();
 
 		SDL_RenderPresent(mainRenderer);
 
