@@ -3,6 +3,7 @@
 #include "lvgl/lvgl.h"
 #include "engine/ui/Menu.hpp"
 #include "engine/ui/UIManager.hpp"
+#include "game/ui/Styles.hpp"
 
 class TitleScreenMenu : public Menu {
 
@@ -17,6 +18,6 @@ class TitleScreenMenu : public Menu {
         lv_buttonmatrix_set_map(_buttons, _buttonMap);
         lv_obj_align(_buttons, LV_ALIGN_LEFT_MID, 0, 0);
 
-
+        lv_obj_add_style(_buttons, &Styles::focus, LV_PART_ITEMS | LV_STATE_FOCUSED);
     }
 };
