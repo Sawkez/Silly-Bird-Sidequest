@@ -61,6 +61,7 @@ class UIInputManager {
 		lv_key_t out = (lv_key_t)-1;
 
 		switch (event.type) {
+#if !__PSP__
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
@@ -73,6 +74,12 @@ class UIInputManager {
 				if (event.key.repeat && out == LV_KEY_ESC) return true;
 				break;
 
+			case SDL_MOUSEMOTION:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+				lv_indev_read(_mouseInput);
+				return true;
+#endif
 			case SDL_CONTROLLERBUTTONDOWN:
 			case SDL_CONTROLLERBUTTONUP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
@@ -82,14 +89,6 @@ class UIInputManager {
 					}
 				}
 				break;
-
-#if !__PSP__
-			case SDL_MOUSEMOTION:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
-				lv_indev_read(_mouseInput);
-				return true;
-#endif
 		}
 
 		if (out < 0) {
