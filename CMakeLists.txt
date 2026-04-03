@@ -12,6 +12,7 @@ add_executable(sbs-psp
 )
 
 set(LV_BUILD_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h")
+set(LV_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h")
 
 include_directories(code)
 add_subdirectory(code/3rdparty/lvgl)
