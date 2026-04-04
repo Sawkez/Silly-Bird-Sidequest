@@ -7,6 +7,8 @@ set(YYJSON_DIR "code/3rdparty/yyjson/src")
 set(LVGL_DIR "code/3rdparty/lvgl")
 
 set(LV_BUILD_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h" CACHE PATH "Path to custom lv_conf.h" FORCE)
+set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
+set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 include_directories(code)
 add_subdirectory(code/3rdparty/lvgl)
