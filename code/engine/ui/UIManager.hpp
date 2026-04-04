@@ -8,6 +8,7 @@
 #include "3rdparty/lvgl/lvgl.h"
 #include "engine/input/UIInputManager.hpp"
 #include "engine/ui/Menu.hpp"
+#include "game/ui/Styles.hpp"
 
 class UIManager {
    private:
@@ -19,6 +20,7 @@ class UIManager {
 	static inline SDL_Renderer* _renderer;
 
 	static inline bool _visible = false;
+	static inline Menu* _currentMenu;
 
 	static void FlushCallback(lv_display_t* display, const lv_area_t* area, uint8_t* pixelData) {
 		void* outPixels;
@@ -71,6 +73,7 @@ class UIManager {
 	static void Init(SDL_Renderer* renderer, SDL_Point windowSize) {
 		_display = InitLVGL(windowSize);
 		UIInputManager::Init();
+		Styles::Init();
 		_renderer = renderer;
 		Resize(windowSize.x, windowSize.y);
 	}
@@ -127,27 +130,17 @@ class UIManager {
 		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
 	}
 
-	static void Show() {
-		GameState::Pause();
-		_visible = true;
-	}
-
 	static void Show(Menu* menu) {
+		_currentMenu = menu;
 		menu->Activate();
-		Show();
+		_visible = true;
+		GameState::Pause();
 	}
 
 	static void Hide() {
+		_currentMenu->Deactivate();
 		GameState::Unpause();
 		_visible = false;
-	}
-
-	static void Toggle() {
-		if (!_visible) {
-			Show();
-		} else {
-			Hide();
-		}
 	}
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
