@@ -1,13 +1,20 @@
 #pragma once
 
 #include "engine/ui/Menu.hpp"
-#include "game/ui/PauseMenu.hpp"
+#include "engine/ui/TestMenu.hpp"
+#include "engine/ui/UIManager.hpp"
+#include "game/ui/gameplay/PauseMenu.hpp"
+#include "game/ui/title/ModSelectMenu.hpp"
+#include "game/ui/title/TitleScreenMenu.hpp"
 #include "lvgl/lvgl.h"
 
 namespace Menus {
-enum MenuID { MENU_PAUSE, _MENU_COUNT };
 
-Menu* pause;
+auto test = TestMenu();
+auto pause = PauseMenu();
+auto title = TitleScreenMenu();
+auto mods = ModSelectMenu();
 
-void Init() { pause = new PauseMenu(); }
 };	// namespace Menus
+
+Menu* UIManager::_menus[UIManager::_MENU_COUNT] = {&Menus::test, &Menus::pause, &Menus::title, &Menus::mods};

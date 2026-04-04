@@ -58,7 +58,7 @@ class UIInputManager {
 	}
 
 	static bool HandleEvent(const SDL_Event& event) {
-		lv_key_t out = (lv_key_t)-1;
+		lv_key_t out = (lv_key_t)-2;
 
 		switch (event.type) {
 #if !__PSP__
@@ -89,6 +89,9 @@ class UIInputManager {
 					}
 				}
 				break;
+
+			default:
+				return false;
 		}
 
 		if (out < 0) {

@@ -6,8 +6,8 @@
 #include "lvgl/lvgl.h"
 
 class TitleScreenMenu : public Menu {
-	lv_obj_t* _buttons;
-	static inline const char* _buttonMap[] = {"New game", "Load game", "\n", "Settings", "\n", "Quit", ""};
+	lv_obj_t* _buttons = NULL;
+	static inline const char* _buttonMap[] = {"Play campaign", "\n", "Settings", "\n", "Quit", ""};
 
 	static void ButtonPressedCallback(lv_event_t* event) {
 		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
@@ -18,12 +18,13 @@ class TitleScreenMenu : public Menu {
 
 		switch (button) {
 			case 0:
-				UIManager::Hide();
+				UIManager::Show(UIManager::MENU_TEST);
 		}
 	}
 
    public:
-	TitleScreenMenu() : Menu() {
+	void Init() override {
+		Menu::Init();
 		lv_obj_set_style_bg_opa(_screen, LV_OPA_TRANSP, LV_PART_MAIN);
 
 		_buttons = lv_buttonmatrix_create(_screen);
@@ -40,6 +41,4 @@ class TitleScreenMenu : public Menu {
 		lv_group_focus_obj(_buttons);
 		lv_buttonmatrix_set_selected_button(_buttons, 0);
 	}
-
-	void Deactivate() override { delete this; }
 };
