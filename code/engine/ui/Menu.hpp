@@ -4,11 +4,16 @@
 
 class Menu {
    protected:
-	lv_obj_t* _screen;
+	lv_obj_t* _screen = NULL;
 
    public:
-	Menu() : _screen(lv_obj_create(NULL)) {};
+	virtual void Init() { _screen = lv_obj_create(NULL); }
+	virtual void Activate() {
+		if (_screen == NULL) {
+			this->Init();
+		}
 
-	virtual void Activate() { lv_screen_load(_screen); }
+		lv_screen_load(_screen);
+	}
 	virtual void Deactivate() {}
 };
