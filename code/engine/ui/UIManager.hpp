@@ -11,6 +11,9 @@
 #include "game/ui/Styles.hpp"
 
 class UIManager {
+   public:
+	enum MenuID { MENU_TEST, MENU_PAUSE, MENU_TITLE, MENU_MODS, _MENU_COUNT };
+
    private:
 	UIManager() = delete;
 	static inline lv_display_t* _display = NULL;
@@ -21,6 +24,8 @@ class UIManager {
 
 	static inline bool _visible = false;
 	static inline Menu* _currentMenu;
+
+	static Menu* _menus[_MENU_COUNT];
 
 	static void FlushCallback(lv_display_t* display, const lv_area_t* area, uint8_t* pixelData) {
 		void* outPixels;
@@ -59,21 +64,17 @@ class UIManager {
 	}
 
    public:
-	/*
-	UIManager(SDL_Renderer* renderer, SDL_Window* window) : UIManager(renderer, GetWindowSize(window)) {}
-
-	UIManager(SDL_Renderer* renderer, SDL_Point windowSize) : _display(InitLVGL(windowSize)), _renderer(renderer), UIInputManager::) {
-		Resize(windowSize.x, windowSize.y);
-		Menus::Init(*this, GetMainGroup());
-	}
-	*/
-
 	static void Init(SDL_Renderer* renderer, SDL_Window* window) { Init(renderer, GetWindowSize(window)); }
 
 	static void Init(SDL_Renderer* renderer, SDL_Point windowSize) {
 		_display = InitLVGL(windowSize);
 		UIInputManager::Init();
 		Styles::Init();
+
+		for (int i = 0; i < _MENU_COUNT; i++) {
+			_menus[i]->Init();
+		}
+
 		_renderer = renderer;
 		Resize(windowSize.x, windowSize.y);
 	}
@@ -89,13 +90,25 @@ class UIManager {
 		return display;
 	}
 
-	static void Process() {
-		if (!_visible) return;
-		lv_timer_handler();
+	static void Process() { lv_timer_handler(); }
+
+	static void ShowAsync(void* data) {
+		std::cout << "Asyncing!" << std::endl;
+		auto menu = (Menu*)data;
+
+		if (_visible) _currentMenu->Deactivate();
+		_currentMenu = menu;
+		menu->Activate();
+		_visible = true;
+	}
+
+	static void HideAsync(void* data) {
+		_currentMenu->Deactivate();
+		_visible = false;
 	}
 
 	static void Resize(int windowWidth, int windowHeight) {
-		_buf.resize(windowWidth * windowHeight * 10 / 4);
+		_buf.resize(windowWidth * windowHeight / 10 * 4);
 
 		lv_display_set_resolution(_display, windowWidth, windowHeight);
 		lv_display_set_buffers(_display, _buf.data(), NULL, _buf.size(), LV_DISPLAY_RENDER_MODE_PARTIAL);
@@ -130,18 +143,12 @@ class UIManager {
 		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
 	}
 
-	static void Show(Menu* menu) {
-		_currentMenu = menu;
-		menu->Activate();
-		_visible = true;
-		GameState::Pause();
-	}
+	static void Show(MenuID menu) { Show(_menus[menu]); }
 
-	static void Hide() {
-		_currentMenu->Deactivate();
-		GameState::Unpause();
-		_visible = false;
-	}
+	static void Show(Menu* menu) { lv_async_call(ShowAsync, menu); }
+
+	// static void Hide() { lv_async_call(HideAsync, NULL); }
+	static void Hide() { HideAsync(NULL); }
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
 };
