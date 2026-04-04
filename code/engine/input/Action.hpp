@@ -47,14 +47,20 @@ class Action {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
 			if (state[_keys[i]]) {
 				SetDownNoTap(true);
+				return;
 			}
 		}
+		SetDownNoTap(false);
 	}
 
 	void ResetToControllerState(SDL_GameController* controller) {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
-			SDL_GameControllerGetButton(controller, _buttons[i]);
+			if (SDL_GameControllerGetButton(controller, _buttons[i])) {
+				SetDownNoTap(true);
+				return;
+			};
 		}
+		SetDownNoTap(false);
 	}
 
 	void UpdateTapState() { _tap = false; }
