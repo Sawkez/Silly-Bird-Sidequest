@@ -131,6 +131,7 @@ class UIManager {
 	}
 
 	static void Show(Menu* menu) {
+		if (_visible) _currentMenu->Deactivate();
 		_currentMenu = menu;
 		menu->Activate();
 		_visible = true;
