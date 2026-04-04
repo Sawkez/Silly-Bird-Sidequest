@@ -10,4 +10,5 @@ class Menu {
 	Menu() : _screen(lv_obj_create(NULL)) {};
 
 	virtual void Activate() { lv_screen_load(_screen); }
+	virtual void Deactivate() {}
 };

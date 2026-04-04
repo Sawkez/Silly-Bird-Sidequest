@@ -92,7 +92,7 @@ class UIInputManager {
 		}
 
 		if (out < 0) {
-			return false;
+			return true;
 		}
 		bool pressed = event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN;
 

@@ -12,6 +12,9 @@ class PauseMenu : public Menu {
 	lv_obj_t* _buttons;
 
 	static void ButtonPressedCallback(lv_event_t* event) {
+		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
+		if (screen != lv_screen_active()) return;
+
 		lv_obj_t* buttons = lv_event_get_target_obj(event);
 		uint32_t button = lv_buttonmatrix_get_selected_button(buttons);
 
@@ -22,6 +25,9 @@ class PauseMenu : public Menu {
 	}
 
 	static void KeyPressedCallback(lv_event_t* event) {
+		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
+		if (screen != lv_screen_active()) return;
+
 		if (lv_event_get_key(event) == LV_KEY_ESC) Unpause();
 	}
 
@@ -40,13 +46,13 @@ class PauseMenu : public Menu {
 
 		lv_group_add_obj(UIInputManager::GetMainGroup(), _screen);
 
-		lv_obj_add_event_cb(_buttons, ButtonPressedCallback, LV_EVENT_VALUE_CHANGED, this);
-		lv_obj_add_event_cb(_buttons, KeyPressedCallback, LV_EVENT_KEY, NULL);
+		lv_obj_add_event_cb(_buttons, ButtonPressedCallback, LV_EVENT_VALUE_CHANGED, _screen);
+		lv_obj_add_event_cb(_buttons, KeyPressedCallback, LV_EVENT_KEY, _screen);
 	}
 
 	void Activate() override {
 		Menu::Activate();
-
+		lv_group_focus_obj(_buttons);
 		lv_buttonmatrix_set_selected_button(_buttons, 0);
 	}
 };

@@ -48,9 +48,9 @@ struct Game {
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
 
-		static auto titleScreen = TitleScreenMenu();
+		static auto* titleScreen = new TitleScreenMenu();
 
-		UIManager::Show(&titleScreen);
+		UIManager::Show(titleScreen);
 
 		GameState::Unpause();
 		while (GameState::IsRunning()) {

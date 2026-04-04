@@ -20,6 +20,7 @@ class UIManager {
 	static inline SDL_Renderer* _renderer;
 
 	static inline bool _visible = false;
+	static inline Menu* _currentMenu;
 
 	static void FlushCallback(lv_display_t* display, const lv_area_t* area, uint8_t* pixelData) {
 		void* outPixels;
@@ -129,27 +130,17 @@ class UIManager {
 		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
 	}
 
-	static void Show() {
-		GameState::Pause();
-		_visible = true;
-	}
-
 	static void Show(Menu* menu) {
+		_currentMenu = menu;
 		menu->Activate();
-		Show();
+		_visible = true;
+		GameState::Pause();
 	}
 
 	static void Hide() {
+		_currentMenu->Deactivate();
 		GameState::Unpause();
 		_visible = false;
-	}
-
-	static void Toggle() {
-		if (!_visible) {
-			Show();
-		} else {
-			Hide();
-		}
 	}
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
