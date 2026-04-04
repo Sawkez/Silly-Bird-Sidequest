@@ -21,16 +21,14 @@ class GameState {
 
 	static void Pause() {
 		_paused = true;
-		_input.DisableTap();
 		UIInputManager::Reset();
 	}
 
 	static void Unpause() {
 		_paused = false;
-		_input.EnableTap();
 		_frameEndMs = SDL_GetTicks64();
 		_frameStartMs = _frameEndMs - _frameDuration;
-		_input.Reset();
+		_input.ResetToState();
 	}
 
 	static bool IsPaused() { return _paused; }

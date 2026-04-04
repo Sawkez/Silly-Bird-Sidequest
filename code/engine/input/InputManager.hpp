@@ -22,9 +22,6 @@ enum ActionID {
 };
 
 class InputManager {
-	static const int LEFT_TRIGGER_BUTTON = SDL_CONTROLLER_BUTTON_MAX + 1;
-	static const int RIGHT_TRIGGER_BUTTON = SDL_CONTROLLER_BUTTON_MAX + 1;
-
 	static const Sint16 TRIGGER_DOWN_VALUE = SDL_MAX_SINT16 / 2;
 
 	static constexpr float JOY_DEADZONE = 0.5 * 0.5;
@@ -51,18 +48,18 @@ class InputManager {
 	Vector2 _dir = Vector2(0.0, 0.0);
 	SDL_JoystickID _lastUsedJoystick;
 	bool _dirJoystickPriority = false;
-	bool _tapEnabled = false;
+	bool _lastInputWasController = false;
 
 	Action _actions[_ACTION_COUNT]{
-		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_INVALID),		// jump
-		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, LEFT_TRIGGER_BUTTON),		// dive
-		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_INVALID),	// left
-		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_INVALID),	// right
-		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_INVALID),		// up
-		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_INVALID),	// down
-		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_INVALID),			// interact
-		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_INVALID),			// pan camera
-		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_INVALID)	// pause
+		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_INVALID),			 // jump
+		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, Action::LEFT_TRIGGER_BUTTON),	 // dive
+		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_INVALID),		 // left
+		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_INVALID),		 // right
+		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_INVALID),			 // up
+		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_INVALID),		 // down
+		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_INVALID),				 // interact
+		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_INVALID),				 // pan camera
+		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_INVALID)		 // pause
 	};
 
 	bool IsDirectionAction(int id) { return id >= ACTION_LEFT && id <= ACTION_DOWN; }
@@ -110,12 +107,15 @@ class InputManager {
 
 		if (actionId < 0) return;
 
+		_lastInputWasController = false;
+
 		if (event.state == SDL_PRESSED && IsDirectionAction(actionId)) _dirJoystickPriority = false;
 
-		_actions[actionId].SetDown(event.state == SDL_PRESSED, _tapEnabled);
+		_actions[actionId].SetDown(event.state == SDL_PRESSED);
 	}
 
 	void HandleEvent(const SDL_ControllerButtonEvent& event) {
+		_lastInputWasController = true;
 		_lastUsedJoystick = event.which;
 
 		ButtonEvent(event.button, event.state == SDL_PRESSED);
@@ -125,7 +125,7 @@ class InputManager {
 		for (int i = 0; i < _ACTION_COUNT; i++) {
 			if (_actions[i].HasButton(button)) {
 				if (pressed && IsDirectionAction(i)) _dirJoystickPriority = false;
-				_actions[i].SetDown(pressed, _tapEnabled);
+				_actions[i].SetDown(pressed);
 				return true;
 			}
 		}
@@ -134,6 +134,8 @@ class InputManager {
 	}
 
 	bool HandleEvent(const SDL_ControllerAxisEvent& event) {
+		_lastInputWasController = true;
+
 		switch (event.axis) {
 			case SDL_CONTROLLER_AXIS_LEFTX:
 			case SDL_CONTROLLER_AXIS_LEFTY:
@@ -149,10 +151,10 @@ class InputManager {
 
 #if !__PSP__
 			case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-				return ButtonEvent(LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
+				return ButtonEvent(Action::LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
 
 			case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-				return ButtonEvent(RIGHT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
+				return ButtonEvent(Action::RIGHT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
 #endif
 		}
 
@@ -182,10 +184,10 @@ class InputManager {
 				_dir = Vector2::ZERO;
 			}
 
-			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0, _tapEnabled);
-			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0, _tapEnabled);
-			_actions[ACTION_UP].SetDown(_dir.y < 0.0, _tapEnabled);
-			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0, _tapEnabled);
+			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0);
+			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0);
+			_actions[ACTION_UP].SetDown(_dir.y < 0.0);
+			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0);
 		}
 
 		else {
@@ -204,7 +206,29 @@ class InputManager {
 
 	void Reset() {
 		for (int i = 0; i < _ACTION_COUNT; i++) {
-			_actions[i].SetDown(false, _tapEnabled);
+			_actions[i].SetDown(false);
+		}
+	}
+
+	void ResetToState() {
+		if (_lastInputWasController)
+			ResetToControllerState();
+		else
+			ResetToKeyboardState();
+	}
+
+	void ResetToKeyboardState() {
+		const Uint8* state = SDL_GetKeyboardState(NULL);
+
+		for (int i = 0; i < _ACTION_COUNT; i++) {
+			_actions[i].ResetToKeyboardState(state);
+		}
+	}
+
+	void ResetToControllerState() {
+		SDL_GameController* controller = SDL_GameControllerFromInstanceID(_lastUsedJoystick);
+		for (int i = 0; i < _ACTION_COUNT; i++) {
+			_actions[i].ResetToControllerState(controller);
 		}
 	}
 
@@ -213,7 +237,4 @@ class InputManager {
 	bool IsTapped(int id) const { return _actions[id].IsTapped(); }
 
 	Vector2 GetDir() const { return _dir; }
-
-	void EnableTap() { _tapEnabled = true; }
-	void DisableTap() { _tapEnabled = false; }
 };
