@@ -31,10 +31,15 @@ class PauseMenu : public Menu {
 		if (lv_event_get_key(event) == LV_KEY_ESC) Unpause();
 	}
 
-	static void Unpause() { UIManager::Hide(); }
+	static void Unpause() {
+		UIManager::Hide();
+		GameState::Unpause();
+	}
 
    public:
-	PauseMenu() : Menu(), _buttons(lv_buttonmatrix_create(_screen)) {
+	void Init() override {
+		Menu::Init();
+		_buttons = lv_buttonmatrix_create(_screen);
 		lv_buttonmatrix_set_map(_buttons, _buttonMap);
 
 		lv_buttonmatrix_set_button_ctrl_all(_buttons, LV_BUTTONMATRIX_CTRL_CLICK_TRIG);
@@ -52,6 +57,7 @@ class PauseMenu : public Menu {
 
 	void Activate() override {
 		Menu::Activate();
+		GameState::Pause();
 		lv_group_focus_obj(_buttons);
 		lv_buttonmatrix_set_selected_button(_buttons, 0);
 	}

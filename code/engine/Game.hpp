@@ -11,7 +11,7 @@
 #include "engine/world/Level.hpp"
 #include "game/player/Player.hpp"
 #include "game/ui/Menus.hpp"
-#include "game/ui/TitleScreen.hpp"
+#include "game/ui/title/TitleScreenMenu.hpp"
 
 /*
 #if __PSP__
@@ -41,16 +41,13 @@ struct Game {
 		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
 		  level("mods/test-sbmaker-project", mainRenderer, GameState::GetInput(), mainWindow) {
 		UIManager::Init(mainRenderer, mainWindow);
-		Menus::Init();
 		Random::Init();
 	}
 
 	int Run(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
 
-		static auto* titleScreen = new TitleScreenMenu();
-
-		UIManager::Show(titleScreen);
+		UIManager::Show(UIManager::MENU_TITLE);
 
 		GameState::Unpause();
 		while (GameState::IsRunning()) {
@@ -88,7 +85,7 @@ struct Game {
 		}
 
 		if (GameState::GetInput().IsTapped(ACTION_PAUSE)) {
-			UIManager::Show(Menus::pause);
+			UIManager::Show(UIManager::MENU_PAUSE);
 		}
 
 		GameState::GetInput().UpdateDir();
