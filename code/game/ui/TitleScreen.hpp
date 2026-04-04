@@ -7,7 +7,7 @@
 
 class TitleScreenMenu : public Menu {
 	lv_obj_t* _buttons;
-	static inline const char* _buttonMap[] = {"New game", "Load game", "\n", "Settings", "\n", "Quit", ""};
+	static inline const char* _buttonMap[] = {"Play campaign", "\n", "Settings", "\n", "Quit", ""};
 
 	static void ButtonPressedCallback(lv_event_t* event) {
 		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
