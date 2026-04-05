@@ -34,6 +34,6 @@ class ModSelectMenu : public MenuTransparentBG {
 
 	void Activate() override {
 		Menu::Activate();
-		lv_group_focus_obj(_panel);
+		lv_group_focus_obj(_mods[0].GetButton());
 	}
 };
