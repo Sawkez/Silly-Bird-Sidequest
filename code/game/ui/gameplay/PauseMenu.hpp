@@ -1,12 +1,12 @@
 #pragma once
 
 #include "engine/input/UIInputManager.hpp"
-#include "engine/ui/Menu.hpp"
+#include "engine/ui/MenuTransparentBG.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "game/ui/Styles.hpp"
 #include "lvgl/lvgl.h"
 
-class PauseMenu : public Menu {
+class PauseMenu : public MenuTransparentBG {
    private:
 	static inline const char* _buttonMap[] = {"unpause", "\n", "i", "eat", "bugs", "🧟", NULL};
 	lv_obj_t* _buttons;
@@ -38,7 +38,7 @@ class PauseMenu : public Menu {
 
    public:
 	void Init() override {
-		Menu::Init();
+		MenuTransparentBG::Init();
 		_buttons = lv_buttonmatrix_create(_screen);
 		lv_buttonmatrix_set_map(_buttons, _buttonMap);
 
@@ -46,8 +46,6 @@ class PauseMenu : public Menu {
 
 		lv_obj_add_style(_buttons, &Styles::focus, LV_PART_ITEMS | LV_STATE_FOCUSED);
 		lv_obj_center(_buttons);
-
-		lv_obj_set_style_bg_opa(_screen, LV_OPA_TRANSP, LV_PART_MAIN);
 
 		lv_group_add_obj(UIInputManager::GetMainGroup(), _screen);
 

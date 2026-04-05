@@ -2,8 +2,16 @@
 
 #include <SDL.h>
 
+#include <memory>
+
 #include "engine/input/InputManager.hpp"
 #include "engine/input/UIInputManager.hpp"
+
+#if __PSP__
+#define INITIAL_WINDOW_RES 480, 272
+#else
+#define INITIAL_WINDOW_RES 960, 540
+#endif
 
 class GameState {
    private:
@@ -15,8 +23,15 @@ class GameState {
 	static inline unsigned long _frameStartMs = 0;
 	static inline unsigned long _frameEndMs = 0;
 	static inline unsigned long _frameDuration = 16;
+	static inline SDL_Window* _mainWindow = NULL;
+	static inline SDL_Renderer* _mainRenderer = NULL;
 
    public:
+	static void Init() {
+		_mainWindow = SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
+		_mainRenderer = SDL_CreateRenderer(_mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	}
+
 	static void SetRunning(bool value) { _running = value; }
 
 	static void Pause() {
@@ -48,4 +63,13 @@ class GameState {
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 
 	static InputManager& GetInput() { return _input; }
+
+	static SDL_Renderer* GetMainRenderer() { return _mainRenderer; }
+	static SDL_Window* GetMainWindow() { return _mainWindow; }
+
+	static void Deinit() {
+		SDL_DestroyRenderer(_mainRenderer);
+		SDL_DestroyWindow(_mainWindow);
+		SDL_Quit();
+	}
 };

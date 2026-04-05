@@ -1,11 +1,11 @@
 #pragma once
 
-#include "engine/ui/Menu.hpp"
+#include "engine/ui/MenuTransparentBG.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "game/ui/Styles.hpp"
 #include "lvgl/lvgl.h"
 
-class TitleScreenMenu : public Menu {
+class TitleScreenMenu : public MenuTransparentBG {
 	lv_obj_t* _buttons = NULL;
 	static inline const char* _buttonMap[] = {"Play campaign", "\n", "Settings", "\n", "Quit", ""};
 
@@ -18,14 +18,13 @@ class TitleScreenMenu : public Menu {
 
 		switch (button) {
 			case 0:
-				UIManager::Show(UIManager::MENU_TEST);
+				UIManager::Show(UIManager::MENU_MODS);
 		}
 	}
 
    public:
 	void Init() override {
-		Menu::Init();
-		lv_obj_set_style_bg_opa(_screen, LV_OPA_TRANSP, LV_PART_MAIN);
+		MenuTransparentBG::Init();
 
 		_buttons = lv_buttonmatrix_create(_screen);
 		lv_buttonmatrix_set_map(_buttons, _buttonMap);
@@ -34,6 +33,7 @@ class TitleScreenMenu : public Menu {
 		lv_obj_add_style(_buttons, &Styles::focus, LV_PART_ITEMS | LV_STATE_FOCUSED);
 
 		lv_obj_add_event_cb(_buttons, ButtonPressedCallback, LV_EVENT_VALUE_CHANGED, _screen);
+		lv_buttonmatrix_set_button_ctrl_all(_buttons, LV_BUTTONMATRIX_CTRL_CLICK_TRIG);
 	}
 
 	void Activate() override {
