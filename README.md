@@ -1,8 +1,43 @@
 # Silly Bird Sidequest
-Silly Bird Sidequest is a fast-paced precision 2D-platformer for PC and the PSP, with custom level support.
+Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP, with custom level support.
+
+## Controls
+Will make these configurable later.  
+
+- WASD / D-Pad / Left joystick - Move;
+- Space / A / Cross - Jump / Dash;
+- Left shift / LB / L - Dive / Slide;
+- Q / B / Circle - Pan camera (WIP);
+
+## Implemented
+- All movement mechanics from *Silly Bird Sequel*;
+- Wallrunning;
+- Loading custom levels;
+
+## WIP
+- GUI;
+
+## Next up
+- Spikes, death and respawning;
+- Level editor for PC;
+
+## Other planned features
+### Gameplay
+- All world objects from *Silly Bird Sequel*;
+- Brand new world objects and obstacles;
+- Brand new movement mechanics;
+- Official campaigns;
+
+### Modding
+- Custom skin support;
+- Customizeable UI themes;
+- Backgrounds;
+
+### Tech
+- Settings;
+- Android port;
 
 ## Building from Linux
-
 Start by cloning the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules```  
 
 ### For Linux
@@ -25,7 +60,7 @@ To run:
 - Copy ```build/export/psp-pbp``` to PSP/GAME in the PSP's storage.
 
 ## Building from Windows
-idk. try wsl
+Compiling from Windows is not supported. Consider using WSL.
 
 ### AI disclosure
 Various AI models were used for writing code. All AI-generated code was manually reviewed, tested, and edited. No assets or levels are AI-generated.
