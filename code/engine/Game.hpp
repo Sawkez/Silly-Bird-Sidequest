@@ -9,6 +9,7 @@
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"
+#include "engine/world/WorldManager.hpp"
 #include "game/player/Player.hpp"
 #include "game/ui/Menus.hpp"
 #include "game/ui/title/TitleScreenMenu.hpp"
@@ -23,41 +24,27 @@
 
 using namespace std;
 
-#if __PSP__
-#define INITIAL_WINDOW_RES 480, 272
-#else
-#define INITIAL_WINDOW_RES 960, 540
-#endif
-
 struct Game {
-	SDL_Window* mainWindow;
-	SDL_Renderer* mainRenderer;
-	Level level;
-
 	Uint64 lastPerfCounter = 0;
 
-	Game()
-		: mainWindow(SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE)),
-		  mainRenderer(SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)),
-		  level("mods/test-sbmaker-project", mainRenderer, GameState::GetInput(), mainWindow) {
-		UIManager::Init(mainRenderer, mainWindow);
-		Random::Init();
-	}
-
-	int Run(int argc, char* argv[]) {
+	Game(int argc, char* argv[]) {
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
 
-		UIManager::Show(UIManager::MENU_TITLE);
+		GameState::Init();
+		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
+		Random::Init();
 
+		WorldManager::LoadLevel("content/title-screen-bg");
+		UIManager::Show(UIManager::MENU_TITLE);
+	}
+
+	int Run() {
 		GameState::Unpause();
 		while (GameState::IsRunning()) {
 			GameLoopIteration();
 		}
 
-		SDL_DestroyRenderer(mainRenderer);
-		SDL_DestroyWindow(mainWindow);
-		SDL_Quit();
-
+		GameState::Deinit();
 		return 0;
 	}
 
@@ -70,10 +57,7 @@ struct Game {
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event) != 0) {
-			if (event.type == SDL_WINDOWEVENT) {
-				level.GetCamera().UpdateZoom();
-				continue;
-			}
+			if (event.type == SDL_WINDOWEVENT) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 			if (UIManager::HandleEvent(event)) continue;
 			if (GameState::GetInput().HandleEvent(event)) continue;
@@ -92,7 +76,7 @@ struct Game {
 
 		// game logic
 		if (!GameState::IsPaused()) {
-			level.Process(delta);
+			WorldManager::GetLevel().Process(delta);
 		}
 
 		GameState::GetInput().UpdateTapStates();
@@ -100,14 +84,14 @@ struct Game {
 		UIManager::Process();
 
 		// render
-		SDL_SetRenderDrawColor(mainRenderer, 0, 0, 0, 0);
-		SDL_RenderClear(mainRenderer);
+		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
+		SDL_RenderClear(GameState::GetMainRenderer());
 
-		level.Draw(mainRenderer);
+		WorldManager::GetLevel().Draw(GameState::GetMainRenderer());
 
 		UIManager::Draw();
 
-		SDL_RenderPresent(mainRenderer);
+		SDL_RenderPresent(GameState::GetMainRenderer());
 
 		// frame limiting
 		GameState::UpdateFrameEnd();
