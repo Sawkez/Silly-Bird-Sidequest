@@ -25,11 +25,11 @@ class Room {
 	vector<RoomNeighbor> _neighbors;
 
    public:
-	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases)
-		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases) {}
-	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases)
+	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
+		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
+	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
-		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases)),
+		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases, spikeAtlas)),
 		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
 		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
 		  _height(yyjson_get_num(yyjson_obj_get(roomJson, "height"))),
@@ -85,7 +85,8 @@ class Room {
 		return colliders;
 	}
 
-	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases) const {
+	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases,
+								 SDL_Surface* spikeAtlas) const {
 		vector<RoomChunk> chunks;
 
 		size_t idx, max;
@@ -93,7 +94,7 @@ class Room {
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
 			cout << SDL_GetTicks64() << ": loading chunk " << idx << endl;
-			chunks.push_back(RoomChunk(folderPath + "/" + to_string(idx) + ".chunk", chunk, renderer, atlases));
+			chunks.push_back(RoomChunk(folderPath + "/" + to_string(idx), chunk, renderer, atlases, spikeAtlas));
 		}
 
 		return chunks;
