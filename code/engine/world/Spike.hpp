@@ -10,21 +10,15 @@
 #include "engine/world/TileBase.hpp"
 #include "engine/world/WorldConstants.hpp"
 
-struct ForegroundTile : public TileBase {
-	uint16_t sourceID = 0;
-
-	int GetDrawSourceSize() const override { return 14; }
+struct Spike : public TileBase {
+	int GetDrawSourceSize() const override { return 8; }
 	int GetDrawDestOffset() const override { return (WorldConstants::TILE_SIZE_F - GetDrawSourceSize()) / 2.0; }
 
-	ForegroundTile(std::ifstream& file) {
+	Spike(std::ifstream& file) {
 		file.read((char*)&x, 2);
 		file.read((char*)&y, 2);
 		file.read((char*)&xAtlas, 2);
 		file.read((char*)&yAtlas, 2);
-		file.read((char*)&sourceID, 2);
-	}
-
-	void Draw(SDL_Surface* targetSurface, const std::vector<SDL_Surface*>& atlases, int xOffset, int yOffset) {
-		TileBase::Draw(targetSurface, atlases.at(sourceID), xOffset, yOffset);
+		std::cout << "Oughh loading spike;;; " << this << std::endl;
 	}
 };

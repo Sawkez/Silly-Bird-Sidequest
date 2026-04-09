@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "engine/world/ForegroundTile.hpp"
+#include "engine/world/Spike.hpp"
 #include "yyjson.h"
 
 class RoomChunk {
@@ -66,7 +67,22 @@ class RoomChunk {
 		return tiles;
 	}
 
-	// vector<Spike> LoadSpikes(const string& chunkFilePath, int spikeCount) {}
+	std::vector<Spike> LoadSpikes(const std::string& chunkFilePath, int spikeCount) {
+		std::ifstream file;
+		file.open(chunkFilePath + ".spikes", std::ios::out | std::ios::binary);
+		if (!file.good()) {
+			std::cerr << "ERROR: spike file " << chunkFilePath << " is YUCKY" << std::endl;
+		}
+
+		std::vector<Spike> spikes;
+
+		for (int i = 0; i < spikeCount; i++) {
+			spikes.emplace_back(file);
+		}
+
+		file.close();
+		return spikes;
+	}
 
 	SDL_Texture* CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases, SDL_Surface* spikeAtlas,
 							const std::string& chunkFilePath, int tileCount, int spikeCount) {
@@ -82,7 +98,11 @@ class RoomChunk {
 			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
 
-		// vector<Spike> spikes = LoadSpikes(chunkFilePath, spikeCount);
+		std::vector<Spike> spikes = LoadSpikes(chunkFilePath, spikeCount);
+
+		for (auto spike : spikes) {
+			spike.Draw(cacheSurface, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+		}
 
 		SDL_Texture* cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
 		SDL_FreeSurface(cacheSurface);
