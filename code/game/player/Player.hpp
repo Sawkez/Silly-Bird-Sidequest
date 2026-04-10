@@ -183,6 +183,9 @@ class Player : public IProcessable, public IDrawableRect {
 	bool _diveAvailable = true;
 	bool _dashAvailable = true;
 
+	// miscellaneous
+	Vector2 _respawnPosition{0.0, 0.0};
+
    public:
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
@@ -369,8 +372,8 @@ class Player : public IProcessable, public IDrawableRect {
 
 		// dying horribly to spikes
 		for (const auto& spike : GetSpikeColliders()) {
-			if (SDL_HasIntersectionF(&spike, &_collision)) {
-				std::cout << "\'oh POOP i am DYING TO SPIKES\' - Barbany 2026" << std::endl;
+			if (spike.HasIntersection(_collision)) {
+				SetState(MOVEMENT_STATE_DEAD);
 			}
 		}
 
@@ -427,15 +430,6 @@ class Player : public IProcessable, public IDrawableRect {
 		bool parts = _diveParticles.Draw(renderer, drawTargetRect, drawOffset);
 		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
-
-		/*
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		for (auto spike : GetSpikeColliders()) {
-			spike.x += drawOffset.x;
-			spike.y += drawOffset.y;
-			SDL_RenderDrawRectF(renderer, &spike);
-		}
-		*/
 
 		return parts || scarf || sprite;
 	}
@@ -533,5 +527,8 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	const vector<CollisionRect>& GetStaticColliders() const { return _room.get().GetColliders(); }
-	const vector<CollisionRect>& GetSpikeColliders() const { return _room.get().GetSpikeColliders(); }
+	const vector<SpikeCollider>& GetSpikeColliders() const { return _room.get().GetSpikeColliders(); }
+
+	void Respawn() { position = _respawnPosition; }
+	void SetRespawnPosition(Vector2 respawnPosition) { _respawnPosition = respawnPosition; }
 };

@@ -43,6 +43,7 @@ class Level : IProcessable, IDrawable {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
 		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
+		_player.SetRespawnPosition(_player.position);
 
 		GameState::Unpause();
 	}
