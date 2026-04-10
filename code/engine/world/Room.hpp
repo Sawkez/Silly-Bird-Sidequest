@@ -7,6 +7,7 @@
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
+#include "game/physics/SpikeCollider.hpp"
 #include "yyjson.h"
 
 using namespace std;
@@ -14,7 +15,7 @@ using namespace std;
 class Room {
    private:
 	vector<CollisionRect> _colliders;
-	vector<CollisionRect> _spikeColliders;
+	vector<SpikeCollider> _spikeColliders;
 	vector<SDL_Point> _ledges;
 	int _width;
 	int _height;
@@ -28,9 +29,10 @@ class Room {
    public:
 	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
+
 	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
-		  _spikeColliders(LoadSpikeColliders(yyjson_obj_get(roomJson, "spike_collisions"))),
+		  _spikeColliders(LoadSpikeColliders(folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
 		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases, spikeAtlas)),
 		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
 		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
@@ -73,6 +75,8 @@ class Room {
 		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
 
 		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
+		// yyjson_val* root = yyjson_doc_get_root(json);
+		// std::cout << "spike count " << yyjson_get_int(yyjson_obj_get(root, "spike_count")) << std::endl;
 		return yyjson_doc_get_root(json);
 	}
 
@@ -87,16 +91,16 @@ class Room {
 		return colliders;
 	}
 
-	vector<CollisionRect> LoadSpikeColliders(yyjson_val* json) const {
+	vector<SpikeCollider> LoadSpikeColliders(const string& folderPath, int spikeCount) const {
 		cout << SDL_GetTicks64() << ": loading spike colliders" << endl;
-		vector<CollisionRect> spikes;
+		cout << "Spike count now " << spikeCount << endl;
+		vector<SpikeCollider> spikes;
 
-		size_t idx, max;
-		yyjson_val* spike;
-		yyjson_arr_foreach(json, idx, max, spike) { spikes.emplace_back(spike); }
+		std::ifstream file;
+		file.open(folderPath + "/spikes.ow", std::ios::out | std::ios::binary);
 
-		for (const auto& s : spikes) {
-			std::cout << s << std::endl;
+		for (int i = 0; i < spikeCount; i++) {
+			spikes.emplace_back(file);
 		}
 
 		return spikes;
@@ -142,7 +146,7 @@ class Room {
 	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
-	const vector<CollisionRect>& GetSpikeColliders() const { return _spikeColliders; }
+	const vector<SpikeCollider>& GetSpikeColliders() const { return _spikeColliders; }
 
 	void Draw(SDL_Renderer* renderer) const {
 		for (const auto& chunk : _chunks) {

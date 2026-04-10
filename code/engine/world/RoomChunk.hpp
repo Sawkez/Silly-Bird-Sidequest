@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "engine/world/ForegroundTile.hpp"
-#include "engine/world/Spike.hpp"
+#include "engine/world/SpikeTile.hpp"
 #include "yyjson.h"
 
 class RoomChunk {
@@ -67,14 +67,14 @@ class RoomChunk {
 		return tiles;
 	}
 
-	std::vector<Spike> LoadSpikes(const std::string& chunkFilePath, int spikeCount) {
+	std::vector<SpikeTile> LoadSpikes(const std::string& chunkFilePath, int spikeCount) {
 		std::ifstream file;
 		file.open(chunkFilePath + ".spikes", std::ios::out | std::ios::binary);
 		if (!file.good()) {
 			std::cerr << "ERROR: spike file " << chunkFilePath << " is YUCKY" << std::endl;
 		}
 
-		std::vector<Spike> spikes;
+		std::vector<SpikeTile> spikes;
 
 		for (int i = 0; i < spikeCount; i++) {
 			spikes.emplace_back(file);
@@ -98,7 +98,7 @@ class RoomChunk {
 			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
 
-		std::vector<Spike> spikes = LoadSpikes(chunkFilePath, spikeCount);
+		std::vector<SpikeTile> spikes = LoadSpikes(chunkFilePath, spikeCount);
 
 		for (auto spike : spikes) {
 			spike.Draw(cacheSurface, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
