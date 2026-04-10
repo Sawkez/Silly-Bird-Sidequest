@@ -12,5 +12,6 @@ cmake --build $BUILD_DIR || exit 1
 mkdir -p $EXPORT_DIR || exit 1
 rm -rf $EXPORT_DIR/* || exit 1
 cp $BUILD_DIR/sbsidequest.prx $EXPORT_DIR || exit 1
+cp $BUILD_DIR/sbsidequest $EXPORT_DIR || exit 1
 cp -r $SRC_DIR/content $EXPORT_DIR/ || exit 1
 cp -r $SRC_DIR/mods $EXPORT_DIR/ || exit 1
