@@ -14,6 +14,7 @@ using namespace std;
 class Room {
    private:
 	vector<CollisionRect> _colliders;
+	vector<CollisionRect> _spikeColliders;
 	vector<SDL_Point> _ledges;
 	int _width;
 	int _height;
@@ -29,6 +30,7 @@ class Room {
 		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
 	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
+		  _spikeColliders(LoadSpikeColliders(yyjson_obj_get(roomJson, "spike_collisions"))),
 		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases, spikeAtlas)),
 		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
 		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
@@ -80,9 +82,24 @@ class Room {
 
 		size_t idx, max;
 		yyjson_val* collider;
-		yyjson_arr_foreach(collidersJson, idx, max, collider) { colliders.push_back(CollisionRect(collider)); }
+		yyjson_arr_foreach(collidersJson, idx, max, collider) { colliders.emplace_back(collider); }
 
 		return colliders;
+	}
+
+	vector<CollisionRect> LoadSpikeColliders(yyjson_val* json) const {
+		cout << SDL_GetTicks64() << ": loading spike colliders" << endl;
+		vector<CollisionRect> spikes;
+
+		size_t idx, max;
+		yyjson_val* spike;
+		yyjson_arr_foreach(json, idx, max, spike) { spikes.emplace_back(spike); }
+
+		for (const auto& s : spikes) {
+			std::cout << s << std::endl;
+		}
+
+		return spikes;
 	}
 
 	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases,
@@ -125,6 +142,7 @@ class Room {
 	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
+	const vector<CollisionRect>& GetSpikeColliders() const { return _spikeColliders; }
 
 	void Draw(SDL_Renderer* renderer) const {
 		for (const auto& chunk : _chunks) {

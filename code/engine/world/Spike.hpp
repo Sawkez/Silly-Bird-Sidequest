@@ -19,6 +19,5 @@ struct Spike : public TileBase {
 		file.read((char*)&y, 2);
 		file.read((char*)&xAtlas, 2);
 		file.read((char*)&yAtlas, 2);
-		std::cout << "Oughh loading spike;;; " << this << std::endl;
 	}
 };

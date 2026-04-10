@@ -25,8 +25,6 @@ struct TileBase {
 
 		int error = SDL_BlitSurface(atlas, &source, targetSurface, &destination);
 
-		std::cout << "drawing tile " << x << ", " << y << std::endl;
-
 		if (error < 0) {
 			std::cerr << "ERROR when caching tile: " << SDL_GetError() << std::endl;
 		}
