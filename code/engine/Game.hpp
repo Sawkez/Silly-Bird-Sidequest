@@ -34,8 +34,14 @@ struct Game {
 		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 		Random::Init();
 
-		WorldManager::LoadLevel("content/title-screen-bg");
-		UIManager::Show(UIManager::MENU_TITLE);
+		if (argc < 2) {
+			WorldManager::LoadLevel("content/title-screen-bg");
+			UIManager::Show(UIManager::MENU_TITLE);
+		}
+
+		else {
+			WorldManager::LoadLevel(argv[1]);
+		}
 	}
 
 	int Run() {
