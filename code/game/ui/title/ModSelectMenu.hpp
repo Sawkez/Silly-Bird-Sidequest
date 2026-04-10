@@ -26,6 +26,9 @@ class ModSelectMenu : public MenuTransparentBG {
 		lv_obj_center(_panel);
 
 		lv_obj_set_layout(_panel, LV_LAYOUT_FLEX);
+		lv_gridnav_add(_panel, LV_GRIDNAV_CTRL_NONE);
+
+		lv_group_add_obj(UIManager::GetMainGroup(), _panel);
 
 		for (auto& entry : std::filesystem::directory_iterator("mods")) {
 			_mods.emplace_back(_panel, entry.path().string(), ModPressedCallback);
@@ -34,6 +37,6 @@ class ModSelectMenu : public MenuTransparentBG {
 
 	void Activate() override {
 		Menu::Activate();
-		lv_group_focus_obj(_mods[0].GetButton());
+		lv_group_focus_obj(_panel);
 	}
 };
