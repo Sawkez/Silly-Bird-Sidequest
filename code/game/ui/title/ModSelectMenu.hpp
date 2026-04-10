@@ -13,9 +13,9 @@ class ModSelectMenu : public MenuTransparentBG {
 	std::vector<ModSelectButton> _mods;
 
 	static void ModPressedCallback(lv_event_t* event) {
-		std::cout << "Selected mod " << (char*)lv_event_get_user_data(event) << std::endl;
 		UIManager::Hide();
-		WorldManager::LoadLevel((char*)lv_event_get_user_data(event));
+		std::string modPath = *(std::string*)lv_event_get_user_data(event);
+		WorldManager::LoadLevel(modPath);
 	}
 
    public:
@@ -29,6 +29,14 @@ class ModSelectMenu : public MenuTransparentBG {
 		lv_gridnav_add(_panel, LV_GRIDNAV_CTRL_NONE);
 
 		lv_group_add_obj(UIManager::GetMainGroup(), _panel);
+
+		int modCount = 0;
+
+		for (auto& entry : std::filesystem::directory_iterator("mods")) {
+			modCount++;
+		}
+
+		_mods.reserve(modCount);
 
 		for (auto& entry : std::filesystem::directory_iterator("mods")) {
 			_mods.emplace_back(_panel, entry.path().string(), ModPressedCallback);
