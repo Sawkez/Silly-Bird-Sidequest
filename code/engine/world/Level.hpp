@@ -154,4 +154,6 @@ class Level : IProcessable, IDrawable {
 	void DestroyRenderChunks() { _renderChunks.clear(); }
 
 	RoomCamera& GetCamera() { return _roomCamera; }
+
+	Player& GetPlayer() { return _player; }
 };
