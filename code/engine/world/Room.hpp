@@ -191,7 +191,7 @@ class Room {
 	const vector<RoomNeighbor>& GetNeighbors() const { return _neighbors; }
 
 	Vector2 GetNearestCheckpoint(const Vector2& position) {
-		float dist = MAXFLOAT;
+		float dist = INFINITY;
 		Vector2 nearest{float(_xPosition), float(_yPosition)};
 		for (const auto& checkpoint : _checkpoints) {
 			float newDist = checkpoint.DistanceSquared(position);
