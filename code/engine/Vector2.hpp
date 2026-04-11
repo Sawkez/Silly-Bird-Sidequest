@@ -8,7 +8,7 @@
 class Vector2 : public SDL_FPoint {
 	static constexpr float ZERO_PRECISION = 0.001;
 
-  public:
+   public:
 	Vector2(float X, float Y) : SDL_FPoint{X, Y} {}
 
 	Vector2(const SDL_Point& point) : SDL_FPoint{float(point.x), float(point.y)} {}
@@ -16,8 +16,7 @@ class Vector2 : public SDL_FPoint {
 	Vector2() : Vector2(0.0, 0.0) {}
 
 	Vector2(yyjson_val* vectorJson)
-		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))),
-					 float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
+		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))), float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
 
 	float LengthSquared() const { return x * x + y * y; }
 
@@ -25,14 +24,11 @@ class Vector2 : public SDL_FPoint {
 
 	Vector2 Normalized() const {
 		float len = Length();
-		if (len == 0.0)
-			return *this;
+		if (len == 0.0) return *this;
 		return Vector2{x / len, y / len};
 	}
 
-	Vector2 Rotated(float angle) const {
-		return {cosf(angle) * x - sinf(angle) * y, sinf(angle) * x - cosf(angle) * y};
-	}
+	Vector2 Rotated(float angle) const { return {cosf(angle) * x - sinf(angle) * y, sinf(angle) * x - cosf(angle) * y}; }
 
 	float DistanceSquared(const Vector2& other) const { return (*this - other).LengthSquared(); }
 
@@ -48,8 +44,7 @@ class Vector2 : public SDL_FPoint {
 	bool IsZeroApprox() const { return abs(x) + abs(y) < ZERO_PRECISION; }
 
 	void MoveToward(const Vector2& target, float moveDistance) {
-		if (DistanceSquared(target) < moveDistance * moveDistance)
-			*this = target;
+		if (DistanceSquared(target) < moveDistance * moveDistance) *this = target;
 		*this += DirectionTo(target) * moveDistance;
 	}
 

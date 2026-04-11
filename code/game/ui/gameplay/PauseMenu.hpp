@@ -3,12 +3,15 @@
 #include "engine/input/UIInputManager.hpp"
 #include "engine/ui/MenuTransparentBG.hpp"
 #include "engine/ui/UIManager.hpp"
+#include "engine/world/WorldManager.hpp"
 #include "game/ui/Styles.hpp"
 #include "lvgl/lvgl.h"
 
 class PauseMenu : public MenuTransparentBG {
    private:
-	static inline const char* _buttonMap[] = {"unpause", "\n", "i", "eat", "bugs", "🧟", NULL};
+	enum ButtonID { CONTINUE, RETRY, QUIT_TITLE };
+
+	static inline const char* _buttonMap[] = {"Continue", "\n", "Retry", "\n", "Quit to title screen", NULL};
 	lv_obj_t* _buttons;
 
 	static void ButtonPressedCallback(lv_event_t* event) {
@@ -19,8 +22,19 @@ class PauseMenu : public MenuTransparentBG {
 		uint32_t button = lv_buttonmatrix_get_selected_button(buttons);
 
 		switch (button) {
-			case 0:
+			case CONTINUE:
 				Unpause();
+				break;
+
+			case RETRY:
+				WorldManager::GetLevel().GetPlayer().SetState(Player::MOVEMENT_STATE_DEAD);
+				Unpause();
+				break;
+
+			case QUIT_TITLE:
+				WorldManager::LoadLevel("content/title-screen-bg");
+				UIManager::Show(UIManager::MENU_TITLE);
+				break;
 		}
 	}
 

@@ -35,7 +35,7 @@ class Level : IProcessable, IDrawable {
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
-		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
+		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas),
 		  _renderer(renderer),
 		  _player(Player(inputManager, renderer, _currentRoom)),
 		  _roomCamera(_player, _currentRoom, window),
@@ -43,7 +43,8 @@ class Level : IProcessable, IDrawable {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
 		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
-		_player.SetRespawnPosition(_player.position);
+
+		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
 
 		GameState::Unpause();
 	}
@@ -83,15 +84,15 @@ class Level : IProcessable, IDrawable {
 		return atlases;
 	}
 
-	Room LoadRoom(int index) {
-		cout << SDL_GetTicks64() << ": starting room load" << endl;
-		return Room(_path + "/rooms/" + to_string(index), _renderer, _atlases, _spikeAtlas);
-	}
+	std::string GetRoomPath(int index) { return _path + "/rooms/" + to_string(index); }
 
 	void Process(float delta) override {
 		_player.Process(delta);
 		_roomCamera.Process(delta);
+		CheckRoomTransition();
+	}
 
+	void CheckRoomTransition() {
 		SDL_FRect currentRoomRect = _currentRoom.GetFRect();
 
 		if (SDL_HasIntersectionF(&_player.GetCollision(), &currentRoomRect)) {
@@ -127,9 +128,11 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
 		GameState::Pause();
-		_currentRoom = LoadRoom(room);
+		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
+		//_player.PushOutOfColliders();
+		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
 		_roomCamera.SetRoom(_currentRoom);
 
 		DestroyRenderChunks();
@@ -152,4 +155,6 @@ class Level : IProcessable, IDrawable {
 	void DestroyRenderChunks() { _renderChunks.clear(); }
 
 	RoomCamera& GetCamera() { return _roomCamera; }
+
+	Player& GetPlayer() { return _player; }
 };

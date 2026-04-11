@@ -202,6 +202,8 @@ class Player : public IProcessable, public IDrawableRect {
 
 	const CollisionRect& GetCollision() const { return _collision; }
 
+	Vector2 GetCollisionOffset() const { return _shortCollision ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL; }
+
 	void SetState(int state) {
 		_movementStates[_movementStateID]->Deinit(*this);
 		_movementStateID = state;
@@ -311,7 +313,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_closeToCeiling = false;
 
 		float timeLeft = 1.0;
-		Vector2 collisionOffset = _shortCollision ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL;
+		Vector2 collisionOffset = GetCollisionOffset();
 
 		for (int i = 0; i < COLLISION_ITERATIONS; i++) {
 			_collision.x = position.x + collisionOffset.x;
@@ -431,6 +433,11 @@ class Player : public IProcessable, public IDrawableRect {
 		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
 
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		for (const auto& spike : GetSpikeColliders()) {
+			spike.Draw(renderer, drawOffset);
+		}
+
 		return parts || scarf || sprite;
 	}
 
@@ -517,6 +524,7 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	bool CanGrabLedge() {
+		if (IsPushingFloor()) return false;
 		if (!IsQuickClimbActive() && velocity.y <= 0.0) return false;
 		if (CooldownActive(COOLDOWN_LEDGE)) return false;
 		if (GetInput().GetDir().y == 1.0) return false;
@@ -529,6 +537,20 @@ class Player : public IProcessable, public IDrawableRect {
 	const vector<CollisionRect>& GetStaticColliders() const { return _room.get().GetColliders(); }
 	const vector<SpikeCollider>& GetSpikeColliders() const { return _room.get().GetSpikeColliders(); }
 
-	void Respawn() { position = _respawnPosition; }
+	void Respawn() {
+		position = _respawnPosition;
+		velocity = Vector2();
+		ReloadDash();
+		ReloadDive();
+	}
 	void SetRespawnPosition(Vector2 respawnPosition) { _respawnPosition = respawnPosition; }
+
+	void PushOutOfColliders() {
+		Vector2 collisionOffset = GetCollisionOffset();
+
+		for (const auto& collider : GetStaticColliders()) {
+			Vector2 push = collider.PushOut(_collision);
+			position += push;
+		}
+	}
 };
