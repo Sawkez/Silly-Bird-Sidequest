@@ -165,8 +165,6 @@ class Room {
 	void Draw(SDL_Renderer* renderer) const {
 		for (const auto& chunk : _chunks) {
 			chunk.Draw(renderer);
-			SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-			SDL_RenderDrawRect(renderer, &chunk.GetRect());
 		}
 	}
 

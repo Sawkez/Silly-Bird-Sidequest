@@ -92,7 +92,10 @@ class Level : IProcessable, IDrawable {
 	void Process(float delta) override {
 		_player.Process(delta);
 		_roomCamera.Process(delta);
+		CheckRoomTransition();
+	}
 
+	void CheckRoomTransition() {
 		SDL_FRect currentRoomRect = _currentRoom.GetFRect();
 
 		if (SDL_HasIntersectionF(&_player.GetCollision(), &currentRoomRect)) {
@@ -120,6 +123,11 @@ class Level : IProcessable, IDrawable {
 			if (SDL_HasIntersection(&camRect, &chunkRect)) {
 				chunk.DrawRoom(renderer);
 				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
+
+				for (const auto& collider : _currentRoom.GetColliders()) {
+					chunk.DrawObject(renderer, collider, _currentRoom.GetPosition());
+				}
+
 				chunk.Draw(renderer, drawOffset, zoom);
 			}
 		}
@@ -131,6 +139,7 @@ class Level : IProcessable, IDrawable {
 		_currentRoom = LoadRoom(room);
 
 		_player.SetRoom(_currentRoom);
+		//_player.PushOutOfColliders();
 		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
 		_roomCamera.SetRoom(_currentRoom);
 

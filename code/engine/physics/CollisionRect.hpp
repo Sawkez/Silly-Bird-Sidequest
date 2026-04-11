@@ -7,11 +7,11 @@
 
 #include "engine/Math.hpp"
 #include "engine/Vector2.hpp"
-#include "engine/graphics/IDrawable.hpp"
+#include "engine/graphics/IDrawableRect.hpp"
 #include "engine/physics/CollisionResult.hpp"
 #include "yyjson.h"
 
-struct CollisionRect : SDL_FRect, IDrawable {
+struct CollisionRect : SDL_FRect, IDrawableRect {
 	const float X_PRIORITY = 0.1;
 	const float MIN_COLLISION_DEPTH = -0.1;
 
@@ -45,10 +45,14 @@ struct CollisionRect : SDL_FRect, IDrawable {
 		oneWayNormal = other.oneWayNormal;
 	}
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {
 		SDL_FRect destination{x + drawOffset.x, y + drawOffset.y, w, h};
+
+		if (!SDL_HasIntersectionF(&drawTargetRect, &destination)) return false;
+
+		SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
 		SDL_RenderDrawRectF(renderer, &destination);
+		return true;
 	}
 
 	CollisionResult SweptAABBCollision(const CollisionRect& movingRect, const Vector2& velocity) const {
@@ -97,6 +101,38 @@ struct CollisionRect : SDL_FRect, IDrawable {
 
 		else
 			return CollisionResult{entryTime, Vector2{0.0, -Math::SignOrZero(velocity.y)}};
+	}
+
+	Vector2 PushOut(const CollisionRect& pushee) const {
+		if (!active || !pushee.active) return Vector2();
+
+		float pLeft = pushee.x;
+		float pRight = pLeft + pushee.w;
+		float pTop = pushee.y;
+		float pBottom = pTop + pushee.h;
+
+		float sLeft = x;
+		float sRight = sLeft + w;
+		float sTop = y;
+		float sBottom = sTop + h;
+
+		if (pRight <= sLeft) return Vector2();
+		if (pTop <= sBottom) return Vector2();
+		if (sRight <= pLeft) return Vector2();
+		if (sTop <= pBottom) return Vector2();
+
+		float xPenetration = std::min(pRight - sLeft, sRight - pLeft);
+		float yPenetration = std::min(pBottom - sTop, sBottom - pTop);
+
+		if (xPenetration < yPenetration) {
+			float dir = (pushee.x + pushee.w / 2.0f > x + w / 2.0f) ? 1.0 : -1.0;
+			return {dir * xPenetration, 0.0};
+		}
+
+		else {
+			float dir = (pushee.y + pushee.h / 2.0f > y + h / 2.0f) ? 1.0 : -1.0;
+			return {0.0, dir * yPenetration};
+		}
 	}
 };
 
