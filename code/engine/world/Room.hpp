@@ -50,9 +50,12 @@ class Room {
 	Room(const Room&) = delete;
 	Room& operator=(const Room&) = delete;
 
+	Room& operator=(Room&& other) noexcept = default;
+	/*
 	Room& operator=(Room&& other) noexcept {
 		if (this != &other) {
 			_colliders = move(other._colliders);
+			_spikeColliders = move(other._spikeColliders);
 			_ledges = move(other._ledges);
 			_width = other._width;
 			_height = other._height;
@@ -66,6 +69,7 @@ class Room {
 
 		return *this;
 	}
+	*/
 
 	yyjson_val* LoadJson(const string& jsonPath) const {
 		cout << SDL_GetTicks64() << ": loading JSON" << endl;
@@ -99,7 +103,7 @@ class Room {
 		vector<SpikeCollider> spikes;
 
 		std::ifstream file;
-		file.open(folderPath + "/spikes.ow", std::ios::out | std::ios::binary);
+		file.open(folderPath + "/spikes.ow", std::ios::in | std::ios::binary);
 
 		for (int i = 0; i < spikeCount; i++) {
 			spikes.emplace_back(file);

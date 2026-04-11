@@ -35,7 +35,7 @@ class Level : IProcessable, IDrawable {
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
-		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
+		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas),
 		  _renderer(renderer),
 		  _player(Player(inputManager, renderer, _currentRoom)),
 		  _roomCamera(_player, _currentRoom, window),
@@ -84,10 +84,7 @@ class Level : IProcessable, IDrawable {
 		return atlases;
 	}
 
-	Room LoadRoom(int index) {
-		cout << SDL_GetTicks64() << ": starting room load" << endl;
-		return Room(_path + "/rooms/" + to_string(index), _renderer, _atlases, _spikeAtlas);
-	}
+	std::string GetRoomPath(int index) { return _path + "/rooms/" + to_string(index); }
 
 	void Process(float delta) override {
 		_player.Process(delta);
@@ -123,11 +120,6 @@ class Level : IProcessable, IDrawable {
 			if (SDL_HasIntersection(&camRect, &chunkRect)) {
 				chunk.DrawRoom(renderer);
 				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
-
-				for (const auto& collider : _currentRoom.GetColliders()) {
-					chunk.DrawObject(renderer, collider, _currentRoom.GetPosition());
-				}
-
 				chunk.Draw(renderer, drawOffset, zoom);
 			}
 		}
@@ -136,7 +128,7 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
 		GameState::Pause();
-		_currentRoom = LoadRoom(room);
+		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
 		//_player.PushOutOfColliders();
