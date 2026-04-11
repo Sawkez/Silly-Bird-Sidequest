@@ -183,6 +183,9 @@ class Player : public IProcessable, public IDrawableRect {
 	bool _diveAvailable = true;
 	bool _dashAvailable = true;
 
+	// miscellaneous
+	Vector2 _respawnPosition{0.0, 0.0};
+
    public:
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
@@ -367,6 +370,13 @@ class Player : public IProcessable, public IDrawableRect {
 			}
 		}
 
+		// dying horribly to spikes
+		for (const auto& spike : GetSpikeColliders()) {
+			if (spike.HasIntersection(_collision)) {
+				SetState(MOVEMENT_STATE_DEAD);
+			}
+		}
+
 		// squish & stretch
 		float targetSquish = 1.0;
 
@@ -517,4 +527,8 @@ class Player : public IProcessable, public IDrawableRect {
 	}
 
 	const vector<CollisionRect>& GetStaticColliders() const { return _room.get().GetColliders(); }
+	const vector<SpikeCollider>& GetSpikeColliders() const { return _room.get().GetSpikeColliders(); }
+
+	void Respawn() { position = _respawnPosition; }
+	void SetRespawnPosition(Vector2 respawnPosition) { _respawnPosition = respawnPosition; }
 };

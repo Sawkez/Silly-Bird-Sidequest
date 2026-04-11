@@ -24,6 +24,7 @@ class Level : IProcessable, IDrawable {
 	string _path;
 	SDL_Renderer* _renderer;
 	vector<SDL_Surface*> _atlases;
+	SDL_Surface* _spikeAtlas;
 	Room _currentRoom;
 	Player _player;
 	RoomCamera _roomCamera;
@@ -33,6 +34,7 @@ class Level : IProcessable, IDrawable {
 	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
+		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
 		  _currentRoom(LoadRoom(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room")))),
 		  _renderer(renderer),
 		  _player(Player(inputManager, renderer, _currentRoom)),
@@ -41,6 +43,7 @@ class Level : IProcessable, IDrawable {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
 		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
 		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
+		_player.SetRespawnPosition(_player.position);
 
 		GameState::Unpause();
 	}
@@ -82,7 +85,7 @@ class Level : IProcessable, IDrawable {
 
 	Room LoadRoom(int index) {
 		cout << SDL_GetTicks64() << ": starting room load" << endl;
-		return Room(_path + "/rooms/" + to_string(index), _renderer, _atlases);
+		return Room(_path + "/rooms/" + to_string(index), _renderer, _atlases, _spikeAtlas);
 	}
 
 	void Process(float delta) override {
