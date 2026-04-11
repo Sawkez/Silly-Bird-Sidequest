@@ -11,6 +11,7 @@
 class ModSelectMenu : public MenuTransparentBG {
 	lv_obj_t* _panel;
 	std::vector<ModSelectButton> _mods;
+	std::vector<std::string> _modPaths;
 
 	static void ModPressedCallback(lv_event_t* event) {
 		UIManager::Hide();
@@ -33,13 +34,14 @@ class ModSelectMenu : public MenuTransparentBG {
 		int modCount = 0;
 
 		for (auto& entry : std::filesystem::directory_iterator("mods")) {
+			_modPaths.push_back(entry.path().string());
 			modCount++;
 		}
 
 		_mods.reserve(modCount);
 
-		for (auto& entry : std::filesystem::directory_iterator("mods")) {
-			_mods.emplace_back(_panel, entry.path().string(), ModPressedCallback);
+		for (const auto& modPath : _modPaths) {
+			_mods.emplace_back(_panel, modPath, ModPressedCallback);
 		}
 	}
 
