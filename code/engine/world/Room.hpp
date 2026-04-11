@@ -25,6 +25,7 @@ class Room {
 	int _yPosition;
 	vector<RoomChunk> _chunks;
 	vector<RoomNeighbor> _neighbors;
+	vector<Vector2> _checkpoints;
 
    public:
 	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
@@ -41,7 +42,8 @@ class Room {
 		  _targetHeight(yyjson_get_num(yyjson_obj_get(roomJson, "target_height"))),
 		  _xPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_x"))),
 		  _yPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_y"))),
-		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))) {
+		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))),
+		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))) {
 		cout << SDL_GetTicks64() << ": finished room load" << endl;
 	}
 
@@ -115,7 +117,7 @@ class Room {
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
 			cout << SDL_GetTicks64() << ": loading chunk " << idx << endl;
-			chunks.push_back(RoomChunk(folderPath + "/" + to_string(idx), chunk, renderer, atlases, spikeAtlas));
+			chunks.emplace_back(folderPath + "/" + to_string(idx), chunk, renderer, atlases, spikeAtlas);
 		}
 
 		return chunks;
@@ -141,8 +143,20 @@ class Room {
 		size_t idx, max;
 		yyjson_val* neighbor;
 
-		yyjson_arr_foreach(neighborsJson, idx, max, neighbor) { neighbors.push_back(RoomNeighbor(neighbor)); }
+		yyjson_arr_foreach(neighborsJson, idx, max, neighbor) { neighbors.emplace_back(neighbor); }
 		return neighbors;
+	}
+
+	vector<Vector2> LoadCheckpoints(yyjson_val* checkpointsJson) const {
+		cout << SDL_GetTicks64() << ": loading checkpoints" << endl;
+		vector<Vector2> checkpoints;
+
+		size_t idx, max;
+		yyjson_val* checkpoint;
+
+		yyjson_arr_foreach(checkpointsJson, idx, max, checkpoint) { checkpoints.emplace_back(checkpoint); }
+
+		return checkpoints;
 	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
@@ -173,6 +187,20 @@ class Room {
 	const vector<RoomChunk>& GetChunks() const { return _chunks; }
 
 	const vector<RoomNeighbor>& GetNeighbors() const { return _neighbors; }
+
+	Vector2 GetNearestCheckpoint(const Vector2& position) {
+		float dist = MAXFLOAT;
+		Vector2 nearest{float(_xPosition), float(_yPosition)};
+		for (const auto& checkpoint : _checkpoints) {
+			float newDist = checkpoint.DistanceSquared(position);
+			if (newDist < dist) {
+				dist = newDist;
+				nearest = checkpoint;
+			}
+		}
+
+		return nearest;
+	}
 
 	~Room() {
 		_colliders.clear();
