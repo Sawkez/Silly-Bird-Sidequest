@@ -35,8 +35,8 @@ class UpgradePickup : public PlayerDetector {
 	}
 
    public:
-	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, const Vector2& relativePosition, int upgrade)
-		: PlayerDetector(MakeRect(positionCentered)),
+	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, const Vector2& relativePosition, int upgrade, IPlayer& player)
+		: PlayerDetector(MakeRect(positionCentered), !player.HasUpgrade(upgrade)),
 		  _upgrade(upgrade),
 		  _texture(LoadTexture(renderer, upgrade)),
 		  _drawRect(MakeRect(relativePosition)) {}
