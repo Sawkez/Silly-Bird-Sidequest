@@ -72,7 +72,6 @@ class MovementStateWallrun : public IMovementState {
 
 	void Deinit(Player& p) const override {
 		if (p.UseBuffer(Player::BUFFER_WALLJUMP)) {
-			std::cout << "Piss !" << std::endl;
 			p.velocity.y = min(0.0f, p.velocity.y) - JUMP_FORCE.y;
 		}
 

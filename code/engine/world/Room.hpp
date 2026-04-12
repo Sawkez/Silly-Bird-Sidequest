@@ -3,11 +3,15 @@
 #include <iostream>
 #include <vector>
 
+#include "engine/IProcessable.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/world/IRoomObject.hpp"
 #include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
 #include "game/physics/SpikeCollider.hpp"
+#include "game/player/IPlayer.hpp"
+#include "game/world/objects/RoomObjectFactory.hpp"
 #include "yyjson.h"
 
 using namespace std;
@@ -26,17 +30,20 @@ class Room {
 	vector<RoomChunk> _chunks;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
+	vector<IRoomObject*> _roomObjects;
 
    public:
-	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
-		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
+	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas, IPlayer& player)
+		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas, player) {}
 
-	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
-		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas) {
+	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas,
+		 IPlayer& player)
+		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas, player) {
 		yyjson_doc_free(jsonDoc);
 	}
 
-	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
+	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas,
+		 IPlayer& player)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
 		  _spikeColliders(LoadSpikeColliders(folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
 		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases, spikeAtlas)),
@@ -48,7 +55,8 @@ class Room {
 		  _xPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_x"))),
 		  _yPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_y"))),
 		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))),
-		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))) {
+		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))),
+		  _roomObjects(LoadRoomObjects(yyjson_obj_get(roomJson, "room_objects"), player)) {
 		cout << SDL_GetTicks64() << ": finished room load" << endl;
 	}
 
@@ -168,6 +176,18 @@ class Room {
 		return checkpoints;
 	}
 
+	vector<IRoomObject*> LoadRoomObjects(yyjson_val* objectsJson, IPlayer& player) const {
+		cout << SDL_GetTicks64() << ": loading room objects" << endl;
+		vector<IRoomObject*> objects;
+
+		size_t idx, max;
+		yyjson_val* object;
+
+		yyjson_arr_foreach(objectsJson, idx, max, object) { objects.push_back(RoomObjectFactory::MakeRoomObject(object, player)); }
+
+		return objects;
+	}
+
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
 	const vector<SpikeCollider>& GetSpikeColliders() const { return _spikeColliders; }
 
@@ -207,6 +227,14 @@ class Room {
 		}
 
 		return nearest;
+	}
+
+	const vector<IRoomObject*>& GetRoomObjects() const { return _roomObjects; }
+
+	void Process(float delta, IPlayer& player) {
+		for (auto object : _roomObjects) {
+			object->Process(delta, player);
+		}
 	}
 
 	~Room() {

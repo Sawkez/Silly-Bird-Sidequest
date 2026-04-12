@@ -45,9 +45,9 @@ class Level : IProcessable, IDrawable {
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
-		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas),
+		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas, _player),
 		  _renderer(renderer),
-		  _player(Player(inputManager, renderer, _currentRoom)),
+		  _player(Player(inputManager, renderer, _currentRoom, yyjson_get_int(yyjson_obj_get(levelProperties, "starting_upgrades")))),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
@@ -92,6 +92,7 @@ class Level : IProcessable, IDrawable {
 
 	void Process(float delta) override {
 		_player.Process(delta);
+		_currentRoom.Process(delta, _player);
 		_roomCamera.Process(delta);
 		CheckRoomTransition();
 	}
@@ -124,6 +125,11 @@ class Level : IProcessable, IDrawable {
 			if (SDL_HasIntersection(&camRect, &chunkRect)) {
 				chunk.DrawRoom(renderer);
 				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
+
+				for (const auto& object : _currentRoom.GetRoomObjects()) {
+					chunk.DrawObject(renderer, *object, _currentRoom.GetPosition());
+				}
+
 				chunk.Draw(renderer, drawOffset, zoom);
 			}
 		}
@@ -132,10 +138,9 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
 		GameState::Pause();
-		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
+		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas, _player);
 
 		_player.SetRoom(_currentRoom);
-		//_player.PushOutOfColliders();
 		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
 		_roomCamera.SetRoom(_currentRoom);
 
