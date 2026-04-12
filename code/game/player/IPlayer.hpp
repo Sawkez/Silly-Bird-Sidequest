@@ -125,4 +125,6 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual void Respawn() = 0;
 	virtual void SetRespawnPosition(Vector2 respawnPosition) = 0;
 	virtual void PushOutOfColliders() = 0;
+	virtual void ShowScarf() = 0;
+	virtual void HideScarf() = 0;
 };

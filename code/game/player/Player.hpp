@@ -71,6 +71,8 @@ class Player : public IPlayer {
 	static inline constexpr float LEDGE_CHECK_OFFSET_RIGHT = 0.8;
 	static inline constexpr float LEDGE_CHECK_OFFSET_UP = -1.5;
 
+	static inline constexpr float REJUVENATOR_THRESHOLD = 300.0;
+
    private:
 	static inline constexpr float V_RESET_GRAVITY = 1800.0;
 
@@ -145,7 +147,9 @@ class Player : public IPlayer {
 		  _scarf(position, room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
-		  _upgradeBits(upgrades) {}
+		  _upgradeBits(upgrades) {
+		if (!HasUpgrade(UPGRADE_DASH)) HideScarf();
+	}
 
 	const InputManager& GetInput() const override { return _input; }
 
@@ -212,7 +216,10 @@ class Player : public IPlayer {
 	bool CooldownActive(int cooldown) const override { return _cooldowns[cooldown] > 0.0; }
 
 	bool HasUpgrade(int upgrade) const override { return (_upgradeBits & (1 << upgrade)) > 0; }
-	void GiveUpgrade(int upgrade) override { _upgradeBits |= (1 << upgrade); }
+	void GiveUpgrade(int upgrade) override {
+		_upgradeBits |= (1 << upgrade);
+		if (upgrade == UPGRADE_DASH) ShowScarf();
+	}
 
 	void Process(float delta) override {
 		for (int i = 0; i < _TIMER_COUNT; i++) {
@@ -252,8 +259,6 @@ class Player : public IPlayer {
 
 		// TODO wallswap
 
-		// TODO rejuvenation
-
 		// moving and colliding
 		_wasPushingFloor = _pushingFloor;
 		_pushingFloor = false;
@@ -264,6 +269,8 @@ class Player : public IPlayer {
 
 		float timeLeft = 1.0;
 		Vector2 collisionOffset = GetCollisionOffset();
+
+		float hVelocityBeforeCollision = abs(velocity.x);
 
 		for (int i = 0; i < COLLISION_ITERATIONS; i++) {
 			_collision.x = position.x + collisionOffset.x;
@@ -320,6 +327,12 @@ class Player : public IPlayer {
 				_closeToFloor = true;
 				break;
 			}
+		}
+
+		// rejuvenating
+		if (hVelocityBeforeCollision > REJUVENATOR_THRESHOLD && _pushingWall && HasUpgrade(UPGRADE_REJUVENATOR)) {
+			ReloadDash();
+			ReloadDive();
 		}
 
 		// dying horribly to spikes
@@ -380,7 +393,7 @@ class Player : public IPlayer {
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {
 		bool parts = _diveParticles.Draw(renderer, drawTargetRect, drawOffset);
-		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
+		bool scarf = HasUpgrade(UPGRADE_DASH) ? _scarf.Draw(renderer, drawTargetRect, drawOffset) : false;
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
 
 		// _collision.Draw(renderer, drawTargetRect, drawOffset);
@@ -500,4 +513,7 @@ class Player : public IPlayer {
 			position += push;
 		}
 	}
+
+	void ShowScarf() override { _sprite.EnableOverlay(); }
+	void HideScarf() override { _sprite.DisableOverlay(); }
 };
