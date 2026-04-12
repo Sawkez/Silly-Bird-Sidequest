@@ -66,6 +66,9 @@ class MovementStateLedge : public IMovementState {
 	}
 
 	void Deinit(Player& p) const override {
+		if (p.IsCloseToCeiling()) {
+			p.SetShortCollision(true);
+		}
 		p.SetSquish(Player::X_SQUISH_MIN);
 		p.UnsetTimer(Player::TIMER_COYOTE);
 		p.UnsetCooldown(Player::COOLDOWN_WALLRUN);

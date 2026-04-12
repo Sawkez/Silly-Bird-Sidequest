@@ -433,10 +433,7 @@ class Player : public IProcessable, public IDrawableRect {
 		bool scarf = _scarf.Draw(renderer, drawTargetRect, drawOffset);
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
 
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		for (const auto& spike : GetSpikeColliders()) {
-			spike.Draw(renderer, drawOffset);
-		}
+		// _collision.Draw(renderer, drawTargetRect, drawOffset);
 
 		return parts || scarf || sprite;
 	}
