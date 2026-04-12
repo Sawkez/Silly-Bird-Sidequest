@@ -45,7 +45,7 @@ class Level : IProcessable, IDrawable {
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
 		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
-		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas),
+		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas, _player),
 		  _renderer(renderer),
 		  _player(Player(inputManager, renderer, _currentRoom, yyjson_get_int(yyjson_obj_get(levelProperties, "starting_upgrades")))),
 		  _roomCamera(_player, _currentRoom, window),
@@ -138,7 +138,7 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
 		GameState::Pause();
-		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
+		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas, _player);
 
 		_player.SetRoom(_currentRoom);
 		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
