@@ -1,1 +1,1 @@
-{"player_x":472.0,"player_y":336.0,"room_count":1,"starting_room":0,"tilesheet_sources":[{"custom":false,"name":"template_full.png"},{"custom":false,"name":"template_short.png"},{"custom":false,"name":"grass.png"}]}
+{"player_x":472.0,"player_y":336.0,"room_count":1,"starting_room":0,"tilesheet_sources":[{"custom":false,"name":"template_full.png"},{"custom":false,"name":"template_short.png"},{"custom":false,"name":"grass.png"}],"starting_upgrades":255}
