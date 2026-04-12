@@ -9,16 +9,17 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 
 ## Implemented
 - All movement mechanics from *Silly Bird Sequel*;
+- Collectible upgrades;
 - Wallrunning;
 - Loading custom levels;
 
 ## WIP
 - GUI;
+- Level editor for PC;
 
 ## Next up
 - Visual effects;
 - Campaign intro;
-- Level editor for PC;
 
 ## Other planned features
 ### Gameplay
