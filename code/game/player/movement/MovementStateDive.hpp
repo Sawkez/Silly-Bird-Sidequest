@@ -76,7 +76,7 @@ class MovementStateDive : public IMovementState {
 		}
 
 		else if (p.IsPushingWall()) {
-			if (p.GetInput().IsDown(ACTION_DIVE)) {
+			if (p.HasUpgrade(Player::UPGRADE_WALLRUN) && p.GetInput().IsDown(ACTION_DIVE)) {
 				p.SetState(Player::MOVEMENT_STATE_WALLRUN);
 				return;
 			}

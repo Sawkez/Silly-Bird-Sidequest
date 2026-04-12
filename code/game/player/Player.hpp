@@ -51,7 +51,16 @@ class Player : public IPlayer {
 		_MOVEMENT_STATE_COUNT
 	};
 
-	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_POWERCORD, UPGRADE_REJUVENATOR, _UPGRADE_COUNT };
+	enum Upgrade {
+		UPGRADE_DIVE,
+		UPGRADE_DASH,
+		UPGRADE_SLIDE,
+		UPGRADE_DIVEBOOST,
+		UPGRADE_POWERCORD,
+		UPGRADE_REJUVENATOR,
+		UPGRADE_WALLRUN,
+		_UPGRADE_COUNT
+	};
 
    public:
 	enum Timer {
@@ -178,8 +187,8 @@ class Player : public IPlayer {
 	// visual variables
 	float _squishVelocity = 0.0;
 
-	// upgrades                    ??rpbs^>
-	unsigned char _upgradeBits = 0b00111111;
+	// upgrades                    ?wrpbs^>
+	Uint8 _upgradeBits = 0b01111111;
 	float _currentDiveGravity = 0.0;
 	bool _diveAvailable = true;
 	bool _dashAvailable = true;
@@ -191,13 +200,14 @@ class Player : public IPlayer {
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(const InputManager& input, SDL_Renderer* renderer, Room& room)
+	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
 		: _input(input),
 		  _jizz("content/sidequest/skins/classic", renderer),
 		  _room(room),
 		  _scarf(position, room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
+		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
+		  _upgradeBits(upgrades) {}
 
 	const InputManager& GetInput() const override { return _input; }
 

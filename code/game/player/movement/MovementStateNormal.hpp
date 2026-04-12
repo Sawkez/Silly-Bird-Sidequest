@@ -135,7 +135,8 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// wallrunning
-		if (!p.IsPushingFloor() && p.IsPushingWall() && p.IsDiveAvailable() && p.GetInput().IsDown(ACTION_DIVE)) {
+		if (p.HasUpgrade(Player::UPGRADE_WALLRUN) && !p.IsPushingFloor() && p.IsPushingWall() && p.IsDiveAvailable() &&
+			p.GetInput().IsDown(ACTION_DIVE)) {
 			p.UnloadDive();
 			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
 			return;
