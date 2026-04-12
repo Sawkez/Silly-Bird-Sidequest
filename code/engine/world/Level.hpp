@@ -31,6 +31,16 @@ class Level : IProcessable, IDrawable {
 	vector<RenderChunk> _renderChunks;
 
    public:
+	Level(const string& pathToFolder) : Level(pathToFolder, GameState::GetMainRenderer(), GameState::GetInput(), GameState::GetMainWindow()) {}
+
+	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
+		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window) {}
+
+	Level(yyjson_doc* json, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
+		: Level(yyjson_doc_get_root(json), pathToFolder, renderer, inputManager, window) {
+		yyjson_doc_free(json);
+	}
+
 	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
 		: _path(pathToFolder),
 		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
@@ -49,12 +59,7 @@ class Level : IProcessable, IDrawable {
 		GameState::Unpause();
 	}
 
-	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
-		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window) {}
-
-	Level(const string& pathToFolder) : Level(pathToFolder, GameState::GetMainRenderer(), GameState::GetInput(), GameState::GetMainWindow()) {}
-
-	yyjson_val* LoadJson(const string& pathToFolder) const {
+	yyjson_doc* LoadJson(const string& pathToFolder) const {
 		ifstream jsonFile(pathToFolder + "/level.json");
 		if (!jsonFile.good()) {
 			cerr << "ERROR opening level.json file in " << pathToFolder << endl;
@@ -62,8 +67,7 @@ class Level : IProcessable, IDrawable {
 
 		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
 
-		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
-		return yyjson_doc_get_root(json);
+		return yyjson_read(jsonString.data(), jsonString.length(), 0);
 	}
 
 	vector<SDL_Surface*> LoadAtlases(yyjson_val* sources, const string& pathToFolder) const {

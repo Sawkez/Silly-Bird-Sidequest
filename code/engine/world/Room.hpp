@@ -31,6 +31,11 @@ class Room {
 	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
 
+	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
+		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas) {
+		yyjson_doc_free(jsonDoc);
+	}
+
 	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
 		  _spikeColliders(LoadSpikeColliders(folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
