@@ -13,6 +13,7 @@
 #include "engine/physics/CollisionResult.hpp"
 #include "engine/world/Room.hpp"
 #include "engine/world/WorldConstants.hpp"
+#include "game/player/IPlayer.hpp"
 #include "game/player/graphics/DiveParticle.hpp"
 #include "game/player/graphics/Jizz.hpp"
 #include "game/player/graphics/Scarf.hpp"
@@ -20,7 +21,7 @@
 
 using namespace std;
 
-class Player : public IProcessable, public IDrawableRect {
+class Player : public IPlayer {
    public:
 	enum PlayerAnimation {
 		ANIM_DUCK,
@@ -198,71 +199,71 @@ class Player : public IProcessable, public IDrawableRect {
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")) {}
 
-	const InputManager& GetInput() const { return _input; }
+	const InputManager& GetInput() const override { return _input; }
 
-	const CollisionRect& GetCollision() const { return _collision; }
+	const CollisionRect& GetCollision() const override { return _collision; }
 
-	Vector2 GetCollisionOffset() const { return _shortCollision ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL; }
+	Vector2 GetCollisionOffset() const override { return _shortCollision ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL; }
 
-	void SetState(int state) {
+	void SetState(int state) override {
 		_movementStates[_movementStateID]->Deinit(*this);
 		_movementStateID = state;
 		_movementStates[_movementStateID]->Init(*this);
 	}
 
-	void SetShortCollision(bool isShort) {
+	void SetShortCollision(bool isShort) override {
 		_shortCollision = isShort;
 		_collision = isShort ? SHORT_COLLISION : FULL_COLLISION;
 	}
 
-	void SetRoom(Room& room) {
+	void SetRoom(Room& room) override {
 		_room = ref(room);
 		_scarf.SetColliders(room.GetColliders());
 	}
 
-	void SetTimer(int timer, float time) { _timers[timer] = time; }
+	void SetTimer(int timer, float time) override { _timers[timer] = time; }
 
-	void SetTimer(int timer) {
+	void SetTimer(int timer) override {
 		if (isnan(TIMER_DURATIONS[timer])) {
 			cerr << "ERROR: timer " << timer << " duration is NAN" << endl;
 		}
 		SetTimer(timer, TIMER_DURATIONS[timer]);
 	}
 
-	void UnsetTimer(int timer) { _timers[timer] = 0.0; }
+	void UnsetTimer(int timer) override { _timers[timer] = 0.0; }
 
-	bool TimerActive(int timer) const { return _timers[timer] > 0.0; }
+	bool TimerActive(int timer) const override { return _timers[timer] > 0.0; }
 
-	float GetTimer(int timer) const { return _timers[timer]; }
+	float GetTimer(int timer) const override { return _timers[timer]; }
 
-	void Buffer(int buffer) {
+	void Buffer(int buffer) override {
 		if (isnan(BUFFER_DURATIONS[buffer])) {
 			cerr << "ERROR: buffer " << buffer << " duration is NAN" << endl;
 		}
 		_buffers[buffer] = BUFFER_DURATIONS[buffer];
 	}
 
-	void Unbuffer(int buffer) { _buffers[buffer] = 0.0; }
+	void Unbuffer(int buffer) override { _buffers[buffer] = 0.0; }
 
-	bool BufferActive(int buffer) const { return _buffers[buffer] > 0.0; }
+	bool BufferActive(int buffer) const override { return _buffers[buffer] > 0.0; }
 
-	float GetBuffer(int buffer) const { return _buffers[buffer]; }
+	float GetBuffer(int buffer) const override { return _buffers[buffer]; }
 
-	bool UseBuffer(int buffer) {
+	bool UseBuffer(int buffer) override {
 		bool active = BufferActive(buffer);
 		Unbuffer(buffer);
 		return active;
 	}
 
-	void SetCooldown(int cooldown, float time) { _cooldowns[cooldown] = time; }
+	void SetCooldown(int cooldown, float time) override { _cooldowns[cooldown] = time; }
 
-	void SetCooldown(int cooldown) { SetCooldown(cooldown, COOLDOWN_DURATIONS[cooldown]); }
+	void SetCooldown(int cooldown) override { SetCooldown(cooldown, COOLDOWN_DURATIONS[cooldown]); }
 
-	void UnsetCooldown(int cooldown) { _cooldowns[cooldown] = 0.0; }
+	void UnsetCooldown(int cooldown) override { _cooldowns[cooldown] = 0.0; }
 
-	bool CooldownActive(int cooldown) const { return _cooldowns[cooldown] > 0.0; }
+	bool CooldownActive(int cooldown) const override { return _cooldowns[cooldown] > 0.0; }
 
-	bool HasUpgrade(int upgrade) { return (_upgradeBits & (1 << upgrade)) > 0; }
+	bool HasUpgrade(int upgrade) const override { return (_upgradeBits & (1 << upgrade)) > 0; }
 
 	void Process(float delta) override {
 		for (int i = 0; i < _TIMER_COUNT; i++) {
@@ -438,7 +439,7 @@ class Player : public IProcessable, public IDrawableRect {
 		return parts || scarf || sprite;
 	}
 
-	void FlipSprite(bool left) {
+	void FlipSprite(bool left) override {
 		if (_facingLeft == left) return;
 
 		_sprite.scale.x = X_SQUISH_MIN;
@@ -446,73 +447,73 @@ class Player : public IProcessable, public IDrawableRect {
 		_sprite.SetFlip(left ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 	}
 
-	void UnloadDive() {
+	void UnloadDive() override {
 		_diveAvailable = false;
 		_diveParticles.StartEmitting();
 	}
 
-	void ReloadDive(bool invisible = false) {
+	void ReloadDive(bool invisible = false) override {
 		_diveAvailable = true;
 		_diveParticles.StopEmitting();
 	}
 
-	void UnloadDash() {
+	void UnloadDash() override {
 		if (!_dashAvailable) return;
 		_dashAvailable = false;
 		_scarf.Unload();
 	}
 
-	void ReloadDash() {
+	void ReloadDash() override {
 		if (_dashAvailable) return;
 		_dashAvailable = true;
 		_scarf.Load();
 	}
 
-	void CeilingDash() {
+	void CeilingDash() override {
 		UnsetTimer(TIMER_DASH);
 		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
 		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
 
-	bool IsShortCollision() const { return _shortCollision; }
-	bool IsCloseToCeiling() const { return _closeToCeiling; }
-	bool IsPushingCeiling() const { return _pushingCeiling; }
-	bool IsCloseToFloor() const { return _closeToFloor; }
-	bool IsPushingFloor() const { return _pushingFloor; }
-	bool IsPushingWall() const { return _pushingWall; }
+	bool IsShortCollision() const override { return _shortCollision; }
+	bool IsCloseToCeiling() const override { return _closeToCeiling; }
+	bool IsPushingCeiling() const override { return _pushingCeiling; }
+	bool IsCloseToFloor() const override { return _closeToFloor; }
+	bool IsPushingFloor() const override { return _pushingFloor; }
+	bool IsPushingWall() const override { return _pushingWall; }
 
-	bool IsDashAvailable() const { return _dashAvailable; }
-	bool IsDiveAvailable() const { return _diveAvailable; }
+	bool IsDashAvailable() const override { return _dashAvailable; }
+	bool IsDiveAvailable() const override { return _diveAvailable; }
 
-	bool IsQuickClimbActive() const { return _quickClimb; }
-	void EnableQuickClimb() { _quickClimb = true; }
-	void DisableQuickClimb() { _quickClimb = false; }
+	bool IsQuickClimbActive() const override { return _quickClimb; }
+	void EnableQuickClimb() override { _quickClimb = true; }
+	void DisableQuickClimb() override { _quickClimb = false; }
 
-	bool IsFacingLeft() const { return _facingLeft; }
+	bool IsFacingLeft() const override { return _facingLeft; }
 
-	float GetSquish() const { return _sprite.scale.x; }
-	void SetSquish(float squish) { _sprite.scale.x = squish; }
+	float GetSquish() const override { return _sprite.scale.x; }
+	void SetSquish(float squish) override { _sprite.scale.x = squish; }
 
-	void PlayAnimation(int animation, float speed = 1.0) { _sprite.Play(animation, speed); }
-	void PlayAnimationFromStart(int animation, float speed = 1.0) { _sprite.PlayFromStart(animation, speed); }
-	void PlayAnimationLastFrame(int animation, float speed = 1.0) { _sprite.PlayLastFrame(animation, speed); }
+	void PlayAnimation(int animation, float speed = 1.0) override { _sprite.Play(animation, speed); }
+	void PlayAnimationFromStart(int animation, float speed = 1.0) override { _sprite.PlayFromStart(animation, speed); }
+	void PlayAnimationLastFrame(int animation, float speed = 1.0) override { _sprite.PlayLastFrame(animation, speed); }
 
-	const Room& GetRoom() const { return _room; }
+	const Room& GetRoom() const override { return _room; }
 
-	void SetLedgeTile(const SDL_Point& tile) { _ledgeTile = tile; }
-	void SetLedgeTile(int x, int y) { _ledgeTile = SDL_Point{x, y}; }
-	const SDL_Point& GetLedgeTile() const { return _ledgeTile; }
+	void SetLedgeTile(const SDL_Point& tile) override { _ledgeTile = tile; }
+	void SetLedgeTile(int x, int y) override { _ledgeTile = SDL_Point{x, y}; }
+	const SDL_Point& GetLedgeTile() const override { return _ledgeTile; }
 
-	float GetCurrentDiveGravity() const { return _currentDiveGravity; }
-	void SetCurrentDiveGravity(float gravity) { _currentDiveGravity = gravity; }
+	float GetCurrentDiveGravity() const override { return _currentDiveGravity; }
+	void SetCurrentDiveGravity(float gravity) override { _currentDiveGravity = gravity; }
 
-	void SetSpriteRotationRadians(float radians) { _sprite.SetRotationRadians(radians); }
-	void SetSpriteRotationDegrees(float degrees) { _sprite.SetRotationDegrees(degrees); }
+	void SetSpriteRotationRadians(float radians) override { _sprite.SetRotationRadians(radians); }
+	void SetSpriteRotationDegrees(float degrees) override { _sprite.SetRotationDegrees(degrees); }
 
-	float GetLastDownVelocity() const { return _lastDownVelocity; }
-	void ResetLastDownVelocity() { _lastDownVelocity = 0.0; }
+	float GetLastDownVelocity() const override { return _lastDownVelocity; }
+	void ResetLastDownVelocity() override { _lastDownVelocity = 0.0; }
 
-	void UpdateLedgeTile() {
+	void UpdateLedgeTile() override {
 		float tileX = roundf(position.x / WorldConstants::TILE_SIZE_F + (IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT));
 		float tileY = roundf(position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP);
 
@@ -520,7 +521,7 @@ class Player : public IProcessable, public IDrawableRect {
 		_ledgeTile.y = static_cast<int>(tileY) * WorldConstants::TILE_SIZE;
 	}
 
-	bool CanGrabLedge() {
+	bool CanGrabLedge() const override {
 		if (IsPushingFloor()) return false;
 		if (!IsQuickClimbActive() && velocity.y <= 0.0) return false;
 		if (CooldownActive(COOLDOWN_LEDGE)) return false;
@@ -531,18 +532,18 @@ class Player : public IProcessable, public IDrawableRect {
 		return std::find(ledges.begin(), ledges.end(), _ledgeTile) != ledges.end();
 	}
 
-	const vector<CollisionRect>& GetStaticColliders() const { return _room.get().GetColliders(); }
-	const vector<SpikeCollider>& GetSpikeColliders() const { return _room.get().GetSpikeColliders(); }
+	const vector<CollisionRect>& GetStaticColliders() const override { return _room.get().GetColliders(); }
+	const vector<SpikeCollider>& GetSpikeColliders() const override { return _room.get().GetSpikeColliders(); }
 
-	void Respawn() {
+	void Respawn() override {
 		position = _respawnPosition;
 		velocity = Vector2();
 		ReloadDash();
 		ReloadDive();
 	}
-	void SetRespawnPosition(Vector2 respawnPosition) { _respawnPosition = respawnPosition; }
+	void SetRespawnPosition(Vector2 respawnPosition) override { _respawnPosition = respawnPosition; }
 
-	void PushOutOfColliders() {
+	void PushOutOfColliders() override {
 		Vector2 collisionOffset = GetCollisionOffset();
 
 		for (const auto& collider : GetStaticColliders()) {
