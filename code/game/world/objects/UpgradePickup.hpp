@@ -6,19 +6,20 @@
 #include <string>
 
 #include "engine/world/PlayerDetector.hpp"
-#include "game/player/Player.hpp"
+#include "game/player/IPlayer.hpp"
 
 class UpgradePickup : public PlayerDetector {
    private:
 	static inline const auto TEXTURE_SIZE = Vector2(16.0, 16.0);
 
 	SDL_Texture* _texture;
+	SDL_FRect _drawRect;
 	int _upgrade;
 
-	static inline const std::string UPGRADE_NAMES[Player::_UPGRADE_COUNT]{"dive", "dash", "slide", "diveboost", "rejuvenator", "wallrun"};
+	static inline const std::string UPGRADE_NAMES[IPlayer::_UPGRADE_COUNT]{"dive", "dash", "slide", "diveboost", "rejuvenator", "wallrun"};
 
 	SDL_FRect MakeRect(const Vector2& positionCentered) {
-		Vector2 topLeft = positionCentered - TEXTURE_SIZE;
+		Vector2 topLeft = positionCentered - TEXTURE_SIZE * 0.5f;
 		return {topLeft.x, topLeft.y, TEXTURE_SIZE.x, TEXTURE_SIZE.y};
 	}
 
@@ -28,15 +29,22 @@ class UpgradePickup : public PlayerDetector {
 	}
 
    protected:
-	void Activated(Player& player) override { player.GiveUpgrade(_upgrade); }
+	void Activated(IPlayer& player) override {
+		player.GiveUpgrade(_upgrade);
+		_active = false;
+	}
 
    public:
-	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, int upgrade)
-		: PlayerDetector(MakeRect(positionCentered)), _upgrade(upgrade), _texture(LoadTexture(renderer, upgrade)) {}
+	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, const Vector2& relativePosition, int upgrade)
+		: PlayerDetector(MakeRect(positionCentered)),
+		  _upgrade(upgrade),
+		  _texture(LoadTexture(renderer, upgrade)),
+		  _drawRect(MakeRect(relativePosition)) {}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
-		if (!SDL_HasIntersectionF(&drawTargetRect, &_rect)) return false;
-		SDL_RenderCopyF(renderer, _texture, NULL, &_rect);
+		if (!_active) return false;
+		if (!SDL_HasIntersectionF(&drawTargetRect, &_drawRect)) return false;
+		SDL_RenderCopyF(renderer, _texture, NULL, &_drawRect);
 		return true;
 	}
 

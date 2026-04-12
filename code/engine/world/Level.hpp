@@ -92,6 +92,7 @@ class Level : IProcessable, IDrawable {
 
 	void Process(float delta) override {
 		_player.Process(delta);
+		_currentRoom.Process(delta, _player);
 		_roomCamera.Process(delta);
 		CheckRoomTransition();
 	}

@@ -22,51 +22,6 @@
 using namespace std;
 
 class Player : public IPlayer {
-   public:
-	enum PlayerAnimation {
-		ANIM_DUCK,
-		ANIM_FLY,
-		ANIM_IDLE,
-		ANIM_JUMP,
-		ANIM_LEDGE_FLIP,
-		ANIM_LEDGE_UNFLIP,
-		ANIM_RUN,
-		ANIM_SLOW_RUN,
-		ANIM_SLIDE,
-		ANIM_TWERK_DOWN,
-		ANIM_TWERK_UP,
-		ANIM_WALLRUN,
-		_ANIM_COUNT
-	};
-
-	enum MovementStateID {
-		MOVEMENT_STATE_NORMAL,
-		MOVEMENT_STATE_LEDGE,
-		MOVEMENT_STATE_DIVE,
-		MOVEMENT_STATE_DASH,
-		MOVEMENT_STATE_SLIDE,
-		MOVEMENT_STATE_DUCK,
-		MOVEMENT_STATE_DEAD,
-		MOVEMENT_STATE_WALLRUN,
-		_MOVEMENT_STATE_COUNT
-	};
-
-	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_REJUVENATOR, UPGRADE_WALLRUN, _UPGRADE_COUNT };
-
-   public:
-	enum Timer {
-		TIMER_COYOTE,
-		TIMER_PLATFORM,
-		TIMER_V_RESET,
-		TIMER_GRAVITY_FREEZE,
-		TIMER_BORED,
-		TIMER_TWERK,
-		TIMER_DIVE,
-		TIMER_DASH,
-		TIMER_SLIDE,
-		_TIMER_COUNT
-	};
-
    private:
 	static inline constexpr float TIMER_DURATIONS[_TIMER_COUNT] = {
 		10.0 / 60.0,  // coyote
@@ -80,10 +35,6 @@ class Player : public IPlayer {
 		15.0 / 60.0	  // slide
 	};
 
-   public:
-	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, COOLDOWN_WALLRUN, _COOLDOWN_COUNT };
-
-   private:
 	static inline constexpr float COOLDOWN_DURATIONS[_COOLDOWN_COUNT] = {
 		NAN,		  // ledge (use up & down)
 		15.0 / 60.0,  // slide
@@ -91,10 +42,6 @@ class Player : public IPlayer {
 		15.0 / 60.0	  // wallrun
 	};
 
-   public:
-	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, BUFFER_WALLJUMP, _BUFFER_COUNT };
-
-   private:
 	static inline constexpr float BUFFER_DURATIONS[_BUFFER_COUNT] = {
 		10.0 / 60.0,  // jump
 		30.0 / 60.0,  // dive

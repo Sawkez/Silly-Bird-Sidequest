@@ -4,10 +4,9 @@
 
 #include "engine/IProcessable.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
-
-class Player;
+#include "game/player/IPlayer.hpp"
 
 class IRoomObject : public IDrawableRect {
    public:
-	virtual void Process(float delta, Player& player) = 0;
+	virtual void Process(float delta, IPlayer& player) = 0;
 };

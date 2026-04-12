@@ -10,12 +10,11 @@
 #include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
 #include "game/physics/SpikeCollider.hpp"
+#include "game/player/IPlayer.hpp"
 #include "game/world/objects/RoomObjectFactory.hpp"
 #include "yyjson.h"
 
 using namespace std;
-
-class Player;
 
 class Room {
    private:
@@ -230,7 +229,7 @@ class Room {
 
 	const vector<IRoomObject*>& GetRoomObjects() const { return _roomObjects; }
 
-	void Process(float delta, Player& player) {
+	void Process(float delta, IPlayer& player) {
 		for (auto object : _roomObjects) {
 			object->Process(delta, player);
 		}

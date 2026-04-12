@@ -13,7 +13,7 @@ IRoomObject* MakeRoomObject(yyjson_val* json) {
 	switch (yyjson_get_int(yyjson_obj_get(json, "type"))) {
 		case ROOM_OBJECT_UPGRADE_PICKUP:
 			return new UpgradePickup(GameState::GetMainRenderer(), Vector2(yyjson_obj_get(json, "position")),
-									 yyjson_get_int(yyjson_obj_get(json, "upgrade")));
+									 Vector2(yyjson_obj_get(json, "relative_position")), yyjson_get_int(yyjson_obj_get(json, "upgrade")));
 	}
 }
 
