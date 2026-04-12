@@ -12,6 +12,7 @@ class UpgradePickup : public PlayerDetector {
    private:
 	static inline const auto TEXTURE_SIZE = Vector2(16.0, 16.0);
 
+	bool _firstFrame = true;
 	SDL_Texture* _texture;
 	SDL_FRect _drawRect;
 	int _upgrade;
@@ -34,9 +35,18 @@ class UpgradePickup : public PlayerDetector {
 		_active = false;
 	}
 
+	void Process(float delta, IPlayer& player) override {
+		if (_firstFrame) {
+			_active = !player.HasUpgrade(_upgrade);
+			_firstFrame = false;
+		}
+
+		PlayerDetector::Process(delta, player);
+	}
+
    public:
 	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, const Vector2& relativePosition, int upgrade)
-		: PlayerDetector(MakeRect(positionCentered)),
+		: PlayerDetector(MakeRect(positionCentered), false),
 		  _upgrade(upgrade),
 		  _texture(LoadTexture(renderer, upgrade)),
 		  _drawRect(MakeRect(relativePosition)) {}

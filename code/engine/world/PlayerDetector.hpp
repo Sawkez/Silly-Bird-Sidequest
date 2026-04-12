@@ -13,7 +13,7 @@ class PlayerDetector : public IRoomObject {
 	virtual void Activated(IPlayer& player) {};
 
    public:
-	PlayerDetector(const SDL_FRect& rect) : _rect(rect) {}
+	PlayerDetector(const SDL_FRect& rect, bool active = true) : _rect(rect), _active(active) {}
 
 	void Process(float delta, IPlayer& player) override {
 		if (!_active) return;
