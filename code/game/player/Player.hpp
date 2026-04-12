@@ -51,16 +51,7 @@ class Player : public IPlayer {
 		_MOVEMENT_STATE_COUNT
 	};
 
-	enum Upgrade {
-		UPGRADE_DIVE,
-		UPGRADE_DASH,
-		UPGRADE_SLIDE,
-		UPGRADE_DIVEBOOST,
-		UPGRADE_POWERCORD,
-		UPGRADE_REJUVENATOR,
-		UPGRADE_WALLRUN,
-		_UPGRADE_COUNT
-	};
+	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_REJUVENATOR, UPGRADE_WALLRUN, _UPGRADE_COUNT };
 
    public:
 	enum Timer {
@@ -187,8 +178,8 @@ class Player : public IPlayer {
 	// visual variables
 	float _squishVelocity = 0.0;
 
-	// upgrades                    ?wrpbs^>
-	Uint8 _upgradeBits = 0b01111111;
+	// upgrades            ??wrbs^>
+	Uint8 _upgradeBits = 0b00111111;
 	float _currentDiveGravity = 0.0;
 	bool _diveAvailable = true;
 	bool _dashAvailable = true;
