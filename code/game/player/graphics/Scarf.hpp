@@ -47,11 +47,11 @@ class Scarf : IProcessable, IDrawableRect {
 
    public:
 	Scarf(Vector2 pinPosition, const vector<CollisionRect>& colliders)
-		: _segmentPositions{pinPosition, pinPosition, pinPosition, pinPosition, pinPosition,
-							pinPosition, pinPosition, pinPosition, pinPosition, pinPosition},
-		  _staticColliders(ref(colliders)),
-		  _currentColor(_chargedColor),
-		  _targetColor(_chargedColor) {}
+		: _staticColliders(ref(colliders)), _currentColor(_chargedColor), _targetColor(_chargedColor) {
+		for (int i = 0; i < SEGMENT_COUNT; i++) {
+			_segmentPositions[i] = pinPosition + Vector2(0.1, 0.1) * i;
+		}
+	}
 
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
 
@@ -103,8 +103,11 @@ class Scarf : IProcessable, IDrawableRect {
 	SDL_Color GetColor() const { return _currentColor.GetIntColor(); }
 
 	SDL_FRect GetRect() const {
+		if (isnan(_segmentPositions[SEGMENT_COUNT - 1].x) || isnan(_segmentPositions[SEGMENT_COUNT - 1].y)) return {0.0, 0.0, 0.0, 0.0};
+
 		SDL_FRect rect;
-		SDL_EncloseFPoints(_segmentPositions, SEGMENT_COUNT, NULL, &rect);
+		Vector2 drawPoints[2] = {_segmentPositions[0], _segmentPositions[SEGMENT_COUNT - 1]};
+		SDL_EncloseFPoints(drawPoints, 2, NULL, &rect);
 		return rect;
 	}
 
