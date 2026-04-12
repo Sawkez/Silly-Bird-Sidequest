@@ -12,7 +12,7 @@ class DiveParticle : public IParticle {
 	static constexpr float TEXTURE_SIZE = 8.0;
 	static constexpr float MIN_INITIAL_SPEED = 35.0;
 	static constexpr float MAX_INITIAL_SPEED = 50.0;
-	static constexpr float MAX_ROTATION_SPEED = M_PI * 2.0;
+	static constexpr float MAX_ROTATION_SPEED = 360.0;
 	static constexpr float MIN_LIFE_TIME_MULT = 0.6;
 	static constexpr float DAMPENING = 0.25;
 
@@ -36,7 +36,7 @@ class DiveParticle : public IParticle {
 	void Process(float delta) override {
 		_time -= delta;
 		_position += _velocity * delta;
-		_angle += _rotationSpeed;
+		_angle += _rotationSpeed * delta;
 		_velocity *= powf(DAMPENING, delta);
 	}
 
