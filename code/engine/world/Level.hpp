@@ -47,7 +47,7 @@ class Level : IProcessable, IDrawable {
 		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
 		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas),
 		  _renderer(renderer),
-		  _player(Player(inputManager, renderer, _currentRoom)),
+		  _player(Player(inputManager, renderer, _currentRoom, yyjson_get_int(yyjson_obj_get(levelProperties, "starting_upgrades")))),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {
 		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
@@ -124,6 +124,11 @@ class Level : IProcessable, IDrawable {
 			if (SDL_HasIntersection(&camRect, &chunkRect)) {
 				chunk.DrawRoom(renderer);
 				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
+
+				for (const auto& object : _currentRoom.GetRoomObjects()) {
+					chunk.DrawObject(renderer, *object, _currentRoom.GetPosition());
+				}
+
 				chunk.Draw(renderer, drawOffset, zoom);
 			}
 		}
@@ -135,7 +140,6 @@ class Level : IProcessable, IDrawable {
 		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
-		//_player.PushOutOfColliders();
 		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
 		_roomCamera.SetRoom(_currentRoom);
 

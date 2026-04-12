@@ -265,6 +265,7 @@ class Player : public IPlayer {
 	bool CooldownActive(int cooldown) const override { return _cooldowns[cooldown] > 0.0; }
 
 	bool HasUpgrade(int upgrade) const override { return (_upgradeBits & (1 << upgrade)) > 0; }
+	void GiveUpgrade(int upgrade) override { _upgradeBits |= (1 << upgrade); }
 
 	void Process(float delta) override {
 		for (int i = 0; i < _TIMER_COUNT; i++) {
