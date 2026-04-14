@@ -7,6 +7,7 @@
 #include "engine/Random.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/save/SaveManager.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"
 #include "engine/world/WorldManager.hpp"
@@ -33,6 +34,7 @@ struct Game {
 		GameState::Init();
 		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 		Random::Init();
+		SaveManager::Init();
 
 		if (argc < 2) {
 			WorldManager::LoadLevel("content/title-screen-bg");
@@ -88,6 +90,7 @@ struct Game {
 		GameState::GetInput().UpdateTapStates();
 
 		UIManager::Process();
+		SaveManager::instance->Process();
 
 		// render
 		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
