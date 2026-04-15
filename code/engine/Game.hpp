@@ -90,17 +90,21 @@ struct Game {
 		GameState::GetInput().UpdateTapStates();
 
 		UIManager::Process();
-		SaveManager::instance->Process();
 
 		// render
-		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
-		SDL_RenderClear(GameState::GetMainRenderer());
 
-		WorldManager::GetLevel().Draw(GameState::GetMainRenderer());
+		if (!SaveManager::instance->OverrideDrawing()) {
+			SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
+			SDL_RenderClear(GameState::GetMainRenderer());
 
-		UIManager::Draw();
+			WorldManager::GetLevel().Draw(GameState::GetMainRenderer());
 
-		SDL_RenderPresent(GameState::GetMainRenderer());
+			UIManager::Draw();
+
+			SDL_RenderPresent(GameState::GetMainRenderer());
+		}
+
+		SaveManager::instance->Draw();
 
 		// frame limiting
 		GameState::UpdateFrameEnd();
