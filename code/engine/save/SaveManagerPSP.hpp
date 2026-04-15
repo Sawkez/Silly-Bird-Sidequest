@@ -18,12 +18,12 @@ class SaveManagerPSP : public ISaveManager {
 
 	SceUtilitySavedataParam params;
 	PspUtilitySavedataListSaveNewData newData;
-	char newDataTitle[9] = "New save";
+	static inline char newDataTitle[24] = "New Silly Bird Savefile";
 
-	char nameMultiple[6][20] = {"0000", "0001", "0002", "0003", "0004", ""};
+	static inline char nameMultiple[11][20] = {"0000", "0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "BABY", ""};
 
-	unsigned int size_icon0 = 1666;
-	unsigned char icon0[1666] __attribute__((aligned(16))) = {
+	static inline unsigned int size_icon0 = 1666;
+	static inline unsigned char icon0[1666] __attribute__((aligned(16))) = {
 		0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x90, 0x00, 0x00, 0x00,
 		0x50, 0x08, 0x02, 0x00, 0x00, 0x00, 0x79, 0xcc, 0x6b, 0x5b, 0x00, 0x00, 0x00, 0x04, 0x67, 0x41, 0x4d, 0x41, 0x00, 0x00, 0xd6, 0xd8, 0xd4,
 		0x4f, 0x58, 0x32, 0x00, 0x00, 0x00, 0x19, 0x74, 0x45, 0x58, 0x74, 0x53, 0x6f, 0x66, 0x74, 0x77, 0x61, 0x72, 0x65, 0x00, 0x41, 0x64, 0x6f,
@@ -99,8 +99,8 @@ class SaveManagerPSP : public ISaveManager {
 		0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
 	};
 
-	unsigned int size_pic1 = 3150;
-	unsigned char pic1[3150] __attribute__((aligned(16))) = {
+	static inline unsigned int size_pic1 = 3150;
+	static inline unsigned char pic1[3150] __attribute__((aligned(16))) = {
 		0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x01, 0xe0, 0x00, 0x00, 0x01,
 		0x10, 0x08, 0x02, 0x00, 0x00, 0x00, 0xe7, 0x24, 0x30, 0xdb, 0x00, 0x00, 0x00, 0x04, 0x67, 0x41, 0x4d, 0x41, 0x00, 0x00, 0xd6, 0xd8, 0xd4,
 		0x4f, 0x58, 0x32, 0x00, 0x00, 0x00, 0x19, 0x74, 0x45, 0x58, 0x74, 0x53, 0x6f, 0x66, 0x74, 0x77, 0x61, 0x72, 0x65, 0x00, 0x41, 0x64, 0x6f,
@@ -240,7 +240,11 @@ class SaveManagerPSP : public ISaveManager {
 		0x03, 0x00, 0x60, 0x2f, 0x3c, 0xc6, 0xbd, 0xc0, 0x07, 0x1d, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
 	};
 
-	void ShowMenu() override {
+	static inline const char* testData = "ihateyouihateyou";
+
+	std::string* saveData = nullptr;
+
+	void Init() override {
 		memset(&params, 0, sizeof(SceUtilitySavedataParam));
 
 		params.base.size = sizeof(SceUtilitySavedataParam);
@@ -252,25 +256,15 @@ class SaveManagerPSP : public ISaveManager {
 		params.base.fontThread = 0x12;
 		params.base.soundThread = 0x10;
 
-		params.mode = PSP_UTILITY_SAVEDATA_LISTSAVE;
 		params.overwrite = 1;
-		params.focus = PSP_UTILITY_SAVEDATA_FOCUS_FIRSTEMPTY;
 
-		strcpy(params.gameName, "PISS6767");
+		strcpy(params.gameName, "SBSQ2026");
 		strcpy(params.saveName, "0000");
 		params.saveNameList = nameMultiple;
 
 		strcpy(params.fileName, "DATA.BIN");
-		params.dataBuf = new char[31];
-		params.dataBufSize = 31;
-		params.dataSize = 31;
-
-		memset(params.dataBuf, 0, 31);
-		strcpy((char*)params.dataBuf, "i eat bugs ! yippee ooga booga");
 
 		strcpy(params.sfoParam.title, "Silly Bird Sidequest");
-		strcpy(params.sfoParam.savedataTitle, "Mod name");
-		strcpy(params.sfoParam.detail, "you SUCK at this game icl");
 		params.sfoParam.parentalLevel = 1;
 
 		params.icon0FileData.buf = icon0;
@@ -290,7 +284,7 @@ class SaveManagerPSP : public ISaveManager {
 		params.snd0FileData.size = 0;
 
 #if defined(_PSP_FW_VERSION) && _PSP_FW_VERSION >= 200
-		strcpy(params.key, "QTAK319JQKJ952H");
+		strcpy(params.key, "ABCDEFGHIJKLMNO");
 #endif
 
 		memset(&newData, 0, sizeof(PspUtilitySavedataListSaveNewData));
@@ -301,8 +295,26 @@ class SaveManagerPSP : public ISaveManager {
 		newData.title = newDataTitle;
 
 		params.newData = &newData;
+	}
 
+	void ConfigureParams(PspUtilitySavedataMode mode, const char* data, const std::string& modName) {
+		params.mode = mode;
+		params.focus = (mode == PSP_UTILITY_SAVEDATA_LISTSAVE) ? PSP_UTILITY_SAVEDATA_FOCUS_FIRSTEMPTY : PSP_UTILITY_SAVEDATA_FOCUS_LATEST;
+
+		strcpy(params.sfoParam.savedataTitle, modName.c_str());
+		strcpy(params.sfoParam.detail, "i'll figure out what to write here later");
+
+		if (mode == PSP_UTILITY_SAVEDATA_LISTSAVE || mode == PSP_UTILITY_SAVEDATA_AUTOSAVE || mode == PSP_UTILITY_SAVEDATA_SAVE) {
+			params.dataBuf = (void*)data;
+			params.dataBufSize = 17;
+			params.dataSize = 17;
+		}
+	}
+
+	void ShowSaveMenu() override {
+		ConfigureParams(PSP_UTILITY_SAVEDATA_LISTSAVE, testData, "my fave mod fo sho");
 		sceUtilitySavedataInitStart(&params);
+
 		_visible = true;
 	}
 
@@ -316,7 +328,9 @@ class SaveManagerPSP : public ISaveManager {
 		sceGuFinish();
 		sceGuSync(GU_SYNC_FINISH, GU_SYNC_WHAT_DONE);
 
-		switch (sceUtilitySavedataGetStatus()) {
+		int status = sceUtilitySavedataGetStatus();
+
+		switch (status) {
 			case PSP_UTILITY_DIALOG_VISIBLE:
 				sceUtilitySavedataUpdate(1);
 				break;
@@ -327,6 +341,7 @@ class SaveManagerPSP : public ISaveManager {
 				break;
 
 			case PSP_UTILITY_DIALOG_FINISHED:
+			case PSP_UTILITY_DIALOG_NONE:
 				_visible = false;
 				break;
 		}

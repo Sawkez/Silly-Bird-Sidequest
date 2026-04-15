@@ -17,6 +17,8 @@ void Init() {
 #else
 	instance = new SaveManagerPC;
 #endif
+
+	instance->Init();
 }
 
 }  // namespace SaveManager

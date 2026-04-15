@@ -43,7 +43,7 @@ class PauseMenu : public MenuTransparentBG {
 		}
 	}
 
-	static void ShowSaveMenu(void* data) { SaveManager::instance->ShowMenu(); }
+	static void ShowSaveMenu(void* data) { SaveManager::instance->ShowSaveMenu(); }
 
 	static void KeyPressedCallback(lv_event_t* event) {
 		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
