@@ -4,8 +4,12 @@
 
 class SaveManagerPC : public SaveManagerBase {
 	void Init() override {}
+
 	void ShowSaveMenu() override {}
 	void ShowLoadMenu() override {}
+	void Autosave() override {}
+	void Autoload() override {}
+
 	void Draw() override {}
 	bool OverrideDrawing() const override { return false; }
 };

@@ -14,9 +14,15 @@ class ModSelectMenu : public MenuTransparentBG {
 	std::vector<std::string> _modPaths;
 
 	static void ModPressedCallback(lv_event_t* event) {
-		UIManager::Hide();
+		UIManager::ClearStack();
 		std::string modPath = *(std::string*)lv_event_get_user_data(event);
 		WorldManager::LoadLevel(modPath);
+	}
+
+	static void KeyPressedCallback(lv_event_t* event) {
+		if (lv_indev_get_key(lv_indev_active()) == LV_KEY_ESC) {
+			UIManager::Pop();
+		}
 	}
 
    public:
@@ -27,7 +33,7 @@ class ModSelectMenu : public MenuTransparentBG {
 		lv_obj_center(_panel);
 
 		lv_obj_set_layout(_panel, LV_LAYOUT_FLEX);
-		lv_gridnav_add(_panel, LV_GRIDNAV_CTRL_NONE);
+		lv_gridnav_add(_panel, (lv_gridnav_ctrl_t)(LV_GRIDNAV_CTRL_ROLLOVER | LV_GRIDNAV_CTRL_HORIZONTAL_MOVE_ONLY));
 
 		lv_group_add_obj(UIManager::GetMainGroup(), _panel);
 
@@ -43,6 +49,8 @@ class ModSelectMenu : public MenuTransparentBG {
 		for (const auto& modPath : _modPaths) {
 			_mods.emplace_back(_panel, modPath, ModPressedCallback);
 		}
+
+		lv_obj_add_event_cb(_panel, KeyPressedCallback, LV_EVENT_KEY, nullptr);
 	}
 
 	void Activate() override {

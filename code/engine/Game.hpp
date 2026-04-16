@@ -38,7 +38,7 @@ struct Game {
 
 		if (argc < 2) {
 			WorldManager::LoadLevel("content/title-screen-bg");
-			UIManager::Show(UIManager::MENU_TITLE);
+			UIManager::Push(UIManager::MENU_TITLE);
 		}
 
 		else {
@@ -79,7 +79,7 @@ struct Game {
 		}
 
 		if (GameState::GetInput().IsTapped(ACTION_PAUSE)) {
-			UIManager::Show(UIManager::MENU_PAUSE);
+			UIManager::Push(UIManager::MENU_PAUSE);
 		}
 
 		GameState::GetInput().UpdateDir();

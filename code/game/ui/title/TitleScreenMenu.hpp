@@ -22,7 +22,7 @@ class TitleScreenMenu : public MenuTransparentBG {
 
 		switch (button) {
 			case PLAY_CAMPAIGN:
-				UIManager::Show(UIManager::MENU_MODS);
+				UIManager::Push(UIManager::MENU_MODS);
 				break;
 
 			case LOAD_GAME:
@@ -33,7 +33,7 @@ class TitleScreenMenu : public MenuTransparentBG {
 
 	static void Loaded() {
 		WorldManager::LoadLevel(SaveManager::instance->saveData);
-		UIManager::Hide();
+		UIManager::Pop();
 	}
 
    public:

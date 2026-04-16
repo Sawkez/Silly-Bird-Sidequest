@@ -37,9 +37,9 @@ class PauseMenu : public MenuTransparentBG {
 				break;
 
 			case QUIT_TITLE:
-				WorldManager::LoadLevel("content/title-screen-bg");
-				UIManager::Show(UIManager::MENU_TITLE);
 				Unpause();
+				WorldManager::LoadLevel("content/title-screen-bg");
+				UIManager::Push(UIManager::MENU_TITLE);
 				break;
 		}
 	}
@@ -54,7 +54,7 @@ class PauseMenu : public MenuTransparentBG {
 	}
 
 	static void Unpause() {
-		UIManager::Hide();
+		UIManager::Pop();
 		GameState::Unpause();
 	}
 
