@@ -8,11 +8,12 @@
 #include <psputility_savedata.h>
 #include <string.h>
 
-#include "engine/save/ISaveManager.hpp"
+#include "engine/save/SaveData.hpp"
+#include "engine/save/SaveManagerBase.hpp"
 
 static unsigned int __attribute__((aligned(16))) list[262144];
 
-class SaveManagerPSP : public ISaveManager {
+class SaveManagerPSP : public SaveManagerBase {
    private:
 	bool _visible = false;
 
@@ -240,10 +241,7 @@ class SaveManagerPSP : public ISaveManager {
 		0x03, 0x00, 0x60, 0x2f, 0x3c, 0xc6, 0xbd, 0xc0, 0x07, 0x1d, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
 	};
 
-	static inline const char* testData = "ihateyouihateyou";
-
-	std::string* saveData = nullptr;
-
+   public:
 	void Init() override {
 		memset(&params, 0, sizeof(SceUtilitySavedataParam));
 
@@ -297,22 +295,26 @@ class SaveManagerPSP : public ISaveManager {
 		params.newData = &newData;
 	}
 
-	void ConfigureParams(PspUtilitySavedataMode mode, const char* data, const std::string& modName) {
+	void ConfigureParams(PspUtilitySavedataMode mode) {
 		params.mode = mode;
 		params.focus = (mode == PSP_UTILITY_SAVEDATA_LISTSAVE) ? PSP_UTILITY_SAVEDATA_FOCUS_FIRSTEMPTY : PSP_UTILITY_SAVEDATA_FOCUS_LATEST;
 
-		strcpy(params.sfoParam.savedataTitle, modName.c_str());
-		strcpy(params.sfoParam.detail, "i'll figure out what to write here later");
+		strcpy(params.sfoParam.savedataTitle, saveData.modPath);
 
-		if (mode == PSP_UTILITY_SAVEDATA_LISTSAVE || mode == PSP_UTILITY_SAVEDATA_AUTOSAVE || mode == PSP_UTILITY_SAVEDATA_SAVE) {
-			params.dataBuf = (void*)data;
-			params.dataBufSize = 17;
-			params.dataSize = 17;
-		}
+		params.dataBuf = (void*)&saveData;
+		params.dataBufSize = sizeof(SaveData);
+		params.dataSize = sizeof(SaveData);
 	}
 
 	void ShowSaveMenu() override {
-		ConfigureParams(PSP_UTILITY_SAVEDATA_LISTSAVE, testData, "my fave mod fo sho");
+		ConfigureParams(PSP_UTILITY_SAVEDATA_LISTSAVE);
+		sceUtilitySavedataInitStart(&params);
+
+		_visible = true;
+	}
+
+	void ShowLoadMenu() override {
+		ConfigureParams(PSP_UTILITY_SAVEDATA_LISTLOAD);
 		sceUtilitySavedataInitStart(&params);
 
 		_visible = true;
@@ -337,10 +339,19 @@ class SaveManagerPSP : public ISaveManager {
 
 			case PSP_UTILITY_DIALOG_QUIT:
 				sceUtilitySavedataShutdownStart();
-				std::cout << "Save result: " << params.base.result << std::endl;
+
 				break;
 
 			case PSP_UTILITY_DIALOG_FINISHED:
+				std::cout << "Save result: " << params.base.result << std::endl;
+
+				if (params.mode == PSP_UTILITY_SAVEDATA_LISTLOAD) {
+					std::cout << "Loaded data: " << std::endl;
+					std::cout << *((SaveData*)params.dataBuf) << std::endl;
+
+					_loadedCallback();
+				}
+				break;
 			case PSP_UTILITY_DIALOG_NONE:
 				_visible = false;
 				break;

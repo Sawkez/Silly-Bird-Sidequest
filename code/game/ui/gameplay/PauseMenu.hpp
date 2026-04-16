@@ -39,6 +39,7 @@ class PauseMenu : public MenuTransparentBG {
 			case QUIT_TITLE:
 				WorldManager::LoadLevel("content/title-screen-bg");
 				UIManager::Show(UIManager::MENU_TITLE);
+				Unpause();
 				break;
 		}
 	}

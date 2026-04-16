@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/save/ISaveManager.hpp"
+#include "engine/save/SaveManagerBase.hpp"
 
 #if __PSP__
 #include "engine/save/SaveManagerPSP.hpp"
@@ -9,7 +9,7 @@
 #endif
 
 namespace SaveManager {
-static ISaveManager* instance;
+static SaveManagerBase* instance;
 
 void Init() {
 #if __PSP__

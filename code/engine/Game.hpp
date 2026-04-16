@@ -65,6 +65,8 @@ struct Game {
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event) != 0) {
+			if (SaveManager::instance->OverrideDrawing()) continue;
+
 			if (event.type == SDL_WINDOWEVENT) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 			if (UIManager::HandleEvent(event)) continue;

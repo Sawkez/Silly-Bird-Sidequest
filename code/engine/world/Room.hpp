@@ -33,17 +33,15 @@ class Room {
 	vector<IRoomObject*> _roomObjects;
 
    public:
-	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas, IPlayer& player)
-		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas, player) {}
+	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
+		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
 
-	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas,
-		 IPlayer& player)
-		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas, player) {
+	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
+		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas) {
 		yyjson_doc_free(jsonDoc);
 	}
 
-	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas,
-		 IPlayer& player)
+	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
 		  _spikeColliders(LoadSpikeColliders(folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
 		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases, spikeAtlas)),
@@ -56,7 +54,7 @@ class Room {
 		  _yPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_y"))),
 		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))),
 		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))),
-		  _roomObjects(LoadRoomObjects(yyjson_obj_get(roomJson, "room_objects"), player)) {
+		  _roomObjects(LoadRoomObjects(yyjson_obj_get(roomJson, "room_objects"))) {
 		cout << SDL_GetTicks64() << ": finished room load" << endl;
 	}
 
@@ -176,14 +174,14 @@ class Room {
 		return checkpoints;
 	}
 
-	vector<IRoomObject*> LoadRoomObjects(yyjson_val* objectsJson, IPlayer& player) const {
+	vector<IRoomObject*> LoadRoomObjects(yyjson_val* objectsJson) const {
 		cout << SDL_GetTicks64() << ": loading room objects" << endl;
 		vector<IRoomObject*> objects;
 
 		size_t idx, max;
 		yyjson_val* object;
 
-		yyjson_arr_foreach(objectsJson, idx, max, object) { objects.push_back(RoomObjectFactory::MakeRoomObject(object, player)); }
+		yyjson_arr_foreach(objectsJson, idx, max, object) { objects.push_back(RoomObjectFactory::MakeRoomObject(object)); }
 
 		return objects;
 	}
@@ -215,19 +213,27 @@ class Room {
 
 	const vector<RoomNeighbor>& GetNeighbors() const { return _neighbors; }
 
-	Vector2 GetNearestCheckpoint(const Vector2& position) {
+	int GetNearestCheckpoint(const Vector2& position) {
 		float dist = INFINITY;
-		Vector2 nearest{float(_xPosition), float(_yPosition)};
-		for (const auto& checkpoint : _checkpoints) {
-			float newDist = checkpoint.DistanceSquared(position);
+		int nearest = -1;
+
+		for (int i = 0; i < _checkpoints.size(); i++) {
+			float newDist = _checkpoints[i].DistanceSquared(position);
 			if (newDist < dist) {
 				dist = newDist;
-				nearest = checkpoint;
+				nearest = i;
 			}
 		}
 
 		return nearest;
 	}
+
+	Vector2 GetCheckpoint(int index) {
+		if (index < 0) return Vector2{float(_xPosition), float(_yPosition)};
+		return _checkpoints[index];
+	}
+
+	Vector2 GetNearestCheckpointPosition(const Vector2& position) { return GetCheckpoint(GetNearestCheckpoint(position)); }
 
 	const vector<IRoomObject*>& GetRoomObjects() const { return _roomObjects; }
 

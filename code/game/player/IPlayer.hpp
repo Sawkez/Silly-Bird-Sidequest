@@ -85,6 +85,7 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual bool CooldownActive(int cooldown) const = 0;
 	virtual bool HasUpgrade(int upgrade) const = 0;
 	virtual void GiveUpgrade(int upgrade) = 0;
+	virtual void SetUpgrades(Uint8 upgrades) = 0;
 	virtual void FlipSprite(bool left) = 0;
 	virtual void UnloadDive() = 0;
 	virtual void ReloadDive(bool invisible = false) = 0;
