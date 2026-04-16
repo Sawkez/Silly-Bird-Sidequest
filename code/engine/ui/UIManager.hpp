@@ -39,15 +39,6 @@ class UIManager {
 		size_t bytesPerPixel = LV_COLOR_DEPTH / 8;
 		size_t bytesPerRow = w * bytesPerPixel;
 
-		/*
-		for (int y = 0; y < h; y++) {
-			uint8_t* dst = (uint8_t*)outPixels + (y * pitch);
-			uint8_t* src = pixelData + (y * bytesPerRow);
-
-			memcpy(dst, src, bytesPerRow);
-		}
-		*/
-
 		SDL_UpdateTexture(_texture, &rect, pixelData, bytesPerRow);
 		lv_display_flush_ready(display);
 	}
@@ -72,6 +63,10 @@ class UIManager {
 
 		_renderer = renderer;
 		Resize(windowSize.x, windowSize.y);
+
+#if __PSP__
+		_buf.resize(windowSize.x * windowSize.y * 2);  // use fullscreen buffer on PSP to save 4 fps during animations
+#endif
 	}
 
 	static lv_display_t* InitLVGL(SDL_Point windowSize) {
@@ -103,7 +98,9 @@ class UIManager {
 	}
 
 	static void Resize(int windowWidth, int windowHeight) {
-		_buf.resize(windowWidth * windowHeight / 10 * 4);
+#if !__PSP__
+		_buf.resize(windowWidth * windowHeight * 2);
+#endif
 
 		lv_display_set_resolution(_display, windowWidth, windowHeight);
 		lv_display_set_buffers(_display, _buf.data(), NULL, _buf.size(), LV_DISPLAY_RENDER_MODE_PARTIAL);
