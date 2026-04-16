@@ -36,24 +36,19 @@ class UIManager {
 
 		SDL_Rect rect = {area->x1, area->y1, w, h};
 
-		if (SDL_LockTexture(_texture, &rect, &outPixels, &pitch) < 0) {
-			std::cerr << "Failed to lock UI texture!" << std::endl;
-			lv_display_flush_ready(display);
-			return;
-		}
-
 		size_t bytesPerPixel = LV_COLOR_DEPTH / 8;
 		size_t bytesPerRow = w * bytesPerPixel;
 
+		/*
 		for (int y = 0; y < h; y++) {
 			uint8_t* dst = (uint8_t*)outPixels + (y * pitch);
 			uint8_t* src = pixelData + (y * bytesPerRow);
 
 			memcpy(dst, src, bytesPerRow);
 		}
+		*/
 
-		SDL_UnlockTexture(_texture);
-
+		SDL_UpdateTexture(_texture, &rect, pixelData, bytesPerRow);
 		lv_display_flush_ready(display);
 	}
 
