@@ -12,8 +12,12 @@ class SaveManagerBase {
 	SaveData saveData = SaveData();
 
 	virtual void Init() = 0;
+
 	virtual void ShowSaveMenu() = 0;
 	virtual void ShowLoadMenu() = 0;
+	virtual void Autosave() = 0;
+	virtual void Autoload() = 0;
+
 	virtual void Draw() = 0;
 	virtual bool OverrideDrawing() const = 0;
 

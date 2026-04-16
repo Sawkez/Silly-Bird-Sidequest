@@ -222,6 +222,7 @@ class Player : public IPlayer {
 		_upgradeBits |= (1 << upgrade);
 		if (upgrade == UPGRADE_DASH) ShowScarf();
 		SaveManager::instance->saveData.upgrades = _upgradeBits;
+		SaveManager::instance->Autosave();
 	}
 
 	void SetUpgrades(Uint8 upgrades) override { _upgradeBits = upgrades; }

@@ -102,6 +102,7 @@ class Level : IProcessable, IDrawable {
 
 		UpdateCheckpoint();
 		SaveManager::instance->saveData.room = room;
+		SaveManager::instance->Autosave();
 
 		DestroyRenderChunks();
 		_renderChunks = CreateRenderChunks(_currentRoom, _renderer);

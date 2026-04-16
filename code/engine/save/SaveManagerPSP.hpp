@@ -21,7 +21,11 @@ class SaveManagerPSP : public SaveManagerBase {
 	PspUtilitySavedataListSaveNewData newData;
 	static inline char newDataTitle[24] = "New Silly Bird Savefile";
 
-	static inline char nameMultiple[11][20] = {"0000", "0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "BABY", ""};
+	static inline char loadList[12][20] = {"_AUTO",		"_MANUAL_0", "_MANUAL_1", "_MANUAL_2", "_MANUAL_3", "_MANUAL_4",
+										   "_MANUAL_5", "_MANUAL_6", "_MANUAL_7", "_MANUAL_8", "_MANUAL_9", ""};
+
+	static inline char saveList[11][20] = {"_MANUAL_0", "_MANUAL_1", "_MANUAL_2", "_MANUAL_3", "_MANUAL_4", "_MANUAL_5",
+										   "_MANUAL_6", "_MANUAL_7", "_MANUAL_8", "_MANUAL_9", ""};
 
 	static inline unsigned int size_icon0 = 1666;
 	static inline unsigned char icon0[1666] __attribute__((aligned(16))) = {
@@ -257,9 +261,7 @@ class SaveManagerPSP : public SaveManagerBase {
 		params.overwrite = 1;
 
 		strcpy(params.gameName, "SBSQ2026");
-		strcpy(params.saveName, "0000");
-		params.saveNameList = nameMultiple;
-
+		strcpy(params.saveName, "_AUTO");
 		strcpy(params.fileName, "DATA.BIN");
 
 		strcpy(params.sfoParam.title, "Silly Bird Sidequest");
@@ -298,8 +300,10 @@ class SaveManagerPSP : public SaveManagerBase {
 	void ConfigureParams(PspUtilitySavedataMode mode) {
 		params.mode = mode;
 		params.focus = (mode == PSP_UTILITY_SAVEDATA_LISTSAVE) ? PSP_UTILITY_SAVEDATA_FOCUS_FIRSTEMPTY : PSP_UTILITY_SAVEDATA_FOCUS_LATEST;
+		params.saveNameList = mode == PSP_UTILITY_SAVEDATA_LISTLOAD ? loadList : saveList;
 
 		strcpy(params.sfoParam.savedataTitle, saveData.modPath);
+		strcpy(params.sfoParam.detail, mode == PSP_UTILITY_SAVEDATA_AUTOSAVE ? "Autosave" : "");
 
 		params.dataBuf = (void*)&saveData;
 		params.dataBufSize = sizeof(SaveData);
@@ -320,15 +324,22 @@ class SaveManagerPSP : public SaveManagerBase {
 		_visible = true;
 	}
 
-	void Draw() override {
-		if (!_visible) return;
+	void Autosave() override {
+		ConfigureParams(PSP_UTILITY_SAVEDATA_AUTOSAVE);
+		sceUtilitySavedataInitStart(&params);
+	}
 
-		sceGuStart(GU_DIRECT, list);
-		sceGuClearColor(0xff000d59);
-		sceGuClearDepth(0);
-		sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
-		sceGuFinish();
-		sceGuSync(GU_SYNC_FINISH, GU_SYNC_WHAT_DONE);
+	void Autoload() override {}
+
+	void Draw() override {
+		if (_visible) {
+			sceGuStart(GU_DIRECT, list);
+			sceGuClearColor(0xff000d59);
+			sceGuClearDepth(0);
+			sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
+			sceGuFinish();
+			sceGuSync(GU_SYNC_FINISH, GU_SYNC_WHAT_DONE);
+		}
 
 		int status = sceUtilitySavedataGetStatus();
 
@@ -345,7 +356,8 @@ class SaveManagerPSP : public SaveManagerBase {
 			case PSP_UTILITY_DIALOG_FINISHED:
 				std::cout << "Save result: " << params.base.result << std::endl;
 
-				if (params.mode == PSP_UTILITY_SAVEDATA_LISTLOAD && params.base.result == 0) { // 0 means loaded, 1 means cancelled, don't know what enum this is
+				if (params.mode == PSP_UTILITY_SAVEDATA_LISTLOAD &&
+					params.base.result == 0) {	// 0 means loaded, 1 means cancelled, don't know what enum this is
 					std::cout << "Loaded data: " << std::endl;
 					std::cout << *((SaveData*)params.dataBuf) << std::endl;
 
@@ -357,7 +369,9 @@ class SaveManagerPSP : public SaveManagerBase {
 				break;
 		}
 
-		sceGuSwapBuffers();
+		if (_visible) {
+			sceGuSwapBuffers();
+		}
 	}
 
 	bool OverrideDrawing() const override { return _visible; }
