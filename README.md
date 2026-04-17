@@ -39,26 +39,36 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 - Android port;
 
 ## Building from Linux
-Start by cloning the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules```  
-
 ### For Linux
-Install CMake, SDL2, SDL2_image and GCC.   
-Compile: ```build/scripts/linux.sh```  
-Run: ```build/export/linux/sidequest.sillybird```  
+1. Install dependencies:
+    - Fedora: ```sudo dnf install cmake gcc g++ clang sdl2-compat-devel SDL2_image-devel```  
+    - Ubuntu: ```sudo apt install cmake gcc g++ clang libsdl2-compat-dev libsdl2-image-dev git```  
 
-### For Windows
-Install CMake, MinGW-w64, and the MinGW versions of SDL2, SDL2_image and GCC.  
-Compile: ```build/scripts/windows.sh```  
-Run: ```build\export\windows\sbsidequest.exe```
+2. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
+3. Compile: ```build/scripts/linux.sh```  
+
+The executable can be found in build/export/linux.
+
+### Cross-compiling for Windows
+1. Install dependencies:
+    - Fedora: ```sudo dnf install cmake mingw64-gcc-c++ mingw64-sdl2-compat mingw64-SDL2_image```
+    - Ubuntu: Not currently supported  
+
+2. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
+3. Compile: ```build/scripts/windows.sh```  
+
+The executable can be found in build/export/windows.
 
 ### For PSP
-Install and configure the [PSPSDK](https://github.com/pspdev/pspsdk).  
-Compile: ```build/scripts/psp-pbp.sh```  
+1. Install dependencies:
+    - Fedora: ```sudo dnf install cmake```
+    - Ubuntu: ```sudo apt install git cmake```  
 
-To run:
-- Install a custom firmware;  
-- Connect PSP to PC via USB cable;  
-- Copy ```build/export/psp-pbp``` to PSP/GAME in the PSP's storage.
+2. Install and configure the [PSPSDK](https://github.com/pspdev/pspsdk).
+3. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
+4. Compile: ```build/scripts/psp-pbp.sh```  
+
+The executable can be found in build/export/psp-pbp. Custom firmware is required to run it.
 
 ## Building from Windows
 Compiling from Windows is not supported. Consider using WSL.
