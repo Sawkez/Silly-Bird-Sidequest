@@ -1,39 +1,37 @@
 #pragma once
 
 #include <ctime>
+#include <filesystem>
 #include <iomanip>
 
 #include "engine/save/ISaveManagerPC.hpp"
 #include "engine/ui/DirectoryListMenu.hpp"
 #include "lvgl/lvgl.h"
 
-class ListSaveMenu : public DirectoryListMenu {
+class ListLoadMenu : public DirectoryListMenu {
 	friend class SaveManagerPC;
 	static inline ISaveManagerPC* _manager = nullptr;
 
 	static void SelectedCallback(lv_event_t* event) {
 		auto* saveName = (std::string*)lv_event_get_user_data(event);
 		if (*saveName == "") {
-			time_t time = std::time(nullptr);
-			tm* localTime = std::localtime(&time);
-			std::ostringstream oss;
-			oss << std::put_time(localTime, "%d%m%Y_%H_%M_%S");
-
-			_manager->SaveToDirectory(_manager->GetUserDir() + "/manual/" + oss.str());
+			_manager->LoadFromDirectory(_manager->GetUserDir() + "/auto");
 		}
 
 		else {
-			_manager->SaveToDirectory(*saveName);
+			_manager->LoadFromDirectory(*saveName);
 		}
-
-		UIManager::Pop();
 	}
 
    public:
 	void Init() override {
 		DirectoryListMenu::Init();
 
-		_buttons.emplace_back(_panel, "", "New save", GetSelectedCallback());
+		if (!std::filesystem::exists(_manager->GetUserDir() + "/auto")) return;
+
+		_buttons.emplace_back(_panel, "", "Autosave", GetSelectedCallback());
+
+		lv_obj_move_to_index(_buttons.back().GetButton(), 0);
 	}
 
 	lv_event_cb_t GetSelectedCallback() const override { return SelectedCallback; }
