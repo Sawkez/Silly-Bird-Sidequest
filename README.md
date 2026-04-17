@@ -71,7 +71,7 @@ The executable can be found in build/export/windows.
 The executable can be found in build/export/psp-pbp. Custom firmware is required to run it.
 
 ## Building from Windows
-Compiling from Windows is not supported. Consider using WSL.
+Compiling from Windows is not supported. Consider using Fedora under WSL.
 
 ### AI disclosure
 Various AI models were used for writing code. All AI-generated code was manually reviewed, tested, and edited. No assets or levels are AI-generated.
