@@ -1,8 +1,5 @@
 #pragma once
 
-#include <ctime>
-#include <iomanip>
-
 #include "engine/save/ISaveManagerPC.hpp"
 #include "engine/ui/DirectoryListMenu.hpp"
 #include "lvgl/lvgl.h"
@@ -14,12 +11,7 @@ class ListSaveMenu : public DirectoryListMenu {
 	static void SelectedCallback(lv_event_t* event) {
 		auto* saveName = (std::string*)lv_event_get_user_data(event);
 		if (*saveName == "") {
-			time_t time = std::time(nullptr);
-			tm* localTime = std::localtime(&time);
-			std::ostringstream oss;
-			oss << std::put_time(localTime, "%d%m%Y_%H_%M_%S");
-
-			_manager->SaveToDirectory(_manager->GetUserDir() + "/manual/" + oss.str());
+			_manager->NewSave();
 		}
 
 		else {
@@ -37,5 +29,5 @@ class ListSaveMenu : public DirectoryListMenu {
 	}
 
 	lv_event_cb_t GetSelectedCallback() const override { return SelectedCallback; }
-	std::string GetDirectoryToList() const override { return _manager->GetUserDir() + "/manual"; }
+	std::string GetDirectoryToList() const override { return _manager->GetManualSaveDir(); }
 };
