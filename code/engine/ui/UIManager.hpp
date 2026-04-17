@@ -62,11 +62,12 @@ class UIManager {
 		}
 
 		_renderer = renderer;
-		Resize(windowSize.x, windowSize.y);
 
 #if __PSP__
-		_buf.resize(windowSize.x * windowSize.y * 2);  // use fullscreen buffer on PSP to save 4 fps during animations
+		_buf.resize(windowSize.x * windowSize.y * 4);  // use fullscreen buffer on PSP to save 4 fps during animations
 #endif
+
+		Resize(windowSize.x, windowSize.y);
 	}
 
 	static lv_display_t* InitLVGL(SDL_Point windowSize) {
