@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/input/UIInputManager.hpp"
+#include "engine/save/SaveManager.hpp"
 #include "engine/ui/MenuTransparentBG.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "engine/world/WorldManager.hpp"
@@ -9,9 +10,9 @@
 
 class PauseMenu : public MenuTransparentBG {
    private:
-	enum ButtonID { CONTINUE, RETRY, QUIT_TITLE };
+	enum ButtonID { CONTINUE, RETRY, SAVE, QUIT_TITLE };
 
-	static inline const char* _buttonMap[] = {"Continue", "\n", "Retry", "\n", "Quit to title screen", NULL};
+	static inline const char* _buttonMap[] = {"Continue", "\n", "Retry", "\n", "Save", "\n", "Quit to title screen", NULL};
 	lv_obj_t* _buttons;
 
 	static void ButtonPressedCallback(lv_event_t* event) {
@@ -31,12 +32,19 @@ class PauseMenu : public MenuTransparentBG {
 				Unpause();
 				break;
 
+			case SAVE:
+				lv_async_call(ShowSaveMenu, nullptr);
+				break;
+
 			case QUIT_TITLE:
 				WorldManager::LoadLevel("content/title-screen-bg");
-				UIManager::Show(UIManager::MENU_TITLE);
+				UIManager::ClearStackAndPush(UIManager::MENU_TITLE);
+				GameState::Unpause();
 				break;
 		}
 	}
+
+	static void ShowSaveMenu(void* data) { SaveManager::instance->ShowSaveMenu(); }
 
 	static void KeyPressedCallback(lv_event_t* event) {
 		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
@@ -46,7 +54,7 @@ class PauseMenu : public MenuTransparentBG {
 	}
 
 	static void Unpause() {
-		UIManager::Hide();
+		UIManager::ClearStack();
 		GameState::Unpause();
 	}
 

@@ -7,6 +7,7 @@
 #include "engine/Random.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/save/SaveManager.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"
 #include "engine/world/WorldManager.hpp"
@@ -33,10 +34,11 @@ struct Game {
 		GameState::Init();
 		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 		Random::Init();
+		SaveManager::Init();
 
 		if (argc < 2) {
 			WorldManager::LoadLevel("content/title-screen-bg");
-			UIManager::Show(UIManager::MENU_TITLE);
+			UIManager::Push(UIManager::MENU_TITLE);
 		}
 
 		else {
@@ -63,6 +65,8 @@ struct Game {
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event) != 0) {
+			if (SaveManager::instance->OverrideDrawing()) continue;
+
 			if (event.type == SDL_WINDOWEVENT) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 			if (UIManager::HandleEvent(event)) continue;
@@ -75,7 +79,7 @@ struct Game {
 		}
 
 		if (GameState::GetInput().IsTapped(ACTION_PAUSE)) {
-			UIManager::Show(UIManager::MENU_PAUSE);
+			UIManager::Push(UIManager::MENU_PAUSE);
 		}
 
 		GameState::GetInput().UpdateDir();
@@ -90,14 +94,19 @@ struct Game {
 		UIManager::Process();
 
 		// render
-		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
-		SDL_RenderClear(GameState::GetMainRenderer());
 
-		WorldManager::GetLevel().Draw(GameState::GetMainRenderer());
+		if (!SaveManager::instance->OverrideDrawing()) {
+			SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
+			SDL_RenderClear(GameState::GetMainRenderer());
 
-		UIManager::Draw();
+			WorldManager::GetLevel().Draw(GameState::GetMainRenderer());
 
-		SDL_RenderPresent(GameState::GetMainRenderer());
+			UIManager::Draw();
+
+			SDL_RenderPresent(GameState::GetMainRenderer());
+		}
+
+		SaveManager::instance->Draw();
 
 		// frame limiting
 		GameState::UpdateFrameEnd();

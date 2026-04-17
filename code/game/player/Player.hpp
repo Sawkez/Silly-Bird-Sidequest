@@ -11,6 +11,7 @@
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/CollisionResult.hpp"
+#include "engine/save/SaveManager.hpp"
 #include "engine/world/Room.hpp"
 #include "engine/world/WorldConstants.hpp"
 #include "game/player/IPlayer.hpp"
@@ -149,6 +150,7 @@ class Player : public IPlayer {
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
 		  _upgradeBits(upgrades) {
 		if (!HasUpgrade(UPGRADE_DASH)) HideScarf();
+		SaveManager::instance->saveData.upgrades = _upgradeBits;
 	}
 
 	const InputManager& GetInput() const override { return _input; }
@@ -219,7 +221,11 @@ class Player : public IPlayer {
 	void GiveUpgrade(int upgrade) override {
 		_upgradeBits |= (1 << upgrade);
 		if (upgrade == UPGRADE_DASH) ShowScarf();
+		SaveManager::instance->saveData.upgrades = _upgradeBits;
+		SaveManager::instance->Autosave();
 	}
+
+	void SetUpgrades(Uint8 upgrades) override { _upgradeBits = upgrades; }
 
 	void Process(float delta) override {
 		for (int i = 0; i < _TIMER_COUNT; i++) {

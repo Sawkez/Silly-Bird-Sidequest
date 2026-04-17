@@ -34,7 +34,7 @@ class RoomCamera : IProcessable {
 	void UpdateZoom() {
 		int windowWidth, windowHeight;
 		SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
-		UpdateZoom({float(windowWidth), float(windowHeight)});
+		UpdateZoom(Vector2{float(windowWidth), float(windowHeight)});
 	}
 
 	void UpdateZoom(Vector2 windowRes) {

@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 
+#include <cstring>
 #include <fstream>
 #include <vector>
 
@@ -11,6 +12,8 @@
 #include "engine/graphics/RenderChunk.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/save/SaveData.hpp"
+#include "engine/save/SaveManager.hpp"
 #include "engine/world/Room.hpp"
 #include "engine/world/RoomCamera.hpp"
 #include "engine/world/RoomNeighbor.hpp"
@@ -21,72 +24,26 @@ using namespace std;
 
 class Level : IProcessable, IDrawable {
    private:
+	static inline SDL_Surface* _spikeAtlas = IMG_Load("content/sidequest/tiles/special/spikes.png");
+
 	string _path;
 	SDL_Renderer* _renderer;
 	vector<SDL_Surface*> _atlases;
-	SDL_Surface* _spikeAtlas;
 	Room _currentRoom;
 	Player _player;
 	RoomCamera _roomCamera;
 	vector<RenderChunk> _renderChunks;
 
    public:
-	Level(const string& pathToFolder) : Level(pathToFolder, GameState::GetMainRenderer(), GameState::GetInput(), GameState::GetMainWindow()) {}
-
-	Level(const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
-		: Level(LoadJson(pathToFolder), pathToFolder, renderer, inputManager, window) {}
-
-	Level(yyjson_doc* json, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
-		: Level(yyjson_doc_get_root(json), pathToFolder, renderer, inputManager, window) {
-		yyjson_doc_free(json);
-	}
-
-	Level(yyjson_val* levelProperties, const string& pathToFolder, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window)
-		: _path(pathToFolder),
-		  _atlases(LoadAtlases(yyjson_obj_get(levelProperties, "tilesheet_sources"), pathToFolder)),
-		  _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
-		  _currentRoom(GetRoomPath(yyjson_get_int(yyjson_obj_get(levelProperties, "starting_room"))), _renderer, _atlases, _spikeAtlas, _player),
+	Level(const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, vector<SDL_Surface*> tileAtlases,
+		  int roomIndex, Uint8 playerUpgrades)
+		: _path(path),
+		  _atlases(tileAtlases),
+		  _currentRoom(GetRoomPath(roomIndex), renderer, _atlases, _spikeAtlas),
 		  _renderer(renderer),
-		  _player(Player(inputManager, renderer, _currentRoom, yyjson_get_int(yyjson_obj_get(levelProperties, "starting_upgrades")))),
+		  _player(inputManager, renderer, _currentRoom, playerUpgrades),
 		  _roomCamera(_player, _currentRoom, window),
-		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {
-		cout << "Finished loading level " << pathToFolder << "!!!" << endl;
-		_player.position.x = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_x"));
-		_player.position.y = (float)yyjson_get_num(yyjson_obj_get(levelProperties, "player_y"));
-
-		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
-
-		GameState::Unpause();
-	}
-
-	yyjson_doc* LoadJson(const string& pathToFolder) const {
-		ifstream jsonFile(pathToFolder + "/level.json");
-		if (!jsonFile.good()) {
-			cerr << "ERROR opening level.json file in " << pathToFolder << endl;
-		}
-
-		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
-
-		return yyjson_read(jsonString.data(), jsonString.length(), 0);
-	}
-
-	vector<SDL_Surface*> LoadAtlases(yyjson_val* sources, const string& pathToFolder) const {
-		vector<SDL_Surface*> atlases;
-
-		size_t idx, max;
-		yyjson_val* source;
-		yyjson_arr_foreach(sources, idx, max, source) {
-			bool custom = yyjson_get_bool(yyjson_obj_get(source, "custom"));
-
-			string path = custom ? pathToFolder : "content/sidequest";
-			path += "/tiles/fg/";
-			path += yyjson_get_str(yyjson_obj_get(source, "name"));
-
-			atlases.push_back(IMG_Load(path.data()));
-		}
-
-		return atlases;
-	}
+		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {}
 
 	std::string GetRoomPath(int index) { return _path + "/rooms/" + to_string(index); }
 
@@ -138,15 +95,30 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
 		GameState::Pause();
-		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas, _player);
+		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
-		_player.SetRespawnPosition(_currentRoom.GetNearestCheckpoint(_player.position));
 		_roomCamera.SetRoom(_currentRoom);
+
+		UpdateCheckpoint();
+		SaveManager::instance->saveData.room = room;
+		SaveManager::instance->Autosave();
 
 		DestroyRenderChunks();
 		_renderChunks = CreateRenderChunks(_currentRoom, _renderer);
 		GameState::Unpause();
+	}
+
+	void MovePlayerToCheckpoint(int checkpoint) {
+		Vector2 position = _currentRoom.GetCheckpoint(checkpoint);
+		_player.SetRespawnPosition(position);
+		_player.Respawn();
+	}
+
+	void UpdateCheckpoint() {
+		int checkpoint = _currentRoom.GetNearestCheckpoint(_player.position);
+		_player.SetRespawnPosition(_currentRoom.GetCheckpoint(checkpoint));
+		SaveManager::instance->saveData.checkpoint = checkpoint;
 	}
 
 	vector<RenderChunk> CreateRenderChunks(const Room& room, SDL_Renderer* renderer) const {

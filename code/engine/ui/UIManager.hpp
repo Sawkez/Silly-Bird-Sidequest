@@ -22,8 +22,8 @@ class UIManager {
 	static inline SDL_Texture* _texture = NULL;
 	static inline SDL_Renderer* _renderer;
 
-	static inline bool _visible = false;
-	static inline Menu* _currentMenu;
+	static inline std::vector<Menu*> _stack;
+	static inline int _stackTop = -1;
 
 	static Menu* _menus[_MENU_COUNT];
 
@@ -82,19 +82,41 @@ class UIManager {
 
 	static void Process() { lv_timer_handler(); }
 
-	static void ShowAsync(void* data) {
-		std::cout << "Asyncing!" << std::endl;
+	static void PushAsync(void* data) {
 		auto menu = (Menu*)data;
 
-		if (_visible) _currentMenu->Deactivate();
-		_currentMenu = menu;
+		if (_stackTop >= 0) _stack[_stackTop]->Deactivate();
+
+		_stack.push_back(menu);
+		_stackTop++;
 		menu->Activate();
-		_visible = true;
 	}
 
-	static void HideAsync(void* data) {
-		_currentMenu->Deactivate();
-		_visible = false;
+	static void PopAsync(void* data) {
+		_stack[_stackTop]->Deactivate();
+		_stackTop--;
+
+		if (_stackTop >= 0) _stack[_stackTop]->Activate();
+
+		_stack.pop_back();
+	}
+
+	static void ClearStackAsync(void* data) {
+		while (_stackTop >= 0) {
+			_stack[_stackTop]->Deactivate();
+			_stack.pop_back();
+			_stackTop--;
+		}
+	}
+
+	static void ClearStackAndPushAsync(void* data) {
+		ClearStackAsync(data);
+		PushAsync(data);
+	}
+
+	static void PopAndPushAsync(void* data) {
+		PopAsync(data);
+		PushAsync(data);
 	}
 
 	static void Resize(int windowWidth, int windowHeight) {
@@ -120,7 +142,7 @@ class UIManager {
 	}
 
 	static bool HandleEvent(const SDL_Event& event) {
-		if (!_visible) return false;
+		if (_stackTop < 0) return false;
 
 		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
 			Resize(event.window.data1, event.window.data2);
@@ -131,16 +153,18 @@ class UIManager {
 	}
 
 	static void Draw() {
-		if (!_visible) return;
+		if (_stackTop < 0) return;
 		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
 	}
 
-	static void Show(MenuID menu) { Show(_menus[menu]); }
-
-	static void Show(Menu* menu) { lv_async_call(ShowAsync, menu); }
-
-	// static void Hide() { lv_async_call(HideAsync, NULL); }
-	static void Hide() { HideAsync(NULL); }
+	static void Push(MenuID menu) { Push(_menus[menu]); }
+	static void Push(Menu* menu) { lv_async_call(PushAsync, menu); }
+	static void Pop() { lv_async_call(PopAsync, NULL); }
+	static void ClearStack() { lv_async_call(ClearStackAsync, nullptr); }
+	static void ClearStackAndPush(MenuID menu) { ClearStackAndPush(_menus[menu]); }
+	static void ClearStackAndPush(Menu* menu) { lv_async_call(ClearStackAndPushAsync, menu); }
+	static void PopAndPush(MenuID menu) { PopAndPush(_menus[menu]); }
+	static void PopAndPush(Menu* menu) { lv_async_call(PopAndPushAsync, menu); }
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
 };
