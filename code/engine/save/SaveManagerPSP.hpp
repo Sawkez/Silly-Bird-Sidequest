@@ -113,8 +113,6 @@ class SaveManagerPSP : public SaveManagerBase {
 		sceUtilitySavedataInitStart(&params);
 	}
 
-	void Autoload() override {}
-
 	void Draw() override {
 		if (_visible) {
 			sceGuStart(GU_DIRECT, list);

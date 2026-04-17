@@ -16,7 +16,6 @@ class SaveManagerBase {
 	virtual void ShowSaveMenu() = 0;
 	virtual void ShowLoadMenu() = 0;
 	virtual void Autosave() = 0;
-	virtual void Autoload() = 0;
 
 	virtual void Draw() = 0;
 	virtual bool OverrideDrawing() const = 0;
