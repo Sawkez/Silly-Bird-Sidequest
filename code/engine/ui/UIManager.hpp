@@ -109,6 +109,16 @@ class UIManager {
 		}
 	}
 
+	static void ClearStackAndPushAsync(void* data) {
+		ClearStackAsync(data);
+		PushAsync(data);
+	}
+
+	static void PopAndPushAsync(void* data) {
+		PopAsync(data);
+		PushAsync(data);
+	}
+
 	static void Resize(int windowWidth, int windowHeight) {
 #if !__PSP__
 		_buf.resize(windowWidth * windowHeight * 2);
@@ -148,12 +158,13 @@ class UIManager {
 	}
 
 	static void Push(MenuID menu) { Push(_menus[menu]); }
-
 	static void Push(Menu* menu) { lv_async_call(PushAsync, menu); }
-
 	static void Pop() { lv_async_call(PopAsync, NULL); }
-
 	static void ClearStack() { lv_async_call(ClearStackAsync, nullptr); }
+	static void ClearStackAndPush(MenuID menu) { ClearStackAndPush(_menus[menu]); }
+	static void ClearStackAndPush(Menu* menu) { lv_async_call(ClearStackAndPushAsync, menu); }
+	static void PopAndPush(MenuID menu) { PopAndPush(_menus[menu]); }
+	static void PopAndPush(Menu* menu) { lv_async_call(PopAndPushAsync, menu); }
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
 };
