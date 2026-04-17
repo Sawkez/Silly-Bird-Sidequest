@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "engine/ui/DirectoryListMenu.hpp"
 #include "lvgl/lvgl.h"
 
@@ -10,4 +12,5 @@ class ModSelectMenu : public DirectoryListMenu {
 	}
 
 	lv_event_cb_t GetSelectedCallback() const override { return SelectedCallback; }
+	std::string GetDirectoryToList() const override { return "mods"; }
 };

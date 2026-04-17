@@ -13,9 +13,9 @@ class DirectorySelectButton {
 	std::string _path;
 
    public:
-	DirectorySelectButton(lv_obj_t* parent, const std::string& path, lv_event_cb_t callback)
+	DirectorySelectButton(lv_obj_t* parent, const std::string& path, const std::string& label, lv_event_cb_t callback)
 		: _button(lv_button_create(parent)), _label(lv_label_create(_button)), _path(path) {
-		lv_label_set_text(_label, _path.data());
+		lv_label_set_text(_label, label.data());
 		lv_group_remove_obj(_button);
 
 		lv_obj_add_event_cb(_button, callback, LV_EVENT_CLICKED, &_path);

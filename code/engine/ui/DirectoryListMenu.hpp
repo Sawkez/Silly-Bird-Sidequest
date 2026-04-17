@@ -9,10 +9,6 @@
 #include "lvgl/lvgl.h"
 
 class DirectoryListMenu : public MenuTransparentBG {
-	lv_obj_t* _panel;
-	std::vector<DirectorySelectButton> _mods;
-	std::vector<std::string> _modPaths;
-
 	static void KeyPressedCallback(lv_event_t* event) {
 		if (lv_indev_get_key(lv_indev_active()) == LV_KEY_ESC) {
 			UIManager::Pop();
@@ -20,7 +16,12 @@ class DirectoryListMenu : public MenuTransparentBG {
 	}
 
    protected:
+	lv_obj_t* _panel;
+	std::vector<DirectorySelectButton> _buttons;
+	std::vector<std::string> _paths;
+
 	virtual lv_event_cb_t GetSelectedCallback() const = 0;
+	virtual std::string GetDirectoryToList() const = 0;
 
    public:
 	void Init() override {
@@ -36,15 +37,15 @@ class DirectoryListMenu : public MenuTransparentBG {
 
 		int modCount = 0;
 
-		for (auto& entry : std::filesystem::directory_iterator("mods")) {
-			_modPaths.push_back(entry.path().string());
+		for (auto& entry : std::filesystem::directory_iterator(GetDirectoryToList())) {
+			_paths.push_back(entry.path().string());
 			modCount++;
 		}
 
-		_mods.reserve(modCount);
+		_buttons.reserve(modCount);
 
-		for (const auto& modPath : _modPaths) {
-			_mods.emplace_back(_panel, modPath, GetSelectedCallback());
+		for (const auto& modPath : _paths) {
+			_buttons.emplace_back(_panel, modPath, modPath, GetSelectedCallback());
 		}
 
 		lv_obj_add_event_cb(_panel, KeyPressedCallback, LV_EVENT_KEY, nullptr);

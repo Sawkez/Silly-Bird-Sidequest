@@ -97,11 +97,14 @@ class UIManager {
 		_stackTop--;
 
 		if (_stackTop >= 0) _stack[_stackTop]->Activate();
+
+		_stack.pop_back();
 	}
 
 	static void ClearStackAsync(void* data) {
 		while (_stackTop >= 0) {
 			_stack[_stackTop]->Deactivate();
+			_stack.pop_back();
 			_stackTop--;
 		}
 	}
@@ -148,8 +151,7 @@ class UIManager {
 
 	static void Push(Menu* menu) { lv_async_call(PushAsync, menu); }
 
-	// static void Pop() { lv_async_call(PopAsync, NULL); }
-	static void Pop() { PopAsync(NULL); }
+	static void Pop() { lv_async_call(PopAsync, NULL); }
 
 	static void ClearStack() { lv_async_call(ClearStackAsync, nullptr); }
 
