@@ -25,7 +25,7 @@ class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
 
 	void ShowSaveMenu() override { UIManager::Push(&_saveMenu); }
 	void ShowLoadMenu() override { UIManager::Push(&_loadMenu); }
-	void Autosave() override {}
+	void Autosave() override { SaveToDirectory(GetUserDir() + "/auto"); }
 
 	void SaveToDirectory(const std::string& path) override {
 		std::filesystem::create_directories(std::filesystem::path(path));
