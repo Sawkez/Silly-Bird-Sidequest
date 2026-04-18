@@ -41,7 +41,7 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 ## Building from Linux
 ### For Linux
 1. Install dependencies:
-    - Fedora: ```sudo dnf install cmake gcc g++ clang ninja-build sdl3-devel```  
+    - Fedora: ```sudo dnf install cmake gcc g++ clang ninja-build SDL3-devel```  
     - Ubuntu: ```sudo apt install cmake gcc g++ clang ninja-build libsdl3-dev git```  
 
 2. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
