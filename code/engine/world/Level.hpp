@@ -57,12 +57,12 @@ class Level : IProcessable, IDrawable {
 	void CheckRoomTransition() {
 		SDL_FRect currentRoomRect = _currentRoom.GetFRect();
 
-		if (SDL_HasIntersectionF(&_player.GetCollision(), &currentRoomRect)) {
+		if (SDL_HasRectIntersectionFloat(&_player.GetCollision(), &currentRoomRect)) {
 			return;
 		}
 
 		for (const auto& neighbor : _currentRoom.GetNeighbors()) {
-			if (SDL_HasIntersectionF(&_player.GetCollision(), &neighbor)) {
+			if (SDL_HasRectIntersectionFloat(&_player.GetCollision(), &neighbor)) {
 				SetCurrentRoom(neighbor.index);
 			}
 		}
@@ -79,7 +79,7 @@ class Level : IProcessable, IDrawable {
 
 		for (const auto& chunk : _renderChunks) {
 			SDL_Rect chunkRect = chunk.GetRect();
-			if (SDL_HasIntersection(&camRect, &chunkRect)) {
+			if (SDL_HasRectIntersection(&camRect, &chunkRect)) {
 				chunk.DrawRoom(renderer);
 				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
 

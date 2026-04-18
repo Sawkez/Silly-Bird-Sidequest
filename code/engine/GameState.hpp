@@ -41,7 +41,7 @@ class GameState {
 
 	static void Unpause() {
 		_paused = false;
-		_frameEndMs = SDL_GetTicks64();
+		_frameEndMs = SDL_GetTicks();
 		_frameStartMs = _frameEndMs - _frameDuration;
 		_input.ResetToState();
 	}
@@ -58,7 +58,7 @@ class GameState {
 	}
 
 	static void UpdateFrameStart() { _frameStartMs = _frameEndMs; }
-	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks64(); }
+	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks(); }
 
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 

@@ -29,7 +29,7 @@ struct Game {
 	Uint64 lastPerfCounter = 0;
 
 	Game(int argc, char* argv[]) {
-		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
+		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | IMG_INIT_PNG);
 
 		GameState::Init();
 		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
@@ -72,7 +72,7 @@ struct Game {
 			if (UIManager::HandleEvent(event)) continue;
 			if (GameState::GetInput().HandleEvent(event)) continue;
 
-			if (event.type == SDL_QUIT) {
+			if (event.type == SDL_EVENT_QUIT) {
 				GameState::SetRunning(false);
 				continue;
 			}

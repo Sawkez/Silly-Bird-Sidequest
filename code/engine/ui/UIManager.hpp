@@ -145,7 +145,7 @@ class UIManager {
 	static bool HandleEvent(const SDL_Event& event) {
 		if (_stackTop < 0) return false;
 
-		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_EVENT_WINDOW_RESIZED) {
 			Resize(event.window.data1, event.window.data2);
 			return true;
 		}
@@ -155,7 +155,7 @@ class UIManager {
 
 	static void Draw() {
 		if (_stackTop < 0) return;
-		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+		SDL_RenderTexture(_renderer, _texture, NULL, NULL);
 	}
 
 	static void Push(MenuID menu) { Push(_menus[menu]); }

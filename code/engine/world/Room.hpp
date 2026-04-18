@@ -55,7 +55,7 @@ class Room {
 		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))),
 		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))),
 		  _roomObjects(LoadRoomObjects(yyjson_obj_get(roomJson, "room_objects"))) {
-		cout << SDL_GetTicks64() << ": finished room load" << endl;
+		cout << SDL_GetTicks() << ": finished room load" << endl;
 	}
 
 	Room(const Room&) = delete;
@@ -83,7 +83,7 @@ class Room {
 	*/
 
 	yyjson_val* LoadJson(const string& jsonPath) const {
-		cout << SDL_GetTicks64() << ": loading JSON" << endl;
+		cout << SDL_GetTicks() << ": loading JSON" << endl;
 		ifstream jsonFile(jsonPath);
 		if (!jsonFile.good()) {
 			cerr << "ERROR opening file: " << jsonPath << endl;
@@ -98,7 +98,7 @@ class Room {
 	}
 
 	vector<CollisionRect> LoadColliders(yyjson_val* collidersJson) const {
-		cout << SDL_GetTicks64() << ": loading colliders" << endl;
+		cout << SDL_GetTicks() << ": loading colliders" << endl;
 		vector<CollisionRect> colliders;
 
 		size_t idx, max;
@@ -109,7 +109,7 @@ class Room {
 	}
 
 	vector<SpikeCollider> LoadSpikeColliders(const string& folderPath, int spikeCount) const {
-		cout << SDL_GetTicks64() << ": loading spike colliders" << endl;
+		cout << SDL_GetTicks() << ": loading spike colliders" << endl;
 		cout << "Spike count now " << spikeCount << endl;
 		vector<SpikeCollider> spikes;
 
@@ -131,7 +131,7 @@ class Room {
 		yyjson_val* chunk;
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
-			cout << SDL_GetTicks64() << ": loading chunk " << idx << endl;
+			cout << SDL_GetTicks() << ": loading chunk " << idx << endl;
 			chunks.emplace_back(folderPath + "/" + to_string(idx), chunk, renderer, atlases, spikeAtlas);
 		}
 
@@ -139,7 +139,7 @@ class Room {
 	}
 
 	vector<SDL_Point> LoadLedges(yyjson_val* ledgesJson) const {
-		cout << SDL_GetTicks64() << ": loading ledges" << endl;
+		cout << SDL_GetTicks() << ": loading ledges" << endl;
 		vector<SDL_Point> ledges;
 
 		size_t idx, max;
@@ -152,7 +152,7 @@ class Room {
 	}
 
 	vector<RoomNeighbor> LoadNeighbors(yyjson_val* neighborsJson) const {
-		cout << SDL_GetTicks64() << ": loading neighbors" << endl;
+		cout << SDL_GetTicks() << ": loading neighbors" << endl;
 		vector<RoomNeighbor> neighbors;
 
 		size_t idx, max;
@@ -163,7 +163,7 @@ class Room {
 	}
 
 	vector<Vector2> LoadCheckpoints(yyjson_val* checkpointsJson) const {
-		cout << SDL_GetTicks64() << ": loading checkpoints" << endl;
+		cout << SDL_GetTicks() << ": loading checkpoints" << endl;
 		vector<Vector2> checkpoints;
 
 		size_t idx, max;
@@ -175,7 +175,7 @@ class Room {
 	}
 
 	vector<IRoomObject*> LoadRoomObjects(yyjson_val* objectsJson) const {
-		cout << SDL_GetTicks64() << ": loading room objects" << endl;
+		cout << SDL_GetTicks() << ": loading room objects" << endl;
 		vector<IRoomObject*> objects;
 
 		size_t idx, max;

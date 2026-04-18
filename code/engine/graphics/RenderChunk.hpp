@@ -68,7 +68,7 @@ class RenderChunk {
 		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom, (float(destination.y) + drawOffset.y - 8) * zoom,
 							   float(destination.w) * zoom, float(destination.h) * zoom};
 
-		SDL_RenderCopyF(renderer, _renderTexture, NULL, &FDestination);
+		SDL_RenderTexture(renderer, _renderTexture, NULL, &FDestination);
 	}
 
 	SDL_Rect GetRect() const { return _roomChunk.get().GetRect(); }

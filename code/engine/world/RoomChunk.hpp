@@ -105,7 +105,7 @@ class RoomChunk {
 		}
 
 		SDL_Texture* cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
-		SDL_FreeSurface(cacheSurface);
+		SDL_DestroySurface(cacheSurface);
 
 		return cache;
 	}
@@ -124,7 +124,7 @@ class RoomChunk {
 		destination.x = 0;
 		destination.y = 0;
 
-		SDL_RenderCopy(renderer, _cache, NULL, &destination);
+		SDL_RenderTexture(renderer, _cache, NULL, &destination);
 	}
 
 	int GetWidth() const { return _rect.w; }

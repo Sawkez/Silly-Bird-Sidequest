@@ -18,7 +18,7 @@ class PlayerDetector : public IRoomObject {
 	void Process(float delta, IPlayer& player) override {
 		if (!_active) return;
 
-		if (SDL_HasIntersectionF(&player.GetCollision(), &_rect)) {
+		if (SDL_HasRectIntersectionFloat(&player.GetCollision(), &_rect)) {
 			this->Activated(player);
 		}
 	}

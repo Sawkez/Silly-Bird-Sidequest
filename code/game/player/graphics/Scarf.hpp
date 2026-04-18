@@ -84,7 +84,7 @@ class Scarf : IProcessable, IDrawableRect {
 			bool colliding = false;
 
 			for (auto collider : _staticColliders.get()) {
-				if (SDL_PointInFRect(&pos, &collider)) {
+				if (SDL_PointInRectFloat(&pos, &collider)) {
 					colliding = true;
 					break;
 				}
@@ -107,7 +107,7 @@ class Scarf : IProcessable, IDrawableRect {
 
 		SDL_FRect rect;
 		Vector2 drawPoints[2] = {_segmentPositions[0], _segmentPositions[SEGMENT_COUNT - 1]};
-		SDL_EncloseFPoints(drawPoints, 2, NULL, &rect);
+		SDL_GetRectEnclosingPointsFloat(drawPoints, 2, NULL, &rect);
 		return rect;
 	}
 
@@ -118,7 +118,7 @@ class Scarf : IProcessable, IDrawableRect {
 		rect.x += drawOffset.x;
 		rect.y += drawOffset.y;
 
-		if (!SDL_HasIntersectionF(&rect, &drawTargetRect)) {
+		if (!SDL_HasRectIntersectionFloat(&rect, &drawTargetRect)) {
 			return false;
 		}
 

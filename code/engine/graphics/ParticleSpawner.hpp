@@ -82,7 +82,7 @@ class ParticleSpawner : public IProcessable, public IDrawableRect {
 		dest.x += drawOffset.x;
 		dest.y += drawOffset.y;
 
-		if (!SDL_HasIntersectionF(&dest, &drawTargetRect)) {
+		if (!SDL_HasRectIntersectionFloat(&dest, &drawTargetRect)) {
 			return false;
 		}
 

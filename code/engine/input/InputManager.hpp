@@ -51,15 +51,15 @@ class InputManager {
 	bool _lastInputWasController = false;
 
 	Action _actions[_ACTION_COUNT]{
-		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_INVALID),			 // jump
-		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, Action::LEFT_TRIGGER_BUTTON),	 // dive
-		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_INVALID),		 // left
-		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_INVALID),		 // right
-		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_INVALID),			 // up
-		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_INVALID),		 // down
-		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_INVALID),				 // interact
-		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_INVALID),				 // pan camera
-		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_INVALID)		 // pause
+		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_INVALID),			 // jump
+		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, Action::LEFT_TRIGGER_BUTTON),	 // dive
+		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT, SDL_GAMEPAD_BUTTON_INVALID),		 // left
+		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_INVALID),		 // right
+		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_INVALID),			 // up
+		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_INVALID),		 // down
+		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_INVALID),				 // interact
+		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_INVALID),				 // pan camera
+		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_INVALID)		 // pause
 	};
 
 	bool IsDirectionAction(int id) { return id >= ACTION_LEFT && id <= ACTION_DOWN; }
@@ -69,26 +69,26 @@ class InputManager {
 
 	bool HandleEvent(const SDL_Event& event) {
 		switch (event.type) {
-			case SDL_CONTROLLERDEVICEADDED:
-			case SDL_CONTROLLERDEVICEREMOVED:
+			case SDL_EVENT_GAMEPAD_ADDED:
+			case SDL_EVENT_GAMEPAD_REMOVED:
 				HandleEvent(event.cdevice);
 				return true;
 
 #if !__PSP__
 
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
+			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_UP:
 				HandleEvent(event.key);
 				return true;
 
 #endif
 
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP:
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 				HandleEvent(event.cbutton);
 				return true;
 
-			case SDL_CONTROLLERAXISMOTION:
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 				return HandleEvent(event.caxis);
 		}
 
@@ -114,7 +114,7 @@ class InputManager {
 		_actions[actionId].SetDown(event.state == SDL_PRESSED);
 	}
 
-	void HandleEvent(const SDL_ControllerButtonEvent& event) {
+	void HandleEvent(const SDL_GamepadButtonEvent& event) {
 		_lastInputWasController = true;
 		_lastUsedJoystick = event.which;
 
@@ -133,27 +133,27 @@ class InputManager {
 		return false;
 	}
 
-	bool HandleEvent(const SDL_ControllerAxisEvent& event) {
+	bool HandleEvent(const SDL_GamepadAxisEvent& event) {
 		_lastInputWasController = true;
 
 		switch (event.axis) {
-			case SDL_CONTROLLER_AXIS_LEFTX:
-			case SDL_CONTROLLER_AXIS_LEFTY:
+			case SDL_GAMEPAD_AXIS_LEFTX:
+			case SDL_GAMEPAD_AXIS_LEFTY:
 				if (abs(event.value) > JOY_AXIS_DEADZONE) {
 					_dirJoystickPriority = true;
 				}
 #if !__PSP__
-			case SDL_CONTROLLER_AXIS_RIGHTX:
-			case SDL_CONTROLLER_AXIS_RIGHTY:
+			case SDL_GAMEPAD_AXIS_RIGHTX:
+			case SDL_GAMEPAD_AXIS_RIGHTY:
 #endif
 				_lastUsedJoystick = event.which;
 				return true;
 
 #if !__PSP__
-			case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+			case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
 				return ButtonEvent(Action::LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
 
-			case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+			case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
 				return ButtonEvent(Action::RIGHT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
 #endif
 		}
@@ -161,13 +161,13 @@ class InputManager {
 		return false;
 	}
 
-	void HandleEvent(const SDL_ControllerDeviceEvent& event) { SDL_GameControllerOpen(event.which); }
+	void HandleEvent(const SDL_GamepadDeviceEvent& event) { SDL_OpenGamepad(event.which); }
 
 	void UpdateDir() {
 		if (_dirJoystickPriority) {
-			SDL_GameController* controller = SDL_GameControllerFromInstanceID(_lastUsedJoystick);
-			_dir.x = float(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX)) / SDL_MAX_SINT16;
-			_dir.y = float(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTY)) / SDL_MAX_SINT16;
+			SDL_Gamepad* controller = SDL_GetGamepadFromID(_lastUsedJoystick);
+			_dir.x = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_MAX_SINT16;
+			_dir.y = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_MAX_SINT16;
 
 			if (_dir.LengthSquared() > JOY_DEADZONE) {
 				float angle = _dir.Angle();
@@ -226,7 +226,7 @@ class InputManager {
 	}
 
 	void ResetToControllerState() {
-		SDL_GameController* controller = SDL_GameControllerFromInstanceID(_lastUsedJoystick);
+		SDL_Gamepad* controller = SDL_GetGamepadFromID(_lastUsedJoystick);
 		for (int i = 0; i < _ACTION_COUNT; i++) {
 			_actions[i].ResetToControllerState(controller);
 		}

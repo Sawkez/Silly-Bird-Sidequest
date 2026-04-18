@@ -49,7 +49,7 @@ class DiveParticle : public IParticle {
 		SDL_FRect destination{_position.x + drawOffset.x - center.x, _position.y - center.y + drawOffset.y, TEXTURE_SIZE, TEXTURE_SIZE};
 		destination = Math::ScaleRect(destination, center, scale);
 
-		SDL_RenderCopyExF(renderer, _texture, NULL, &destination, _angle, NULL, SDL_FLIP_NONE);
+		SDL_RenderTextureRotated(renderer, _texture, NULL, &destination, _angle, NULL, SDL_FLIP_NONE);
 	}
 
 	bool IsActive() const override { return _time > 0.0; }

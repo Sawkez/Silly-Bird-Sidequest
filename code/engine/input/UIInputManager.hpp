@@ -20,12 +20,12 @@ class UIInputManager {
 
 	static inline lv_group_t* _mainGroup = NULL;
 
-	static inline UIAction _actions[_UI_ACTION_COUNT] = {{SDL_SCANCODE_A, SDL_CONTROLLER_BUTTON_DPAD_LEFT, LV_KEY_LEFT},	// left
-														 {SDL_SCANCODE_D, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, LV_KEY_RIGHT},	// right
-														 {SDL_SCANCODE_W, SDL_CONTROLLER_BUTTON_DPAD_UP, LV_KEY_UP},		// up
-														 {SDL_SCANCODE_S, SDL_CONTROLLER_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	// down
-														 {SDL_SCANCODE_SPACE, SDL_CONTROLLER_BUTTON_A, LV_KEY_ENTER},		// enter
-														 {SDL_SCANCODE_ESCAPE, SDL_CONTROLLER_BUTTON_B, LV_KEY_ESC}};		// esc
+	static inline UIAction _actions[_UI_ACTION_COUNT] = {{SDL_SCANCODE_A, SDL_GAMEPAD_BUTTON_DPAD_LEFT, LV_KEY_LEFT},	// left
+														 {SDL_SCANCODE_D, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, LV_KEY_RIGHT},	// right
+														 {SDL_SCANCODE_W, SDL_GAMEPAD_BUTTON_DPAD_UP, LV_KEY_UP},		// up
+														 {SDL_SCANCODE_S, SDL_GAMEPAD_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	// down
+														 {SDL_SCANCODE_SPACE, SDL_GAMEPAD_BUTTON_SOUTH, LV_KEY_ENTER},		// enter
+														 {SDL_SCANCODE_ESCAPE, SDL_GAMEPAD_BUTTON_EAST, LV_KEY_ESC}};		// esc
 
    public:
 #if !__PSP__
@@ -62,8 +62,8 @@ class UIInputManager {
 
 		switch (event.type) {
 #if !__PSP__
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
+			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
 					if (_actions[i].key == event.key.keysym.scancode) {
 						out = _actions[i].out;
@@ -74,14 +74,14 @@ class UIInputManager {
 				if (event.key.repeat && out == LV_KEY_ESC) return true;
 				break;
 
-			case SDL_MOUSEMOTION:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
+			case SDL_EVENT_MOUSE_MOTION:
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_BUTTON_UP:
 				lv_indev_read(_mouseInput);
 				return true;
 #endif
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP:
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
 					if (_actions[i].button == event.cbutton.button) {
 						out = _actions[i].out;
@@ -97,7 +97,7 @@ class UIInputManager {
 		if (out < 0) {
 			return true;
 		}
-		bool pressed = event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN;
+		bool pressed = event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN;
 
 		if (!pressed && out != _event.key) {
 			return true;
@@ -108,7 +108,7 @@ class UIInputManager {
 			lv_indev_read(_keypadInput);
 		}
 
-		_event = UIActionEvent(out, event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN);
+		_event = UIActionEvent(out, event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN);
 		lv_indev_read(_keypadInput);
 		return true;
 	}

@@ -53,8 +53,8 @@ class UpgradePickup : public PlayerDetector {
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		if (!_active) return false;
-		if (!SDL_HasIntersectionF(&drawTargetRect, &_drawRect)) return false;
-		SDL_RenderCopyF(renderer, _texture, NULL, &_drawRect);
+		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &_drawRect)) return false;
+		SDL_RenderTexture(renderer, _texture, NULL, &_drawRect);
 		return true;
 	}
 
