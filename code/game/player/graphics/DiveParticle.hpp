@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "engine/Curve.hpp"
 #include "engine/Random.hpp"

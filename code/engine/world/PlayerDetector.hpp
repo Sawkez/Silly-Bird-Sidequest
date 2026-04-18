@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "engine/world/IRoomObject.hpp"
 #include "game/player/IPlayer.hpp"
