@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project("Silly Bird Sidequest")
 
-set(CMAKE_BUILD_TYPE Debug)
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    set(BUILD_PRX 1)
+endif()
 
 set(LV_BUILD_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h" CACHE PATH "Path to custom lv_conf.h" FORCE)
 set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
