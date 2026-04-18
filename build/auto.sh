@@ -47,7 +47,7 @@ case "$PLATFORM" in
     ;;
 
     *)
-        echo "Whatever platform that is, either you spelled it wrong or i don't support it (yet)"
+        echo "🧟 Whatever platform that is, either you spelled it wrong or i don't support it (yet)"
         exit 1
     ;;
 esac
