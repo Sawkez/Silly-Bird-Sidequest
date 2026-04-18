@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include <fstream>
 #include <iostream>
@@ -86,7 +86,7 @@ class RoomChunk {
 
 	SDL_Texture* CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases, SDL_Surface* spikeAtlas,
 							const std::string& chunkFilePath, int tileCount, int spikeCount) {
-		SDL_Surface* cacheSurface = SDL_CreateRGBSurface(0, _rect.w, _rect.h, 16, 0xF000, 0x0F00, 0x00F0, 0x000F);
+				SDL_Surface* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_RGBA4444);
 
 		if (cacheSurface == NULL) {
 			std::cerr << "ERROR when caching chunk: " << SDL_GetError() << std::endl;
@@ -105,7 +105,7 @@ class RoomChunk {
 		}
 
 		SDL_Texture* cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
-		SDL_FreeSurface(cacheSurface);
+		SDL_DestroySurface(cacheSurface);
 
 		return cache;
 	}
@@ -120,11 +120,9 @@ class RoomChunk {
 			std::cerr << "ERROR: chunk not cached!" << std::endl;
 		}
 
-		SDL_Rect destination = _rect;
-		destination.x = 0;
-		destination.y = 0;
+		SDL_FRect destination{0, 0, float(_rect.w), float(_rect.h)};
 
-		SDL_RenderCopy(renderer, _cache, NULL, &destination);
+		SDL_RenderTexture(renderer, _cache, NULL, &destination);
 	}
 
 	int GetWidth() const { return _rect.w; }

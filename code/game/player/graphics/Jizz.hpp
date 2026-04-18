@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include <fstream>
 #include <string>
@@ -46,7 +46,7 @@ class Jizz {
 	}
 
 	SDL_Palette* LoadPalette(yyjson_val* json) const {
-		SDL_Palette* palette = SDL_AllocPalette(PALETTE_SIZE + 1);
+		SDL_Palette* palette = SDL_CreatePalette(PALETTE_SIZE + 1);
 		SDL_Color colors[PALETTE_SIZE + 1];
 		colors[0] = {0, 0, 0, 0};
 
@@ -133,7 +133,7 @@ class Jizz {
 			std::cerr << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << std::endl;
 		}
 
-		SDL_FreeSurface(surface);
+		SDL_DestroySurface(surface);
 		return texture;
 	}
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <iostream>
 #include <limits>
@@ -48,10 +48,10 @@ struct CollisionRect : SDL_FRect, IDrawableRect {
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {
 		SDL_FRect destination{x + drawOffset.x, y + drawOffset.y, w, h};
 
-		if (!SDL_HasIntersectionF(&drawTargetRect, &destination)) return false;
+		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &destination)) return false;
 
 		SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
-		SDL_RenderDrawRectF(renderer, &destination);
+		SDL_RenderRect(renderer, &destination);
 		return true;
 	}
 

@@ -322,14 +322,14 @@ class Player : public IPlayer {
 		_floorCheck.y = position.y + FLOOR_CHECK_OFFSET.y;
 
 		for (const auto& collider : _room.get().GetColliders()) {
-			if (SDL_HasIntersectionF(&_ceilingCheck, &collider)) {
+			if (SDL_HasRectIntersectionFloat(&_ceilingCheck, &collider)) {
 				_closeToCeiling = true;
 				break;
 			}
 		}
 
 		for (const auto& collider : _room.get().GetColliders()) {
-			if (SDL_HasIntersectionF(&_floorCheck, &collider)) {
+			if (SDL_HasRectIntersectionFloat(&_floorCheck, &collider)) {
 				_closeToFloor = true;
 				break;
 			}

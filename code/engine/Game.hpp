@@ -1,5 +1,5 @@
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include <iostream>
 
@@ -16,7 +16,7 @@
 #include "game/ui/title/TitleScreenMenu.hpp"
 
 /*
-#if __PSP__
+#if SDL_PLATFORM_PSP
 #include <pspdebug.h>
 #include <pspkernel.h>
 #include <pspsdk.h>
@@ -29,7 +29,7 @@ struct Game {
 	Uint64 lastPerfCounter = 0;
 
 	Game(int argc, char* argv[]) {
-		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | IMG_INIT_PNG);
+		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
 		GameState::Init();
 		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
@@ -67,12 +67,12 @@ struct Game {
 		while (SDL_PollEvent(&event) != 0) {
 			if (SaveManager::instance->OverrideDrawing()) continue;
 
-			if (event.type == SDL_WINDOWEVENT) WorldManager::GetLevel().GetCamera().UpdateZoom();
+			if (event.type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 			if (UIManager::HandleEvent(event)) continue;
 			if (GameState::GetInput().HandleEvent(event)) continue;
 
-			if (event.type == SDL_QUIT) {
+			if (event.type == SDL_EVENT_QUIT) {
 				GameState::SetRunning(false);
 				continue;
 			}

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include <string>
 
@@ -24,7 +24,11 @@ class Animation {
    public:
 	Animation(SDL_Texture* texture, int frameCount, float fps, bool looping = true)
 		: _texture(texture), _frameCount(frameCount), _frameDuration(1.0 / fps), _looping(looping) {
-		SDL_QueryTexture(texture, NULL, NULL, &_frameWidth, &_frameHeight);
+		float w, h;
+		SDL_GetTextureSize(texture, &w, &h);
+		_frameWidth = int(w);
+		_frameHeight = int(h);
+
 		_frameWidth /= _frameCount;
 	}
 
@@ -56,7 +60,7 @@ class Animation {
 		}
 	}
 
-	SDL_Rect GetSourceRect() const { return SDL_Rect{_frame * _frameWidth, 0, _frameWidth, _frameHeight}; }
+	SDL_FRect GetSourceRect() const { return SDL_FRect{float(_frame) * _frameWidth, 0, float(_frameWidth), float(_frameHeight)}; }
 
 	SDL_Texture* GetTexture() const { return _texture; }
 

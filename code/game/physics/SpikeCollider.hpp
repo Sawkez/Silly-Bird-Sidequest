@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <fstream>
 #include <iostream>
@@ -46,7 +46,7 @@ class SpikeCollider : IDrawable {
 				SDL_FRect spikeRect{float(_x) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].x,
 									float(_y) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].y, SPIKE_SIZE, SPIKE_SIZE};
 
-				if (SDL_HasIntersectionF(&rect, &spikeRect)) return true;
+				if (SDL_HasRectIntersectionFloat(&rect, &spikeRect)) return true;
 			}
 		}
 
@@ -54,7 +54,7 @@ class SpikeCollider : IDrawable {
 	}
 
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset) const override {
-		SDL_RenderDrawPoint(renderer, _x * 8 + int(drawOffset.x), _y * 8 + int(drawOffset.y));
-		// SDL_RenderDrawPoint(renderer, _x * 8, _y * 8);
+		SDL_RenderPoint(renderer, _x * 8 + int(drawOffset.x), _y * 8 + int(drawOffset.y));
+		// SDL_RenderPoint(renderer, _x * 8, _y * 8);
 	}
 };

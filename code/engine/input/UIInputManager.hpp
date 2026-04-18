@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "engine/input/UIAction.hpp"
 #include "engine/input/UIActionEvent.hpp"
@@ -13,24 +13,28 @@ class UIInputManager {
 	UIInputManager() = delete;
 	static inline auto _event = UIActionEvent();
 
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 	static inline lv_indev_t* _mouseInput = NULL;
 #endif
 	static inline lv_indev_t* _keypadInput = NULL;
 
 	static inline lv_group_t* _mainGroup = NULL;
 
-	static inline UIAction _actions[_UI_ACTION_COUNT] = {{SDL_SCANCODE_A, SDL_CONTROLLER_BUTTON_DPAD_LEFT, LV_KEY_LEFT},	// left
-														 {SDL_SCANCODE_D, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, LV_KEY_RIGHT},	// right
-														 {SDL_SCANCODE_W, SDL_CONTROLLER_BUTTON_DPAD_UP, LV_KEY_UP},		// up
-														 {SDL_SCANCODE_S, SDL_CONTROLLER_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	// down
-														 {SDL_SCANCODE_SPACE, SDL_CONTROLLER_BUTTON_A, LV_KEY_ENTER},		// enter
-														 {SDL_SCANCODE_ESCAPE, SDL_CONTROLLER_BUTTON_B, LV_KEY_ESC}};		// esc
+	static inline UIAction _actions[_UI_ACTION_COUNT] = {{SDL_SCANCODE_A, SDL_GAMEPAD_BUTTON_DPAD_LEFT, LV_KEY_LEFT},	 // left
+														 {SDL_SCANCODE_D, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, LV_KEY_RIGHT},	 // right
+														 {SDL_SCANCODE_W, SDL_GAMEPAD_BUTTON_DPAD_UP, LV_KEY_UP},		 // up
+														 {SDL_SCANCODE_S, SDL_GAMEPAD_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	 // down
+														 {SDL_SCANCODE_SPACE, SDL_GAMEPAD_BUTTON_SOUTH, LV_KEY_ENTER},	 // enter
+														 {SDL_SCANCODE_ESCAPE, SDL_GAMEPAD_BUTTON_EAST, LV_KEY_ESC}};	 // esc
 
    public:
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 	static void TouchReadCallback(lv_indev_t* mouseInput, lv_indev_data_t* data) {
-		Uint32 buttons = SDL_GetMouseState(&(data->point.x), &(data->point.y));
+		float x, y;
+		Uint32 buttons = SDL_GetMouseState(&x, &y);
+		data->point.x = int(x);
+		data->point.y = int(y);
+
 		data->state = (buttons & SDL_BUTTON_LEFT) > 0 ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 	}
 #endif
@@ -44,7 +48,7 @@ class UIInputManager {
 		_mainGroup = lv_group_create();
 		lv_group_set_default(_mainGroup);
 
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 		_mouseInput = lv_indev_create();
 		lv_indev_set_type(_mouseInput, LV_INDEV_TYPE_POINTER);
 		lv_indev_set_mode(_mouseInput, LV_INDEV_MODE_EVENT);
@@ -61,11 +65,11 @@ class UIInputManager {
 		lv_key_t out = (lv_key_t)-2;
 
 		switch (event.type) {
-#if !__PSP__
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
+#if !SDL_PLATFORM_PSP
+			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
-					if (_actions[i].key == event.key.keysym.scancode) {
+					if (_actions[i].key == event.key.scancode) {
 						out = _actions[i].out;
 						break;
 					}
@@ -74,16 +78,16 @@ class UIInputManager {
 				if (event.key.repeat && out == LV_KEY_ESC) return true;
 				break;
 
-			case SDL_MOUSEMOTION:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
+			case SDL_EVENT_MOUSE_MOTION:
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_BUTTON_UP:
 				lv_indev_read(_mouseInput);
 				return true;
 #endif
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP:
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
-					if (_actions[i].button == event.cbutton.button) {
+					if (_actions[i].button == event.gbutton.button) {
 						out = _actions[i].out;
 						break;
 					}
@@ -97,7 +101,7 @@ class UIInputManager {
 		if (out < 0) {
 			return true;
 		}
-		bool pressed = event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN;
+		bool pressed = event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN;
 
 		if (!pressed && out != _event.key) {
 			return true;
@@ -108,7 +112,7 @@ class UIInputManager {
 			lv_indev_read(_keypadInput);
 		}
 
-		_event = UIActionEvent(out, event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN);
+		_event = UIActionEvent(out, event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN);
 		lv_indev_read(_keypadInput);
 		return true;
 	}

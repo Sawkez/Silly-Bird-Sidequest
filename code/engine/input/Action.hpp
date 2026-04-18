@@ -6,19 +6,18 @@ class Action {
    public:
 	static const int BINDINGS_PER_ACTION = 2;
 
-	static const auto LEFT_TRIGGER_BUTTON = (SDL_GameControllerButton)(SDL_CONTROLLER_BUTTON_MAX + 1);
-	static const auto RIGHT_TRIGGER_BUTTON = (SDL_GameControllerButton)(SDL_CONTROLLER_BUTTON_MAX + 2);
+	static const auto LEFT_TRIGGER_BUTTON = (SDL_GamepadButton)(SDL_GAMEPAD_BUTTON_COUNT + 1);
+	static const auto RIGHT_TRIGGER_BUTTON = (SDL_GamepadButton)(SDL_GAMEPAD_BUTTON_COUNT + 2);
 
    private:
 	SDL_Scancode _keys[BINDINGS_PER_ACTION];
-	SDL_GameControllerButton _buttons[BINDINGS_PER_ACTION];
+	SDL_GamepadButton _buttons[BINDINGS_PER_ACTION];
 
 	bool _tap = false;
 	bool _down = false;
 
    public:
-	Action(SDL_Scancode key0, SDL_Scancode key1, SDL_GameControllerButton btn0, SDL_GameControllerButton btn1)
-		: _keys{key0, key1}, _buttons{btn0, btn1} {}
+	Action(SDL_Scancode key0, SDL_Scancode key1, SDL_GamepadButton btn0, SDL_GamepadButton btn1) : _keys{key0, key1}, _buttons{btn0, btn1} {}
 
 	bool HasKey(int key) const {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
@@ -43,7 +42,7 @@ class Action {
 		SetDownNoTap(down);
 	}
 
-	void ResetToKeyboardState(const Uint8* state) {
+	void ResetToKeyboardState(const bool* state) {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
 			if (state[_keys[i]]) {
 				SetDownNoTap(true);
@@ -53,9 +52,9 @@ class Action {
 		SetDownNoTap(false);
 	}
 
-	void ResetToControllerState(SDL_GameController* controller) {
+	void ResetToControllerState(SDL_Gamepad* controller) {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
-			if (SDL_GameControllerGetButton(controller, _buttons[i])) {
+			if (SDL_GetGamepadButton(controller, _buttons[i])) {
 				SetDownNoTap(true);
 				return;
 			};

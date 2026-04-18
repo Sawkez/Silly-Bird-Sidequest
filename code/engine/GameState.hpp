@@ -1,13 +1,13 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <memory>
 
 #include "engine/input/InputManager.hpp"
 #include "engine/input/UIInputManager.hpp"
 
-#if __PSP__
+#if SDL_PLATFORM_PSP
 #define INITIAL_WINDOW_RES 480, 272
 #else
 #define INITIAL_WINDOW_RES 960, 540
@@ -28,8 +28,10 @@ class GameState {
 
    public:
 	static void Init() {
-		_mainWindow = SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
-		_mainRenderer = SDL_CreateRenderer(_mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
+		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
+		SDL_SetRenderVSync(_mainRenderer, 1);
+		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 	}
 
 	static void SetRunning(bool value) { _running = value; }
@@ -41,7 +43,7 @@ class GameState {
 
 	static void Unpause() {
 		_paused = false;
-		_frameEndMs = SDL_GetTicks64();
+		_frameEndMs = SDL_GetTicks();
 		_frameStartMs = _frameEndMs - _frameDuration;
 		_input.ResetToState();
 	}
@@ -58,7 +60,7 @@ class GameState {
 	}
 
 	static void UpdateFrameStart() { _frameStartMs = _frameEndMs; }
-	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks64(); }
+	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks(); }
 
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 

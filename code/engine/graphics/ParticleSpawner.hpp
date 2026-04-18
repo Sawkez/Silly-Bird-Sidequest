@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <utility>
 #include <vector>
@@ -82,7 +82,7 @@ class ParticleSpawner : public IProcessable, public IDrawableRect {
 		dest.x += drawOffset.x;
 		dest.y += drawOffset.y;
 
-		if (!SDL_HasIntersectionF(&dest, &drawTargetRect)) {
+		if (!SDL_HasRectIntersectionFloat(&dest, &drawTargetRect)) {
 			return false;
 		}
 

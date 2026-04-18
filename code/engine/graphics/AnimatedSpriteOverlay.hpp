@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <vector>
 
@@ -38,7 +38,7 @@ class AnimatedSpriteOverlay : public AnimatedSprite {
 			SDL_Texture* texture = _overlayTextures.at(_current);
 			SDL_SetTextureColorMod(texture, _overlayRed, _overlayGreen, _overlayBlue);
 
-			int error = SDL_RenderCopyExF(renderer, _overlayTextures.at(_current), &_source, &destination, _rotation, &_rotateOrigin, _flip);
+			int error = SDL_RenderTextureRotated(renderer, _overlayTextures.at(_current), &_source, &destination, _rotation, &_rotateOrigin, _flip);
 
 			if (error < 0) {
 				std::cerr << "ERROR: couldn't draw sprite overlay: " << SDL_GetError() << std::endl;

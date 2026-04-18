@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <cmath>
 #include <vector>
@@ -18,7 +18,7 @@ using namespace std;
 
 class AnimatedSprite : IDrawableRect, IProcessable {
    protected:
-	SDL_Rect _source{};
+	SDL_FRect _source{};
 	SDL_FRect _destination{};
 	vector<Animation> _animations;
 	Vector2 _offset = Vector2::ZERO;
@@ -26,7 +26,7 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 	Vector2 _rotateOrigin = Vector2::ZERO;
 	float _rotation = 0.0;
 	int _current = 0;
-	SDL_RendererFlip _flip = SDL_FLIP_NONE;
+	SDL_FlipMode _flip = SDL_FLIP_NONE;
 
    public:
 	Vector2 position = Vector2::ZERO;
@@ -48,13 +48,13 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 		destination.x += drawOffset.x;
 		destination.y += drawOffset.y;
 
-		if (!SDL_HasIntersectionF(&drawTargetRect, &destination)) {
+		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &destination)) {
 			return false;
 		}
 
 		const Animation& animation = _animations.at(_current);
 
-		int error = SDL_RenderCopyExF(renderer, animation.GetTexture(), &_source, &destination, _rotation, &_rotateOrigin, _flip);
+		int error = SDL_RenderTextureRotated(renderer, animation.GetTexture(), &_source, &destination, _rotation, &_rotateOrigin, _flip);
 
 		if (error < 0) {
 			std::cerr << "ERROR: couldn't draw AnimatedSprite: " << SDL_GetError() << std::endl;
@@ -70,7 +70,7 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 
 	float GetRotationRadians() const { return _rotation / DEGREES_PER_RADIAN; }
 
-	void SetFlip(SDL_RendererFlip flip) { _flip = flip; }
+	void SetFlip(SDL_FlipMode flip) { _flip = flip; }
 
 	void Play(int animationID, float speed = 1.0) {
 		Animation& newAnimation = _animations.at(animationID);
