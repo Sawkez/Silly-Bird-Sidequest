@@ -17,8 +17,7 @@ class Action {
 	bool _down = false;
 
    public:
-	Action(SDL_Scancode key0, SDL_Scancode key1, SDL_GamepadButton btn0, SDL_GamepadButton btn1)
-		: _keys{key0, key1}, _buttons{btn0, btn1} {}
+	Action(SDL_Scancode key0, SDL_Scancode key1, SDL_GamepadButton btn0, SDL_GamepadButton btn1) : _keys{key0, key1}, _buttons{btn0, btn1} {}
 
 	bool HasKey(int key) const {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
@@ -43,7 +42,7 @@ class Action {
 		SetDownNoTap(down);
 	}
 
-	void ResetToKeyboardState(const Uint8* state) {
+	void ResetToKeyboardState(const bool* state) {
 		for (int i = 0; i < BINDINGS_PER_ACTION; i++) {
 			if (state[_keys[i]]) {
 				SetDownNoTap(true);

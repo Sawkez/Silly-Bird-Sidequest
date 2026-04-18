@@ -28,8 +28,9 @@ class GameState {
 
    public:
 	static void Init() {
-		_mainWindow = SDL_CreateWindow("SBS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
-		_mainRenderer = SDL_CreateRenderer(_mainWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
+		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
+		SDL_SetRenderVSync(_mainRenderer, 1);
 	}
 
 	static void SetRunning(bool value) { _running = value; }

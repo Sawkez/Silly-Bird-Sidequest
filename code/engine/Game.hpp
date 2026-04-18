@@ -29,7 +29,7 @@ struct Game {
 	Uint64 lastPerfCounter = 0;
 
 	Game(int argc, char* argv[]) {
-		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | IMG_INIT_PNG);
+		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
 		GameState::Init();
 		UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
@@ -67,7 +67,7 @@ struct Game {
 		while (SDL_PollEvent(&event) != 0) {
 			if (SaveManager::instance->OverrideDrawing()) continue;
 
-			if (event.type == SDL_WINDOWEVENT) WorldManager::GetLevel().GetCamera().UpdateZoom();
+			if (event.type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 			if (UIManager::HandleEvent(event)) continue;
 			if (GameState::GetInput().HandleEvent(event)) continue;

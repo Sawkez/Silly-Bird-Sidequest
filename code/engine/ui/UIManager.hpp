@@ -43,6 +43,8 @@ class UIManager {
 		lv_display_flush_ready(display);
 	}
 
+	static unsigned int TickCallback() { return (uint32_t)SDL_GetTicks(); }
+
 	static SDL_Point GetWindowSize(SDL_Window* window) {
 		int w, h;
 		SDL_GetWindowSizeInPixels(window, &w, &h);
@@ -73,7 +75,7 @@ class UIManager {
 	static lv_display_t* InitLVGL(SDL_Point windowSize) {
 		lv_init();
 
-		lv_tick_set_cb(SDL_GetTicks);
+		lv_tick_set_cb(TickCallback);
 		lv_display_t* display = lv_display_create(windowSize.x, windowSize.y);
 		lv_display_set_color_format(display, LV_COLOR_FORMAT_ARGB8888);
 		lv_display_set_flush_cb(display, FlushCallback);
@@ -145,7 +147,7 @@ class UIManager {
 	static bool HandleEvent(const SDL_Event& event) {
 		if (_stackTop < 0) return false;
 
-		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_EVENT_WINDOW_RESIZED) {
+		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
 			Resize(event.window.data1, event.window.data2);
 			return true;
 		}

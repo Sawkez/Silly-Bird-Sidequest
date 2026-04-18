@@ -10,3 +10,4 @@
 [submodule "code/3rdparty/SDL_image"]
 	path = code/3rdparty/SDL_image
 	url = https://github.com/libsdl-org/SDL_image.git
+	branch = main

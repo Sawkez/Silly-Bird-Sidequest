@@ -18,7 +18,7 @@ using namespace std;
 
 class AnimatedSprite : IDrawableRect, IProcessable {
    protected:
-	SDL_Rect _source{};
+	SDL_FRect _source{};
 	SDL_FRect _destination{};
 	vector<Animation> _animations;
 	Vector2 _offset = Vector2::ZERO;

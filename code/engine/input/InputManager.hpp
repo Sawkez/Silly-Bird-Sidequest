@@ -51,15 +51,15 @@ class InputManager {
 	bool _lastInputWasController = false;
 
 	Action _actions[_ACTION_COUNT]{
-		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_INVALID),			 // jump
-		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, Action::LEFT_TRIGGER_BUTTON),	 // dive
-		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT, SDL_GAMEPAD_BUTTON_INVALID),		 // left
-		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_INVALID),		 // right
-		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_INVALID),			 // up
-		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_INVALID),		 // down
-		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_INVALID),				 // interact
-		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_INVALID),				 // pan camera
-		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_INVALID)		 // pause
+		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_INVALID),			   // jump
+		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, Action::LEFT_TRIGGER_BUTTON),  // dive
+		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT, SDL_GAMEPAD_BUTTON_INVALID),			   // left
+		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_INVALID),		   // right
+		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_INVALID),			   // up
+		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_INVALID),			   // down
+		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_INVALID),				   // interact
+		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_INVALID),				   // pan camera
+		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_INVALID)			   // pause
 	};
 
 	bool IsDirectionAction(int id) { return id >= ACTION_LEFT && id <= ACTION_DOWN; }
@@ -71,7 +71,7 @@ class InputManager {
 		switch (event.type) {
 			case SDL_EVENT_GAMEPAD_ADDED:
 			case SDL_EVENT_GAMEPAD_REMOVED:
-				HandleEvent(event.cdevice);
+				HandleEvent(event.gdevice);
 				return true;
 
 #if !SDL_PLATFORM_PSP
@@ -85,11 +85,11 @@ class InputManager {
 
 			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
 			case SDL_EVENT_GAMEPAD_BUTTON_UP:
-				HandleEvent(event.cbutton);
+				HandleEvent(event.gbutton);
 				return true;
 
 			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-				return HandleEvent(event.caxis);
+				return HandleEvent(event.gaxis);
 		}
 
 		return false;
@@ -99,7 +99,7 @@ class InputManager {
 		int actionId = -1;
 
 		for (int i = 0; i < _ACTION_COUNT; i++) {
-			if (_actions[i].HasKey(event.keysym.scancode)) {
+			if (_actions[i].HasKey(event.scancode)) {
 				actionId = i;
 				break;
 			}
@@ -109,16 +109,16 @@ class InputManager {
 
 		_lastInputWasController = false;
 
-		if (event.state == SDL_PRESSED && IsDirectionAction(actionId)) _dirJoystickPriority = false;
+		if (event.down && IsDirectionAction(actionId)) _dirJoystickPriority = false;
 
-		_actions[actionId].SetDown(event.state == SDL_PRESSED);
+		_actions[actionId].SetDown(event.down);
 	}
 
 	void HandleEvent(const SDL_GamepadButtonEvent& event) {
 		_lastInputWasController = true;
 		_lastUsedJoystick = event.which;
 
-		ButtonEvent(event.button, event.state == SDL_PRESSED);
+		ButtonEvent(event.button, event.down);
 	}
 
 	bool ButtonEvent(int button, bool pressed) {  // separated so we can handle triggers as buttons
@@ -218,7 +218,7 @@ class InputManager {
 	}
 
 	void ResetToKeyboardState() {
-		const Uint8* state = SDL_GetKeyboardState(NULL);
+		const bool* state = SDL_GetKeyboardState(NULL);
 
 		for (int i = 0; i < _ACTION_COUNT; i++) {
 			_actions[i].ResetToKeyboardState(state);

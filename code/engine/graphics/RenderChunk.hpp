@@ -40,6 +40,7 @@ class RenderChunk {
 		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET, _roomChunk.get().GetWidth(),
 										   _roomChunk.get().GetHeight())) {
 		SDL_SetTextureBlendMode(_renderTexture, SDL_BLENDMODE_BLEND);
+		SDL_SetTextureScaleMode(_renderTexture, SDL_SCALEMODE_PIXELART);
 	}
 
 	void DrawRoom(SDL_Renderer* renderer) const {

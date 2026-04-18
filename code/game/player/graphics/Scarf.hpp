@@ -126,17 +126,17 @@ class Scarf : IProcessable, IDrawableRect {
 
 		Vector2 firstOffset = {0.0, (_segmentPositions[1] - _segmentPositions[0]).x > 0.0f ? 1.0f : -1.0f};
 
-		vertices[0] = {_segmentPositions[0] + drawOffset + firstOffset, _currentColor.GetIntColor()};
-		vertices[1] = {_segmentPositions[0] + drawOffset - firstOffset, _currentColor.GetIntColor()};
+		vertices[0] = {_segmentPositions[0] + drawOffset + firstOffset, _currentColor};
+		vertices[1] = {_segmentPositions[0] + drawOffset - firstOffset, _currentColor};
 
 		for (int i = 1; i < SEGMENT_COUNT; i++) {
 			Vector2 dir = _segmentPositions[i].DirectionTo(_segmentPositions[i - 1]);
 			// rotating 90 degrees quickly
 			dir = Vector2{-dir.y, dir.x};
 
-			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir + drawOffset, _currentColor.GetIntColor()};
+			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir + drawOffset, _currentColor};
 
-			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor.GetIntColor()};
+			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor};
 		}
 
 		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT) < 0) {

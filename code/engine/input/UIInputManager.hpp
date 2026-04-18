@@ -20,17 +20,21 @@ class UIInputManager {
 
 	static inline lv_group_t* _mainGroup = NULL;
 
-	static inline UIAction _actions[_UI_ACTION_COUNT] = {{SDL_SCANCODE_A, SDL_GAMEPAD_BUTTON_DPAD_LEFT, LV_KEY_LEFT},	// left
-														 {SDL_SCANCODE_D, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, LV_KEY_RIGHT},	// right
-														 {SDL_SCANCODE_W, SDL_GAMEPAD_BUTTON_DPAD_UP, LV_KEY_UP},		// up
-														 {SDL_SCANCODE_S, SDL_GAMEPAD_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	// down
-														 {SDL_SCANCODE_SPACE, SDL_GAMEPAD_BUTTON_SOUTH, LV_KEY_ENTER},		// enter
-														 {SDL_SCANCODE_ESCAPE, SDL_GAMEPAD_BUTTON_EAST, LV_KEY_ESC}};		// esc
+	static inline UIAction _actions[_UI_ACTION_COUNT] = {{SDL_SCANCODE_A, SDL_GAMEPAD_BUTTON_DPAD_LEFT, LV_KEY_LEFT},	 // left
+														 {SDL_SCANCODE_D, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, LV_KEY_RIGHT},	 // right
+														 {SDL_SCANCODE_W, SDL_GAMEPAD_BUTTON_DPAD_UP, LV_KEY_UP},		 // up
+														 {SDL_SCANCODE_S, SDL_GAMEPAD_BUTTON_DPAD_DOWN, LV_KEY_DOWN},	 // down
+														 {SDL_SCANCODE_SPACE, SDL_GAMEPAD_BUTTON_SOUTH, LV_KEY_ENTER},	 // enter
+														 {SDL_SCANCODE_ESCAPE, SDL_GAMEPAD_BUTTON_EAST, LV_KEY_ESC}};	 // esc
 
    public:
 #if !SDL_PLATFORM_PSP
 	static void TouchReadCallback(lv_indev_t* mouseInput, lv_indev_data_t* data) {
-		Uint32 buttons = SDL_GetMouseState(&(data->point.x), &(data->point.y));
+		float x, y;
+		Uint32 buttons = SDL_GetMouseState(&x, &y);
+		data->point.x = int(x);
+		data->point.y = int(y);
+
 		data->state = (buttons & SDL_BUTTON_LEFT) > 0 ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 	}
 #endif
@@ -65,7 +69,7 @@ class UIInputManager {
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
-					if (_actions[i].key == event.key.keysym.scancode) {
+					if (_actions[i].key == event.key.scancode) {
 						out = _actions[i].out;
 						break;
 					}
@@ -83,7 +87,7 @@ class UIInputManager {
 			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
 			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
-					if (_actions[i].button == event.cbutton.button) {
+					if (_actions[i].button == event.gbutton.button) {
 						out = _actions[i].out;
 						break;
 					}

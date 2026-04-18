@@ -4,14 +4,10 @@
 
 #include "engine/Math.hpp"
 
-struct FColor {
-	float r;
-	float g;
-	float b;
+struct FColor : SDL_FColor {
+	FColor(float red, float green, float blue) : SDL_FColor{red, green, blue, 1.0f} {}
 
-	FColor(float red, float green, float blue) : r(red), g(green), b(blue) {}
-
-	FColor(Uint8 red, Uint8 green, Uint8 blue) : r(float(red) / 255.0f), g(float(green) / 255.0f), b(float(blue) / 255.0f) {}
+	FColor(Uint8 red, Uint8 green, Uint8 blue) : SDL_FColor{float(red) / 255.0f, float(green) / 255.0f, float(blue) / 255.0f, 1.0f} {}
 
 	FColor(int red, int green, int blue) : FColor(Uint8(red), Uint8(green), Uint8(blue)) {}
 
