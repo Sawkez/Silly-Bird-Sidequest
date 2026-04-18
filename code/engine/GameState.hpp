@@ -31,6 +31,7 @@ class GameState {
 		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 		SDL_SetRenderVSync(_mainRenderer, 1);
+		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 	}
 
 	static void SetRunning(bool value) { _running = value; }

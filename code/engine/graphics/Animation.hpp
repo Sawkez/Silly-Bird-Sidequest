@@ -25,7 +25,6 @@ class Animation {
 	Animation(SDL_Texture* texture, int frameCount, float fps, bool looping = true)
 		: _texture(texture), _frameCount(frameCount), _frameDuration(1.0 / fps), _looping(looping) {
 		float w, h;
-		SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 		SDL_GetTextureSize(texture, &w, &h);
 		_frameWidth = int(w);
 		_frameHeight = int(h);
