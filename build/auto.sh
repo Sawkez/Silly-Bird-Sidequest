@@ -56,8 +56,8 @@ BUILD_DIR=$SCRIPT_DIR/build-files/$BUILD_NAME
 EXPORT_DIR=$SCRIPT_DIR/export/$BUILD_NAME
 
 mkdir -p $BUILD_DIR || exit 1
-"${CMAKE_COMMAND[@]}" -S $SRC_DIR -B $BUILD_DIR -DCMAKE_BUILD_TYPE=$BUILD_TYPE || exit 1
-cmake --build $BUILD_DIR --config $BUILD_TYPE || exit 1
+"${CMAKE_COMMAND[@]}" -G Ninja -S $SRC_DIR -B $BUILD_DIR -DCMAKE_BUILD_TYPE=$BUILD_TYPE || exit 1
+ninja -C $BUILD_DIR || exit 1
 
 mkdir -p $EXPORT_DIR || exit 1
 rm -rf $EXPORT_DIR/* || exit 1
