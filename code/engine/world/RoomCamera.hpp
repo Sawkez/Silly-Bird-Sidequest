@@ -11,8 +11,8 @@ using namespace std;
 class RoomCamera : IProcessable {
 	static const int SMALL_SCREEN_SIZE_X = 720;
 	static const int SMALL_SCREEN_SIZE_Y = 405;
-	static const int BIG_TARGET_SIZE_X = 720;
-	static const int BIG_TARGET_SIZE_Y = 405;
+	static const int SMALL_SCREEN_MAX_TARGET_X = 240;
+	static const int SMALL_SCREEN_MAX_TARGET_Y = 135;
 
    private:
 	const Player& _player;
@@ -42,10 +42,10 @@ class RoomCamera : IProcessable {
 		Vector2 targetRes = _room.get().GetTargetSize();
 
 		bool smallScreen = windowRes.x < SMALL_SCREEN_SIZE_X && windowRes.y < SMALL_SCREEN_SIZE_Y;
-		bool bigTarget = targetRes.x > BIG_TARGET_SIZE_X && targetRes.y > BIG_TARGET_SIZE_Y;
+		bool bigTarget = targetRes.x > SMALL_SCREEN_MAX_TARGET_X && targetRes.y > SMALL_SCREEN_MAX_TARGET_Y;
 
-		if (smallScreen && !bigTarget) {
-			targetRes *= 0.5;
+		if (smallScreen && bigTarget) {
+			targetRes = Vector2(SMALL_SCREEN_MAX_TARGET_X, SMALL_SCREEN_MAX_TARGET_Y);
 		}
 
 		bool taller = windowRes.x / windowRes.y < targetRes.x / targetRes.y;
