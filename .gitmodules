@@ -4,3 +4,9 @@
 [submodule "code/3rdparty/lvgl"]
 	path = code/3rdparty/lvgl
 	url = https://github.com/lvgl/lvgl.git
+[submodule "code/3rdparty/SDL"]
+	path = code/3rdparty/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "code/3rdparty/SDL_image"]
+	path = code/3rdparty/SDL_image
+	url = https://github.com/libsdl-org/SDL_image.git
