@@ -74,7 +74,7 @@ class InputManager {
 				HandleEvent(event.cdevice);
 				return true;
 
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
@@ -142,14 +142,14 @@ class InputManager {
 				if (abs(event.value) > JOY_AXIS_DEADZONE) {
 					_dirJoystickPriority = true;
 				}
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 			case SDL_GAMEPAD_AXIS_RIGHTX:
 			case SDL_GAMEPAD_AXIS_RIGHTY:
 #endif
 				_lastUsedJoystick = event.which;
 				return true;
 
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 			case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
 				return ButtonEvent(Action::LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
 

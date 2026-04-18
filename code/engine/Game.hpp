@@ -16,7 +16,7 @@
 #include "game/ui/title/TitleScreenMenu.hpp"
 
 /*
-#if __PSP__
+#if SDL_PLATFORM_PSP
 #include <pspdebug.h>
 #include <pspkernel.h>
 #include <pspsdk.h>

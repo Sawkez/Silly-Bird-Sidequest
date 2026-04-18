@@ -7,7 +7,7 @@
 #include "engine/input/InputManager.hpp"
 #include "engine/input/UIInputManager.hpp"
 
-#if __PSP__
+#if SDL_PLATFORM_PSP
 #define INITIAL_WINDOW_RES 480, 272
 #else
 #define INITIAL_WINDOW_RES 960, 540

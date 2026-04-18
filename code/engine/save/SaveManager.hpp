@@ -2,7 +2,7 @@
 
 #include "engine/save/SaveManagerBase.hpp"
 
-#if __PSP__
+#if SDL_PLATFORM_PSP
 #include "engine/save/SaveManagerPSP.hpp"
 #else
 #include "engine/save/SaveManagerPC.hpp"
@@ -12,7 +12,7 @@ namespace SaveManager {
 static SaveManagerBase* instance;
 
 void Init() {
-#if __PSP__
+#if SDL_PLATFORM_PSP
 	instance = new SaveManagerPSP;
 #else
 	instance = new SaveManagerPC;

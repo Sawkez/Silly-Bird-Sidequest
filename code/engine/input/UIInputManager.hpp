@@ -13,7 +13,7 @@ class UIInputManager {
 	UIInputManager() = delete;
 	static inline auto _event = UIActionEvent();
 
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 	static inline lv_indev_t* _mouseInput = NULL;
 #endif
 	static inline lv_indev_t* _keypadInput = NULL;
@@ -28,7 +28,7 @@ class UIInputManager {
 														 {SDL_SCANCODE_ESCAPE, SDL_GAMEPAD_BUTTON_EAST, LV_KEY_ESC}};		// esc
 
    public:
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 	static void TouchReadCallback(lv_indev_t* mouseInput, lv_indev_data_t* data) {
 		Uint32 buttons = SDL_GetMouseState(&(data->point.x), &(data->point.y));
 		data->state = (buttons & SDL_BUTTON_LEFT) > 0 ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
@@ -44,7 +44,7 @@ class UIInputManager {
 		_mainGroup = lv_group_create();
 		lv_group_set_default(_mainGroup);
 
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 		_mouseInput = lv_indev_create();
 		lv_indev_set_type(_mouseInput, LV_INDEV_TYPE_POINTER);
 		lv_indev_set_mode(_mouseInput, LV_INDEV_MODE_EVENT);
@@ -61,7 +61,7 @@ class UIInputManager {
 		lv_key_t out = (lv_key_t)-2;
 
 		switch (event.type) {
-#if !__PSP__
+#if !SDL_PLATFORM_PSP
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {
