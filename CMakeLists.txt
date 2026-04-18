@@ -39,6 +39,10 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/lvgl)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/yyjson)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+set(SDL3_IMAGE_STATIC ON CACHE BOOL "" FORCE)
+set(SDL3_IMAGE_VENDORED ON CACHE BOOL "" FORCE)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL_image)
@@ -53,9 +57,25 @@ target_link_libraries(sbsidequest PRIVATE
 )
 
 if(WIN32)
+
+    target_compile_options(sbsidequest PRIVATE -ffunction-sections -fdata-sections)
+
     target_link_options(sbsidequest PRIVATE 
         "-static-libgcc" 
         "-static-libstdc++" 
-        "-Wl,-Bstatic" "-lstdc++" "-lpthread" "-Wl,-Bdynamic"
+        "-static"
+        "-s"
+        "-Wl,--gc-sections"
+    )
+endif()
+
+if(PSP)
+    create_pbp_file(
+        TARGET sbsidequest
+        ICON_PATH "${CMAKE_SOURCE_DIR}/psp-assets/icon.png"
+        BACKGROUND_PATH "${CMAKE_SOURCE_DIR}/psp-assets/background.png"
+        PREVIEW_PATH NULL
+        TITLE ${PROJECT_NAME}
+        VERSION 01.00
     )
 endif()

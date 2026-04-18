@@ -43,7 +43,7 @@ class UIManager {
 		lv_display_flush_ready(display);
 	}
 
-	static unsigned int TickCallback() { return (uint32_t)SDL_GetTicks(); }
+	static uint32_t TickCallback() { return uint32_t(SDL_GetTicks()); }
 
 	static SDL_Point GetWindowSize(SDL_Window* window) {
 		int w, h;

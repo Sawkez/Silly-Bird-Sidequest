@@ -16,4 +16,3 @@ rm -rf $EXPORT_DIR/* || exit 1
 cp $BUILD_DIR/sbsidequest.exe $EXPORT_DIR/ || exit 1
 cp -r $SRC_DIR/content $EXPORT_DIR/ || exit 1
 cp -r $SRC_DIR/mods $EXPORT_DIR/ || exit 1
-cp -r $DLL_DIR/{SDL2.dll,SDL3.dll,SDL2_image.dll,libgcc_s_seh-1.dll,libtiff-5.dll,libwebp-7.dll,libwebpdemux-2.dll,libjpeg-62.dll,zlib1.dll,libwinpthread-1.dll,libsharpyuv-0.dll} $EXPORT_DIR/ || exit 1
