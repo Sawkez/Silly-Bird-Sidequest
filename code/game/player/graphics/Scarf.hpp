@@ -46,10 +46,9 @@ class Scarf : IProcessable, IDrawableRect {
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
 
    public:
-	Scarf(Vector2 pinPosition, const vector<CollisionRect>& colliders)
-		: _staticColliders(ref(colliders)), _currentColor(_chargedColor), _targetColor(_chargedColor) {
+	Scarf(const vector<CollisionRect>& colliders) : _staticColliders(ref(colliders)), _currentColor(_chargedColor), _targetColor(_chargedColor) {
 		for (int i = 0; i < SEGMENT_COUNT; i++) {
-			_segmentPositions[i] = pinPosition + Vector2(0.1, 0.1) * i;
+			_segmentPositions[i] = Vector2(0.1, 0.1) * i;
 		}
 	}
 
