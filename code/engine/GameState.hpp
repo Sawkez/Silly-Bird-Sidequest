@@ -59,8 +59,12 @@ class GameState {
 		return delta < MAX_DELTA ? delta : _frameDuration / 1000.0f;
 	}
 
-	static void UpdateFrameStart() { _frameStartMs = _frameEndMs; }
-	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks(); }
+	static void UpdateFrameEnd() {
+		_frameStartMs = _frameEndMs;
+		_frameEndMs = SDL_GetTicks();
+	}
+
+	static bool ShouldProcess() { return (SDL_GetTicks() - _frameStartMs) > _frameDuration; }
 
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 
