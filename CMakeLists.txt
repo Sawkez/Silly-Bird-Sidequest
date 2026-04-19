@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project("Silly Bird Sidequest")
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    set(BUILD_PRX 1)
-endif()
+#if(CMAKE_BUILD_TYPE MATCHES Debug)
+#    set(BUILD_PRX 1)
+#endif()
 
 set(LV_BUILD_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h" CACHE PATH "Path to custom lv_conf.h" FORCE)
 set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
@@ -50,14 +50,23 @@ set(SDL3_IMAGE_VENDORED ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL_image)
 
-add_executable(sbsidequest code/engine/main.cpp)
-
-target_link_libraries(sbsidequest PRIVATE
-    yyjson
-    lvgl
-    SDL3::SDL3
-    SDL3_image::SDL3_image
-)
+if(ANDROID)
+    add_library(main SHARED code/engine/main.cpp)
+    target_link_libraries(main PRIVATE
+        yyjson
+        lvgl
+        SDL3::SDL3
+        SDL3_image::SDL3_image
+    )
+else()
+    add_executable(sbsidequest code/engine/main.cpp)
+    target_link_libraries(sbsidequest PRIVATE
+        yyjson
+        lvgl
+        SDL3::SDL3
+        SDL3_image::SDL3_image
+    )
+endif()
 
 if(WIN32)
 

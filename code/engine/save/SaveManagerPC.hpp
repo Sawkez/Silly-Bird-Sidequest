@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <sstream>
 
 #include "engine/save/ISaveManagerPC.hpp"
 #include "engine/save/SaveManagerBase.hpp"

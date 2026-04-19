@@ -1,3 +1,15 @@
 build/export/
 build/build-files/
 .vscode/
+android-project/.gradle/
+android-project/build/
+android-project/*/build/
+android-project/app/.cxx/
+.idea/
+*.iml
+*.ipr
+*.iws
+local.properties
+*.jks
+*.keystore
+*.log
