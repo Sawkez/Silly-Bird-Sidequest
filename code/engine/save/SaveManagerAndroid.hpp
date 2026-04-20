@@ -17,5 +17,5 @@ class SaveManagerAndroid : public SaveManagerBase {
 	void ShowLoadMenu() override {}
 	void Autosave() override {}
 	void Draw() override {}
-	bool OverrideDrawing() const override {}
+	bool OverrideDrawing() const override { return false; }
 };
