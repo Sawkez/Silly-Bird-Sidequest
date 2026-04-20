@@ -62,8 +62,7 @@ ninja -C $BUILD_DIR || exit 1
 mkdir -p $EXPORT_DIR || exit 1
 rm -rf $EXPORT_DIR/* || exit 1
 cp $BUILD_DIR/$EXE_IN $EXPORT_DIR/$EXE_OUT || exit 1
-cp -r $SRC_DIR/content $EXPORT_DIR/ || exit 1
-cp -r $SRC_DIR/mods $EXPORT_DIR/ || exit 1
+cp -r $SRC_DIR/include-dirs/* $EXPORT_DIR/ || exit 1
 
 if [ "$BUILD_NAME" = "psp-prx" ]; then
     cp $BUILD_DIR/sbsidequest $EXPORT_DIR/sbsidequest || exit 1
