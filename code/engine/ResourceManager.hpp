@@ -9,16 +9,13 @@
 namespace ResourceManager {
 
 std::string LoadText(const std::string& path, int* outSize) {
-	SDL_IOStream* file{SDL_IOFromFile(path.c_str(), "r")};
+	size_t size;
+	void* data = SDL_LoadFile(path.c_str(), &size);
 
-	int size = SDL_GetIOSize(file);
-	std::string text;
-	text.resize(size);
+	std::string text(static_cast<char*>(data), size);
+	SDL_free(data);
 
-	SDL_ReadIO(file, text.data(), size);
-	SDL_CloseIO(file);
-
-	if (outSize != nullptr) *outSize = size;
+	if (outSize != nullptr) *outSize = static_cast<int>(size);
 	return text;
 }
 
