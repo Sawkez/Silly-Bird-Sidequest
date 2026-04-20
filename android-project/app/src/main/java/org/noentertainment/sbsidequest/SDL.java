@@ -1,4 +1,4 @@
-package org.libsdl.app;
+package org.noentertainment.sbsidequest;
 
 import android.app.Activity;
 import android.content.Context;

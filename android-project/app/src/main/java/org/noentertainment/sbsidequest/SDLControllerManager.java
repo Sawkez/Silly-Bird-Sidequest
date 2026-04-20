@@ -1,4 +1,4 @@
-package org.libsdl.app;
+package org.noentertainment.sbsidequest;
 
 import java.util.ArrayList;
 import java.util.Collections;

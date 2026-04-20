@@ -5,11 +5,11 @@ android-project/.gradle/
 android-project/build/
 android-project/*/build/
 android-project/app/.cxx/
-.idea/
+android-project/.idea/
 *.iml
 *.ipr
 *.iws
-local.properties
+android-project/local.properties
 *.jks
 *.keystore
 *.log
