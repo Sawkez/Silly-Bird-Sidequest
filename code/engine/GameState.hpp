@@ -32,6 +32,7 @@ class GameState {
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
+		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 	}
 
 	static void SetRunning(bool value) { _running = value; }

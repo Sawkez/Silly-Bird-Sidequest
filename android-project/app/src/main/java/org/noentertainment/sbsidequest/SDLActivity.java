@@ -1157,13 +1157,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
 
         /* No valid hint, nothing is explicitly allowed */
         if (!is_portrait_allowed && !is_landscape_allowed) {
-            if (resizable) {
-                /* All orientations are allowed, respecting user orientation lock setting */
-                req = ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
-            } else {
-                /* Fixed window and nothing specified. Get orientation from w/h of created window */
-                req = (w > h ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-            }
+            /* Fixed window and nothing specified. Get orientation from w/h of created window */
+            req = (w > h ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
         } else {
             /* At least one orientation is allowed */
             if (resizable) {

@@ -85,6 +85,7 @@
             android:launchMode="singleTop"
             android:configChanges="layoutDirection|locale|grammaticalGender|fontScale|fontWeightAdjustment|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:preferMinimalPostProcessing="true"
+            android:screenOrientation="sensorLandscape"
             android:exported="true"
             >
             <intent-filter>
