@@ -1,6 +1,7 @@
 #pragma once
 
-#include <filesystem>
+#include <SDL3/SDL.h>
+
 #include <vector>
 
 #include "engine/ui/DirectorySelectButton.hpp"
@@ -18,7 +19,7 @@ class DirectoryListMenu : public MenuTransparentBG {
    protected:
 	lv_obj_t* _panel;
 	std::vector<DirectorySelectButton> _buttons;
-	std::vector<std::string> _paths;
+	char** _paths;
 
 	virtual lv_event_cb_t GetSelectedCallback() const = 0;
 	virtual std::string GetDirectoryToList() const = 0;
@@ -35,17 +36,17 @@ class DirectoryListMenu : public MenuTransparentBG {
 
 		lv_group_add_obj(UIManager::GetMainGroup(), _panel);
 
-		int modCount = 0;
+		int modCount;
 
-		for (auto& entry : std::filesystem::directory_iterator(GetDirectoryToList())) {
-			_paths.push_back(entry.path().string());
-			modCount++;
+		_paths = SDL_GlobDirectory(GetDirectoryToList().c_str(), "*", 0, &modCount);
+		if (_paths == nullptr) {
+			std::cerr << "Failed to list directory " << GetDirectoryToList() << ": " << SDL_GetError() << std::endl;
 		}
 
 		_buttons.reserve(modCount);
 
-		for (const auto& modPath : _paths) {
-			_buttons.emplace_back(_panel, modPath, modPath, GetSelectedCallback());
+		for (int i = 0; i < modCount; i++) {
+			_buttons.emplace_back(_panel, GetDirectoryToList() + "/" + _paths[i], _paths[i], GetSelectedCallback());
 		}
 
 		lv_obj_add_event_cb(_panel, KeyPressedCallback, LV_EVENT_KEY, nullptr);
