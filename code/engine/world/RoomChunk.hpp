@@ -50,10 +50,9 @@ class RoomChunk {
 	}
 
 	std::vector<ForegroundTile> LoadTiles(const std::string& chunkFilePath, int tileCount) {
-		std::ifstream file;
-		file.open(chunkFilePath + ".chunk", std::ios::out | std::ios::binary);
-		if (!file.good()) {
-			std::cerr << "ERROR: chunk file " << chunkFilePath << " is YUCKY" << std::endl;
+		SDL_IOStream* file = SDL_IOFromFile((chunkFilePath + ".chunk").c_str(), "rb");
+		if (file == NULL) {
+			std::cerr << "ERROR: chunk file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << std::endl;
 		}
 
 		std::vector<ForegroundTile> tiles;
@@ -62,16 +61,15 @@ class RoomChunk {
 			tiles.emplace_back(file);
 		}
 
-		file.close();
+		SDL_CloseIO(file);
 
 		return tiles;
 	}
 
 	std::vector<SpikeTile> LoadSpikes(const std::string& chunkFilePath, int spikeCount) {
-		std::ifstream file;
-		file.open(chunkFilePath + ".spikes", std::ios::out | std::ios::binary);
-		if (!file.good()) {
-			std::cerr << "ERROR: spike file " << chunkFilePath << " is YUCKY" << std::endl;
+		SDL_IOStream* file = SDL_IOFromFile((chunkFilePath + ".spikes").c_str(), "rb");
+		if (file == NULL) {
+			std::cerr << "ERROR: spike file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << std::endl;
 		}
 
 		std::vector<SpikeTile> spikes;
@@ -80,7 +78,7 @@ class RoomChunk {
 			spikes.emplace_back(file);
 		}
 
-		file.close();
+		SDL_CloseIO(file);
 		return spikes;
 	}
 

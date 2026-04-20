@@ -32,10 +32,10 @@ class SpikeCollider : IDrawable {
 		{5.0, 5.0}	   // bottom right
 	};
 
-	SpikeCollider(std::ifstream& file) {
-		file.read((char*)&_x, 2);
-		file.read((char*)&_y, 2);
-		file.read((char*)&_bitmask, 1);
+	SpikeCollider(SDL_IOStream* file) {
+		SDL_ReadIO(file, &_x, 2);
+		SDL_ReadIO(file, &_y, 2);
+		SDL_ReadIO(file, &_bitmask, 1);
 	}
 
 	bool HasSubSpike(int which) const { return (_bitmask & (1U << which)) != 0; }

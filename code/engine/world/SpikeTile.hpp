@@ -14,10 +14,10 @@ struct SpikeTile : public TileBase {
 	int GetDrawSourceSize() const override { return 8; }
 	int GetDrawDestOffset() const override { return (WorldConstants::TILE_SIZE_F - GetDrawSourceSize()) / 2.0; }
 
-	SpikeTile(std::ifstream& file) {
-		file.read((char*)&x, 2);
-		file.read((char*)&y, 2);
-		file.read((char*)&xAtlas, 2);
-		file.read((char*)&yAtlas, 2);
+	SpikeTile(SDL_IOStream* file) {
+		SDL_ReadIO(file, &x, 2);
+		SDL_ReadIO(file, &y, 2);
+		SDL_ReadIO(file, &xAtlas, 2);
+		SDL_ReadIO(file, &yAtlas, 2);
 	}
 };

@@ -80,12 +80,17 @@ class Room {
 		cout << "Spike count now " << spikeCount << endl;
 		vector<SpikeCollider> spikes;
 
-		std::ifstream file;
-		file.open(folderPath + "/spikes.ow", std::ios::in | std::ios::binary);
+		SDL_IOStream* file = SDL_IOFromFile((folderPath + "/spikes.ow").c_str(), "rb");
+
+		if (file == NULL) {
+			cout << "ERROR: could not open spikes.ow: " << SDL_GetError() << endl;
+		}
 
 		for (int i = 0; i < spikeCount; i++) {
 			spikes.emplace_back(file);
 		}
+
+		SDL_CloseIO(file);
 
 		return spikes;
 	}

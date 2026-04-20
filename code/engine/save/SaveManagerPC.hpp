@@ -41,13 +41,19 @@ class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
 	void SaveToDirectory(const std::string& path) override {
 		std::filesystem::create_directories(std::filesystem::path(path));
 
-		std::ofstream file(path + "/DATA.BIN", std::ios::binary | std::ios::out);
-		file.write((char*)&saveData, sizeof(SaveData));
+		SDL_IOStream* file = SDL_IOFromFile((path + "/DATA.BIN").c_str(), "wb");
+		if (file) {
+			SDL_WriteIO(file, &saveData, sizeof(SaveData));
+			SDL_CloseIO(file);
+		}
 	}
 
 	void LoadFromDirectory(const std::string& path) override {
-		std::ifstream file(path + "/DATA.BIN", std::ios::binary | std::ios::in);
-		file.read((char*)&saveData, sizeof(SaveData));
+		SDL_IOStream* file = SDL_IOFromFile((path + "/DATA.BIN").c_str(), "rb");
+		if (file) {
+			SDL_ReadIO(file, &saveData, sizeof(SaveData));
+			SDL_CloseIO(file);
+		}
 		_loadedCallback();
 	}
 

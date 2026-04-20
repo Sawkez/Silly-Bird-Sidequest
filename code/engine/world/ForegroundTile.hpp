@@ -16,12 +16,12 @@ struct ForegroundTile : public TileBase {
 	int GetDrawSourceSize() const override { return 14; }
 	int GetDrawDestOffset() const override { return (WorldConstants::TILE_SIZE_F - GetDrawSourceSize()) / 2.0; }
 
-	ForegroundTile(std::ifstream& file) {
-		file.read((char*)&x, 2);
-		file.read((char*)&y, 2);
-		file.read((char*)&xAtlas, 2);
-		file.read((char*)&yAtlas, 2);
-		file.read((char*)&sourceID, 2);
+	ForegroundTile(SDL_IOStream* file) {
+		SDL_ReadIO(file, &x, 2);
+		SDL_ReadIO(file, &y, 2);
+		SDL_ReadIO(file, &xAtlas, 2);
+		SDL_ReadIO(file, &yAtlas, 2);
+		SDL_ReadIO(file, &sourceID, 2);
 	}
 
 	void Draw(SDL_Surface* targetSurface, const std::vector<SDL_Surface*>& atlases, int xOffset, int yOffset) {
