@@ -24,8 +24,7 @@ using namespace std;
 
 class Level : IProcessable, IDrawable {
    private:
-	static inline SDL_Surface* _spikeAtlas = IMG_Load("content/sidequest/tiles/special/spikes.png");
-
+	SDL_Surface* _spikeAtlas;
 	string _path;
 	SDL_Renderer* _renderer;
 	vector<SDL_Surface*> _atlases;
@@ -37,7 +36,8 @@ class Level : IProcessable, IDrawable {
    public:
 	Level(const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, vector<SDL_Surface*> tileAtlases,
 		  int roomIndex, Uint8 playerUpgrades)
-		: _path(path),
+		: _spikeAtlas(IMG_Load("content/sidequest/tiles/special/spikes.png")),
+		  _path(path),
 		  _atlases(tileAtlases),
 		  _currentRoom(GetRoomPath(roomIndex), renderer, _atlases, _spikeAtlas),
 		  _renderer(renderer),
