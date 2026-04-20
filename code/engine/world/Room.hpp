@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "engine/IProcessable.hpp"
+#include "engine/ResourceManager.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/world/IRoomObject.hpp"
@@ -34,7 +35,7 @@ class Room {
 
    public:
 	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
-		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
+		: Room(folderPath, ResourceManager::LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
 
 	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
 		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas) {
@@ -62,40 +63,6 @@ class Room {
 	Room& operator=(const Room&) = delete;
 
 	Room& operator=(Room&& other) noexcept = default;
-	/*
-	Room& operator=(Room&& other) noexcept {
-		if (this != &other) {
-			_colliders = move(other._colliders);
-			_spikeColliders = move(other._spikeColliders);
-			_ledges = move(other._ledges);
-			_width = other._width;
-			_height = other._height;
-			_targetWidth = other._targetWidth;
-			_targetHeight = other._targetHeight;
-			_xPosition = other._xPosition;
-			_yPosition = other._yPosition;
-			_chunks = move(other._chunks);
-			_neighbors = move(other._neighbors);
-		}
-
-		return *this;
-	}
-	*/
-
-	yyjson_val* LoadJson(const string& jsonPath) const {
-		cout << SDL_GetTicks() << ": loading JSON" << endl;
-		ifstream jsonFile(jsonPath);
-		if (!jsonFile.good()) {
-			cerr << "ERROR opening file: " << jsonPath << endl;
-		}
-
-		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
-
-		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
-		// yyjson_val* root = yyjson_doc_get_root(json);
-		// std::cout << "spike count " << yyjson_get_int(yyjson_obj_get(root, "spike_count")) << std::endl;
-		return yyjson_doc_get_root(json);
-	}
 
 	vector<CollisionRect> LoadColliders(yyjson_val* collidersJson) const {
 		cout << SDL_GetTicks() << ": loading colliders" << endl;

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "engine/GameState.hpp"
+#include "engine/ResourceManager.hpp"
 #include "engine/save/SaveData.hpp"
 #include "engine/save/SaveManager.hpp"
 #include "engine/world/Level.hpp"
@@ -15,14 +16,7 @@ class WorldManager {
 
    public:
 	static void LoadLevel(const std::string& path, bool overrideProperties = false, int checkpoint = 0, int upgrades = 0, int room = 0) {
-		ifstream jsonFile(path + "/level.json");
-		if (!jsonFile.good()) {
-			cerr << "ERROR opening level.json file in " << path << endl;
-		}
-
-		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
-
-		yyjson_doc* jsonDoc = yyjson_read(jsonString.data(), jsonString.length(), 0);
+				yyjson_doc* jsonDoc = ResourceManager::LoadJson(path + "/level.json");
 		yyjson_val* jsonRoot = yyjson_doc_get_root(jsonDoc);
 
 		vector<SDL_Surface*> tileAtlases;
