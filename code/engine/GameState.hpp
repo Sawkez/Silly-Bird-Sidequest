@@ -13,6 +13,12 @@
 #define INITIAL_WINDOW_RES 960, 540
 #endif
 
+#if SDL_PLATFORM_ANDROID
+#define WINDOWFLAGS SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+#else
+#define WINDOWFLAGS SDL_WINDOW_RESIZABLE
+#endif
+
 class GameState {
    private:
 	static inline constexpr float MAX_DELTA = 1.0;
@@ -28,7 +34,7 @@ class GameState {
 
    public:
 	static void Init() {
-		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
+		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, WINDOWFLAGS);
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
