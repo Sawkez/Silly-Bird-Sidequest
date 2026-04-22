@@ -66,6 +66,8 @@ class PauseMenu : public MenuTransparentBG {
 
 		lv_buttonmatrix_set_button_ctrl_all(_buttons, LV_BUTTONMATRIX_CTRL_CLICK_TRIG);
 
+		lv_obj_set_size(_buttons, lv_dpx(250), lv_dpx(250));
+
 		lv_obj_add_style(_buttons, &Styles::focus, LV_PART_ITEMS | LV_STATE_FOCUSED);
 		lv_obj_center(_buttons);
 

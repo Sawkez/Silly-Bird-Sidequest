@@ -52,10 +52,32 @@ class UIManager {
 	}
 
    public:
-	static void Init(SDL_Renderer* renderer, SDL_Window* window) { Init(renderer, GetWindowSize(window)); }
+	static void Init(SDL_Renderer* renderer, SDL_Window* window) {
+		Init(renderer, GetWindowSize(window), SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window)));
+	}
 
-	static void Init(SDL_Renderer* renderer, SDL_Point windowSize) {
+	static void Init(SDL_Renderer* renderer, SDL_Point windowSize, float contentScale) {
+#if SDL_PLATFORM_PSP
+		contentScale = 0.5;
+#endif
+
 		_display = InitLVGL(windowSize);
+
+		lv_display_set_dpi(_display, LV_DPI_DEF * contentScale);
+
+		const lv_font_t* font;
+		if (contentScale > 1.75f)
+			font = &lv_font_montserrat_28;
+		else if (contentScale > 0.75f)
+			font = &lv_font_montserrat_14;
+		else
+			font = &lv_font_montserrat_10;
+
+		lv_display_set_theme(_display, lv_theme_default_init(_display, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
+															 LV_THEME_DEFAULT_DARK, font));
+
+		lv_obj_set_style_bg_opa(lv_display_get_layer_bottom(_display), LV_OPA_TRANSP, 0);
+
 		UIInputManager::Init();
 		Styles::Init();
 
