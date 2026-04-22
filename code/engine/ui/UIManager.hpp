@@ -58,7 +58,7 @@ class UIManager {
 
 	static void Init(SDL_Renderer* renderer, SDL_Point windowSize, float contentScale) {
 #if SDL_PLATFORM_PSP
-		contentScale = 0.5;
+		contentScale = 0.7;
 #endif
 
 		_display = InitLVGL(windowSize);
@@ -71,7 +71,7 @@ class UIManager {
 		else if (contentScale > 0.75f)
 			font = &lv_font_montserrat_14;
 		else
-			font = &lv_font_montserrat_10;
+			font = &lv_font_montserrat_12;
 
 		lv_display_set_theme(_display, lv_theme_default_init(_display, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
 															 LV_THEME_DEFAULT_DARK, font));
