@@ -1,4 +1,4 @@
-package org.noentertainment.sbsidequest;
+package org.libsdl.app;
 
 import android.hardware.usb.*;
 import android.os.Build;
