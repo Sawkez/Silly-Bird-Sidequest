@@ -26,10 +26,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
 	GameState::Init();
+	ModManager::Init();
+	ModManager::LoadLevelMod("content/sidequest");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 	Random::Init();
 	SaveManager::Init();
-	ModManager::Init();
 
 	if (argc < 2) {
 		WorldManager::LoadLevel("content/sidequest-hidden/levels/title-screen-bg");

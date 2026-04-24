@@ -17,8 +17,8 @@ class ModManager {
 
 	static void LoadLevelMod(const std::string& path) { _level = std::make_unique<LevelMod>(path); }
 
-	static std::vector<const std::string&> GetLevelNames() {
-		std::vector<const std::string&> names;
+	static std::vector<std::string> GetLevelNames() {
+		std::vector<std::string> names;
 		names.reserve(_level->GetLevelCount());
 
 		for (const auto& level : _level->GetLevels()) {
@@ -28,5 +28,7 @@ class ModManager {
 		return names;
 	}
 
-	static const std::string& GetLevelPath(int index) { return _level->GetLevelPath(index); }
+	static int GetLevelCount() { return _level->GetLevelCount(); }
+
+	static std::string GetLevelPath(int index) { return _level->GetLevelPath(index); }
 };

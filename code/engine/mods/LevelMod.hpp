@@ -27,7 +27,7 @@ class LevelMod : public ResourceMod {
 	LevelMod(const std::string& path, yyjson_doc* doc) : LevelMod(path, yyjson_doc_get_root(doc)) { yyjson_doc_free(doc); }
 	LevelMod(const std::string& path) : LevelMod(path, ResourceManager::LoadJson(path + "/mod.json")) {}
 
-	const std::string& GetLevelPath(int index) { return GetPath() + _levels[index].GetPath(); }
+	std::string GetLevelPath(int index) { return GetPath() + "/levels/" + _levels[index].GetPath(); }
 	int GetLevelCount() const { return _levelCount; }
 	const std::vector<ModLevelInfo>& GetLevels() const { return _levels; }
 };
