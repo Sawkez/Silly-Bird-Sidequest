@@ -9,6 +9,7 @@
 #include "engine/GameState.hpp"
 #include "engine/Random.hpp"
 #include "engine/input/InputManager.hpp"
+#include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/save/SaveManager.hpp"
 #include "engine/ui/UIManager.hpp"
@@ -28,9 +29,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 	Random::Init();
 	SaveManager::Init();
+	ModManager::Init();
 
 	if (argc < 2) {
-		WorldManager::LoadLevel("content/title-screen-bg");
+		WorldManager::LoadLevel("content/sidequest-hidden/levels/title-screen-bg");
 		UIManager::Push(UIManager::MENU_TITLE);
 	}
 
