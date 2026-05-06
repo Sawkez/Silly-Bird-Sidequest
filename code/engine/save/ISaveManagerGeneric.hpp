@@ -2,7 +2,7 @@
 
 #include <string>
 
-class ISaveManagerPC {
+class ISaveManagerGeneric {
    public:
 	virtual void LoadFromDirectory(const std::string& path) = 0;
 	virtual void SaveToDirectory(const std::string& path) = 0;

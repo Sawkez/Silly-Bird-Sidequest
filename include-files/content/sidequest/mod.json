@@ -1,10 +1,1 @@
-{"name":"Silly Bird Sidequest",
-"tilesheet_sources":["grass.png","template_full.png","template_short.png"],
-"levels":[
-{"path":"level-design-sketches","name":"Level Design Sketches"},
-{"path":"checkpoint-test","name":"Checkpoint Test"},
-{"path":"ledge-grab-crouch-test","name":"Ledge Grab Crouch Test"},
-{"path":"spike-test","name":"Spike Test"},
-{"path":"upgrade-test","name":"Upgrade Pickup Test"},
-{"path":"wallrun-test","name":"Wallrun Test"}
-]}
+{"levels":[{"name":"Checkpoint Test","path":"checkpoint-test"},{"name":"Ledge Grab Crouch Test","path":"ledge-grab-crouch-test"},{"name":"Level Design Sketches","path":"level-design-sketches"},{"name":"Spike Test","path":"spike-test"},{"name":"Upgrade Pickup Test","path":"upgrade-test"},{"name":"Wallrun Test","path":"wallrun-test"}],"name":"Silly Bird Sidequest","tilesheet_sources":["grass.png","template_full.png","template_short.png"]}

@@ -6,28 +6,28 @@
 #include <iomanip>
 #include <sstream>
 
-#include "engine/save/ISaveManagerPC.hpp"
+#include "engine/save/ISaveManagerGeneric.hpp"
 #include "engine/save/SaveManagerBase.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "game/ui/save/ListLoadMenu.hpp"
 #include "game/ui/save/ListSaveMenu.hpp"
 
-#ifdef _WIN32
+#if SDL_PLATFORM_WINDOWS
 #define OS_DIR_SEPARATOR "\\"
 
-#elifdef __linux__
+#else
 #define OS_DIR_SEPARATOR "/"
 
 #endif
 
-class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
+class SaveManagerGeneric : public SaveManagerBase, public ISaveManagerGeneric {
    private:
 	ListSaveMenu _saveMenu;
 	ListLoadMenu _loadMenu;
 
    public:
 	void Init() override {
-		std::filesystem::create_directories(std::filesystem::path(GetUserDir() + "/manual"));
+		std::filesystem::create_directories(std::filesystem::path(GetManualSaveDir()));
 		ListSaveMenu::_manager = this;
 		ListLoadMenu::_manager = this;
 		_saveMenu.Init();
@@ -36,7 +36,7 @@ class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
 
 	void ShowSaveMenu() override { UIManager::Push(&_saveMenu); }
 	void ShowLoadMenu() override { UIManager::Push(&_loadMenu); }
-	void Autosave() override { SaveToDirectory(GetUserDir() + "/auto"); }
+	void Autosave() override { SaveToDirectory(GetAutosaveDir()); }
 
 	void SaveToDirectory(const std::string& path) override {
 		std::filesystem::create_directories(std::filesystem::path(path));
@@ -57,7 +57,7 @@ class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
 		_loadedCallback();
 	}
 
-#ifdef _WIN32
+#if SDL_PLATFORM_WINDOWS
 	std::string GetUserDir() const override {
 		const char* appdata = std::getenv("APPDATA");
 		return std::string(appdata) + "\\Silly Bird Sidequest";
@@ -67,7 +67,7 @@ class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
 
 	std::string GetAutosaveDir() const override { return GetUserDir() + "\\auto"; }
 
-#elifdef __linux__
+#elif SDL_PLATFORM_LINUX
 	std::string GetUserDir() const override {
 		const char* xdgDataHome = std::getenv("XDG_DATA_HOME");
 		if (xdgDataHome != NULL) {
@@ -82,6 +82,14 @@ class SaveManagerPC : public SaveManagerBase, public ISaveManagerPC {
 	std::string GetManualSaveDir() const override { return GetUserDir() + "/manual"; }
 
 	std::string GetAutosaveDir() const override { return GetUserDir() + "/auto"; }
+
+#elif SDL_PLATFORM_ANDROID
+	std::string GetUserDir() const override { std::string path = SDL_GetPrefPath("noentertainment", "sbsidequest"); }
+
+	std::string GetManualSaveDir() const override { return GetUserDir() + "/manual"; }
+
+	std::string GetAutosaveDir() const override { return GetUserDir() + "/auto"; }
+
 #endif
 
 	virtual void NewSave() override {
