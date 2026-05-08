@@ -84,7 +84,7 @@ class SaveManagerGeneric : public SaveManagerBase, public ISaveManagerGeneric {
 	std::string GetAutosaveDir() const override { return GetUserDir() + "/auto"; }
 
 #elif SDL_PLATFORM_ANDROID
-	std::string GetUserDir() const override { std::string path = SDL_GetPrefPath("noentertainment", "sbsidequest"); }
+	std::string GetUserDir() const override { return SDL_GetPrefPath("noentertainment", "sbsidequest"); }
 
 	std::string GetManualSaveDir() const override { return GetUserDir() + "/manual"; }
 
