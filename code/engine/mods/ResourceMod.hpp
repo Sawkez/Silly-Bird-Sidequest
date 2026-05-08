@@ -24,4 +24,6 @@ class ResourceMod : public Mod {
 
 	ResourceMod(const std::string& path, yyjson_doc* doc) : ResourceMod(path, yyjson_doc_get_root(doc)) { yyjson_doc_free(doc); }
 	ResourceMod(const std::string& path) : ResourceMod(path, ResourceManager::LoadJson(path + "/mod.json")) {}
+
+	std::string GetTileSourcePath(uint8_t sourceID) const { return GetPath() + "/tiles/fg/" + _tileSources[sourceID]; }
 };

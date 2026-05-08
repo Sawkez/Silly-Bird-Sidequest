@@ -1,5 +1,1 @@
-{"name":"HIDDEN INTERNAL MOD",
-"tilesheet_sources":["grass.png","template_full.png","template_short.png"],
-"levels":[
-{"path":"title-screen-bg","name":"Title Screen Background"}
-]}
+{"levels":[],"name":"Silly Bird Sidequest hidden internal mod","tilesheet_sources":["template-full.png","template-short.png","grass.png"]}

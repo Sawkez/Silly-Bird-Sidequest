@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <vector>
 
 #include "engine/world/ForegroundTile.hpp"
@@ -21,15 +22,14 @@ class RoomChunk {
    public:
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
 
-	RoomChunk(const std::string& chunkFilePath, yyjson_val* chunkJson, SDL_Renderer* renderer, std::vector<SDL_Surface*> atlases,
-			  SDL_Surface* spikeAtlas)
+	RoomChunk(const std::string& chunkFilePath, yyjson_val* chunkJson, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
 		: _rect{
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "x")),
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "y")),
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "width")),
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "height")),
 		  },
-		  _cache(CacheTiles(renderer, atlases, spikeAtlas, chunkFilePath, yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count")),
+		  _cache(CacheTiles(renderer, spikeAtlas, chunkFilePath, yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count")),
 							yyjson_get_int(yyjson_obj_get(chunkJson, "spike_count")))) {}
 
 	RoomChunk(const RoomChunk&) = delete;
@@ -82,17 +82,19 @@ class RoomChunk {
 		return spikes;
 	}
 
-	SDL_Texture* CacheTiles(SDL_Renderer* renderer, const std::vector<SDL_Surface*>& atlases, SDL_Surface* spikeAtlas,
-							const std::string& chunkFilePath, int tileCount, int spikeCount) {
-				SDL_Surface* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_RGBA4444);
+	SDL_Texture* CacheTiles(SDL_Renderer* renderer, SDL_Surface* spikeAtlas, const std::string& chunkFilePath, int tileCount, int spikeCount) {
+		SDL_Surface* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_RGBA4444);
 
 		if (cacheSurface == NULL) {
 			std::cerr << "ERROR when caching chunk: " << SDL_GetError() << std::endl;
 		}
 
+		std::map<uint8_t, SDL_Surface*> atlases;
+
 		std::vector<ForegroundTile> tiles = LoadTiles(chunkFilePath, tileCount);
 
 		for (auto tile : tiles) {
+			tile.EnsureAtlasLoaded(atlases);
 			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
 
@@ -104,6 +106,10 @@ class RoomChunk {
 
 		SDL_Texture* cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
 		SDL_DestroySurface(cacheSurface);
+
+		for (auto pair : atlases) {
+			SDL_DestroySurface(pair.second);
+		}
 
 		return cache;
 	}

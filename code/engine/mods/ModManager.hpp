@@ -8,12 +8,14 @@
 
 class ModManager {
    private:
+	static constexpr uint8_t BUILTIN_TILE_BIT = 0b10000000;
+
 	static inline std::unique_ptr<ResourceMod> _builtin;
 	static inline std::unique_ptr<LevelMod> _level;
 	// TODO add skin mods
 
    public:
-	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest"); }
+	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden"); }
 
 	static void LoadLevelMod(const std::string& path) { _level = std::make_unique<LevelMod>(path); }
 
@@ -31,4 +33,12 @@ class ModManager {
 	static int GetLevelCount() { return _level->GetLevelCount(); }
 
 	static std::string GetLevelPath(int index) { return _level->GetLevelPath(index); }
+
+	static std::string GetTileSourcePath(uint8_t sourceID) {
+		if (sourceID & BUILTIN_TILE_BIT) {
+			return _builtin->GetTileSourcePath(sourceID & ~BUILTIN_TILE_BIT);
+		} else {
+			return _level->GetTileSourcePath(sourceID);
+		}
+	}
 };
