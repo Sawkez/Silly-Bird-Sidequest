@@ -20,10 +20,10 @@ class DiveParticle : public IParticle {
 	float _angle = 0.0;
 	float _rotationSpeed = 0.0;
 	float _time = 0.0;
-	static Curve _scaleCurve;
+	Curve _scaleCurve;
 
    public:
-	DiveParticle(SDL_Texture* texture) : IParticle(texture) {}
+	DiveParticle(SDL_Texture* texture) : IParticle(texture), _scaleCurve("content/curves/particles/dive_scale.curve") {}
 
 	void Start(Vector2 position) {
 		_position = position;
@@ -56,5 +56,3 @@ class DiveParticle : public IParticle {
 
 	static float GetMaxLifeTime() { return 0.75; }
 };
-
-Curve DiveParticle::_scaleCurve = Curve("content/curves/particles/dive_scale.curve");
