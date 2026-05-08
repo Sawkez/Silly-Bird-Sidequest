@@ -139,5 +139,5 @@ class Level : IProcessable, IDrawable {
 	~Level() {
 		DestroyRenderChunks();
 		SDL_DestroySurface(_spikeAtlas);
-		}
+	}
 };
