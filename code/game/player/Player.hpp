@@ -109,20 +109,9 @@ class Player : public IPlayer {
 	float _buffers[_BUFFER_COUNT]{};
 	float _cooldowns[_COOLDOWN_COUNT]{};
 
-	// collision info
-	bool _pushingFloor = false;
-	bool _wasPushingFloor = false;
-	bool _closeToFloor = false;
-	bool _pushingCeiling = false;
-	bool _closeToCeiling = false;
-	bool _pushingWall = false;
-
 	// movement variables
 	int _movementStateID = MOVEMENT_STATE_NORMAL;
 	float _lastDownVelocity = 0.0;
-	bool _quickClimb = false;
-	bool _facingLeft = false;
-	bool _shortCollision = false;
 	SDL_Point _ledgeTile{0, 0};
 
 	// visual variables
@@ -131,11 +120,17 @@ class Player : public IPlayer {
 	// upgrades            ??wrbs^>
 	Uint8 _upgradeBits = 0b00111111;
 	float _currentDiveGravity = 0.0;
-	bool _diveAvailable = true;
-	bool _dashAvailable = true;
 
 	// miscellaneous
 	Vector2 _respawnPosition{0.0, 0.0};
+	uint16_t _flags = Flag::FLAG_DIVE_AVAILABLE | Flag::FLAG_DASH_AVAILABLE;
+
+   private:
+	void ResetCollisionFlags() {
+		SetFlag(Flag::FLAG_WAS_PUSHING_FLOOR, IsPushingFloor());
+		_flags &= ~(Flag::FLAG_PUSHING_FLOOR | Flag::FLAG_CLOSE_TO_FLOOR | Flag::FLAG_PUSHING_WALL | Flag::FLAG_PUSHING_CEILING |
+					Flag::FLAG_CLOSE_TO_CEILING);
+	}
 
    public:
 	Vector2 velocity{0.0, 0.0};
@@ -157,7 +152,21 @@ class Player : public IPlayer {
 
 	const CollisionRect& GetCollision() const override { return _collision; }
 
-	Vector2 GetCollisionOffset() const override { return _shortCollision ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL; }
+	Vector2 GetCollisionOffset() const override { return IsShortCollision() ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL; }
+
+	bool HasFlag(Flag flag) const override { return (_flags & flag) != 0; }
+
+	void SetFlag(Flag flag) override { _flags |= flag; }
+
+	void UnsetFlag(Flag flag) override { _flags &= ~flag; }
+
+	void SetFlag(Flag flag, bool value) {
+		if (value) {
+			SetFlag(flag);
+		} else {
+			UnsetFlag(flag);
+		}
+	}
 
 	void SetState(int state) override {
 		_movementStates[_movementStateID]->Deinit(*this);
@@ -166,7 +175,7 @@ class Player : public IPlayer {
 	}
 
 	void SetShortCollision(bool isShort) override {
-		_shortCollision = isShort;
+		SetFlag(Flag::FLAG_SHORT_COLLISION, isShort);
 		_collision = isShort ? SHORT_COLLISION : FULL_COLLISION;
 	}
 
@@ -240,11 +249,11 @@ class Player : public IPlayer {
 			_buffers[i] -= delta;
 		}
 
-		if (_pushingFloor && !_wasPushingFloor) {
+		if (IsPushingFloor() && !WasPushingFloor()) {
 			_sprite.scale.x = X_SQUISH_MAX;
 			ReloadDash();
 			ReloadDive();
-			_quickClimb = false;
+			UnsetFlag(Flag::FLAG_QUICK_CLIMB);
 		}
 
 		// calling movement state function
@@ -266,12 +275,7 @@ class Player : public IPlayer {
 		// TODO wallswap
 
 		// moving and colliding
-		_wasPushingFloor = _pushingFloor;
-		_pushingFloor = false;
-		_closeToFloor = false;
-		_pushingWall = false;
-		_pushingCeiling = false;
-		_closeToCeiling = false;
+		ResetCollisionFlags();
 
 		float timeLeft = 1.0;
 		Vector2 collisionOffset = GetCollisionOffset();
@@ -301,15 +305,15 @@ class Player : public IPlayer {
 			velocity *= keepDir;
 
 			if (firstCollision.normal.y == -1.0) {
-				_pushingFloor = true;
+				SetFlag(Flag::FLAG_PUSHING_FLOOR);
 			}
 
 			else if (firstCollision.normal.y == 1.0) {
-				_pushingCeiling = true;
+				SetFlag(Flag::FLAG_PUSHING_CEILING);
 			}
 
 			if (firstCollision.normal.x != 0.0) {
-				_pushingWall = true;
+				SetFlag(Flag::FLAG_PUSHING_WALL);
 			}
 
 			timeLeft -= depth;
@@ -323,20 +327,20 @@ class Player : public IPlayer {
 
 		for (const auto& collider : _room.get().GetColliders()) {
 			if (SDL_HasRectIntersectionFloat(&_ceilingCheck, &collider)) {
-				_closeToCeiling = true;
+				SetFlag(Flag::FLAG_CLOSE_TO_CEILING);
 				break;
 			}
 		}
 
 		for (const auto& collider : _room.get().GetColliders()) {
 			if (SDL_HasRectIntersectionFloat(&_floorCheck, &collider)) {
-				_closeToFloor = true;
+				SetFlag(Flag::FLAG_CLOSE_TO_FLOOR);
 				break;
 			}
 		}
 
 		// rejuvenating
-		if (hVelocityBeforeCollision > REJUVENATOR_THRESHOLD && _pushingWall && HasUpgrade(UPGRADE_REJUVENATOR)) {
+		if (hVelocityBeforeCollision > REJUVENATOR_THRESHOLD && IsPushingWall() && HasUpgrade(UPGRADE_REJUVENATOR)) {
 			ReloadDash();
 			ReloadDive();
 		}
@@ -408,32 +412,32 @@ class Player : public IPlayer {
 	}
 
 	void FlipSprite(bool left) override {
-		if (_facingLeft == left) return;
+		if (HasFlag(Flag::FLAG_FACING_LEFT) == left) return;
 
 		_sprite.scale.x = X_SQUISH_MIN;
-		_facingLeft = left;
+		SetFlag(Flag::FLAG_FACING_LEFT, left);
 		_sprite.SetFlip(left ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 	}
 
 	void UnloadDive() override {
-		_diveAvailable = false;
+		UnsetFlag(Flag::FLAG_DIVE_AVAILABLE);
 		_diveParticles.StartEmitting();
 	}
 
 	void ReloadDive(bool invisible = false) override {
-		_diveAvailable = true;
+		SetFlag(Flag::FLAG_DIVE_AVAILABLE);
 		_diveParticles.StopEmitting();
 	}
 
 	void UnloadDash() override {
-		if (!_dashAvailable) return;
-		_dashAvailable = false;
+		if (!IsDashAvailable()) return;
+		UnsetFlag(Flag::FLAG_DASH_AVAILABLE);
 		_scarf.Unload();
 	}
 
 	void ReloadDash() override {
-		if (_dashAvailable) return;
-		_dashAvailable = true;
+		if (IsDashAvailable()) return;
+		SetFlag(Flag::FLAG_DASH_AVAILABLE);
 		_scarf.Load();
 	}
 
@@ -443,21 +447,22 @@ class Player : public IPlayer {
 		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
 
-	bool IsShortCollision() const override { return _shortCollision; }
-	bool IsCloseToCeiling() const override { return _closeToCeiling; }
-	bool IsPushingCeiling() const override { return _pushingCeiling; }
-	bool IsCloseToFloor() const override { return _closeToFloor; }
-	bool IsPushingFloor() const override { return _pushingFloor; }
-	bool IsPushingWall() const override { return _pushingWall; }
+	bool IsShortCollision() const override { return HasFlag(Flag::FLAG_SHORT_COLLISION); }
+	bool IsCloseToCeiling() const override { return HasFlag(Flag::FLAG_CLOSE_TO_CEILING); }
+	bool IsPushingCeiling() const override { return HasFlag(Flag::FLAG_PUSHING_CEILING); }
+	bool IsCloseToFloor() const override { return HasFlag(Flag::FLAG_CLOSE_TO_FLOOR); }
+	bool IsPushingFloor() const override { return HasFlag(Flag::FLAG_PUSHING_FLOOR); }
+	bool WasPushingFloor() const override { return HasFlag(Flag::FLAG_WAS_PUSHING_FLOOR); }
+	bool IsPushingWall() const override { return HasFlag(Flag::FLAG_PUSHING_WALL); }
 
-	bool IsDashAvailable() const override { return _dashAvailable; }
-	bool IsDiveAvailable() const override { return _diveAvailable; }
+	bool IsDashAvailable() const override { return HasFlag(Flag::FLAG_DASH_AVAILABLE); }
+	bool IsDiveAvailable() const override { return HasFlag(Flag::FLAG_DIVE_AVAILABLE); }
 
-	bool IsQuickClimbActive() const override { return _quickClimb; }
-	void EnableQuickClimb() override { _quickClimb = true; }
-	void DisableQuickClimb() override { _quickClimb = false; }
+	bool IsQuickClimbActive() const override { return HasFlag(Flag::FLAG_QUICK_CLIMB); }
+	void EnableQuickClimb() override { SetFlag(Flag::FLAG_QUICK_CLIMB); }
+	void DisableQuickClimb() override { UnsetFlag(Flag::FLAG_QUICK_CLIMB); }
 
-	bool IsFacingLeft() const override { return _facingLeft; }
+	bool IsFacingLeft() const override { return HasFlag(Flag::FLAG_FACING_LEFT); }
 
 	float GetSquish() const override { return _sprite.scale.x; }
 	void SetSquish(float squish) override { _sprite.scale.x = squish; }
