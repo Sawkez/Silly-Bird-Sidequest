@@ -24,22 +24,19 @@ using namespace std;
 
 class Level : IProcessable, IDrawable {
    private:
-	static inline SDL_Surface* _spikeAtlas = IMG_Load("content/sidequest/tiles/special/spikes.png");
-
+	SDL_Surface* _spikeAtlas;
 	string _path;
 	SDL_Renderer* _renderer;
-	vector<SDL_Surface*> _atlases;
 	Room _currentRoom;
 	Player _player;
 	RoomCamera _roomCamera;
 	vector<RenderChunk> _renderChunks;
 
    public:
-	Level(const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, vector<SDL_Surface*> tileAtlases,
-		  int roomIndex, Uint8 playerUpgrades)
-		: _path(path),
-		  _atlases(tileAtlases),
-		  _currentRoom(GetRoomPath(roomIndex), renderer, _atlases, _spikeAtlas),
+	Level(const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, int roomIndex, Uint8 playerUpgrades)
+		: _spikeAtlas(IMG_Load("content/sidequest-hidden/tiles/special/spikes.png")),
+		  _path(path),
+		  _currentRoom(GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
 		  _player(inputManager, renderer, _currentRoom, playerUpgrades),
 		  _roomCamera(_player, _currentRoom, window),
@@ -95,7 +92,7 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		cout << "Entered room " << room << endl;
 		GameState::Pause();
-		_currentRoom = Room(GetRoomPath(room), _renderer, _atlases, _spikeAtlas);
+		_currentRoom = Room(GetRoomPath(room), _renderer, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
 		_roomCamera.SetRoom(_currentRoom);
@@ -138,4 +135,9 @@ class Level : IProcessable, IDrawable {
 	RoomCamera& GetCamera() { return _roomCamera; }
 
 	Player& GetPlayer() { return _player; }
+
+	~Level() {
+		DestroyRenderChunks();
+		SDL_DestroySurface(_spikeAtlas);
+	}
 };

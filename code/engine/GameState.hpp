@@ -13,6 +13,12 @@
 #define INITIAL_WINDOW_RES 960, 540
 #endif
 
+#if SDL_PLATFORM_ANDROID
+#define WINDOWFLAGS SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+#else
+#define WINDOWFLAGS SDL_WINDOW_RESIZABLE
+#endif
+
 class GameState {
    private:
 	static inline constexpr float MAX_DELTA = 1.0;
@@ -28,10 +34,11 @@ class GameState {
 
    public:
 	static void Init() {
-		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, SDL_WINDOW_RESIZABLE);
+		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, WINDOWFLAGS);
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
+		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 	}
 
 	static void SetRunning(bool value) { _running = value; }
@@ -59,8 +66,12 @@ class GameState {
 		return delta < MAX_DELTA ? delta : _frameDuration / 1000.0f;
 	}
 
-	static void UpdateFrameStart() { _frameStartMs = _frameEndMs; }
-	static void UpdateFrameEnd() { _frameEndMs = SDL_GetTicks(); }
+	static void UpdateFrameEnd() {
+		_frameStartMs = _frameEndMs;
+		_frameEndMs = SDL_GetTicks();
+	}
+
+	static bool ShouldProcess() { return (SDL_GetTicks() - _frameStartMs) > _frameDuration; }
 
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 

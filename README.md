@@ -1,5 +1,5 @@
 # Silly Bird Sidequest
-Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP, with custom level support.
+Silly Bird Sidequest is a fast-paced precision 2D platformer for PC, Android and the PSP, with custom level support.
 
 ## Controls
 - WASD / D-Pad / Left joystick - Move;
@@ -11,7 +11,6 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 - All movement mechanics from *Silly Bird Sequel*;
 - Collectible upgrades;
 - Wallrunning;
-- Loading custom levels;
 - Save system;
 
 ## WIP
@@ -19,8 +18,9 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 - Level editor for PC;
 
 ## Next up
-- Visual effects;
-- Campaign intro;
+- Loading external mods;
+- Touch controls;
+- Mod thumbnails;
 
 ## Other planned features
 ### Gameplay
@@ -36,7 +36,6 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 
 ### Tech
 - Settings;
-- Android port;
 
 ## Building from Linux
 ### For Linux
@@ -49,7 +48,7 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC and the PSP,
 
 The executable can be found in build/export/linux.
 
-### Cross-compiling for Windows
+### For Windows
 1. Install dependencies:
     - Fedora: ```sudo dnf install cmake ninja-build mingw64-gcc-c++```
     - Ubuntu: ```sudo apt install cmake ninja-build gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 git```  
@@ -69,6 +68,13 @@ The executable can be found in build/export/windows.
 4. Compile: ```build/auto.sh psp```  
 
 The executable can be found in build/export/psp-pbp. Custom firmware is required to run it.
+
+### For Android
+1. Install Android SDK, JDK, NDK etc.
+2. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
+3. Compile: ```cd android-project && ./gradlew assembleRelease```
+
+The APK can be found in android-project/app/build/outputs/apk/release.
 
 ## Building from Windows
 Compiling from Windows is not supported. Consider using WSL.

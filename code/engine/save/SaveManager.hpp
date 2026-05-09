@@ -5,7 +5,7 @@
 #if SDL_PLATFORM_PSP
 #include "engine/save/SaveManagerPSP.hpp"
 #else
-#include "engine/save/SaveManagerPC.hpp"
+#include "engine/save/SaveManagerGeneric.hpp"
 #endif
 
 namespace SaveManager {
@@ -15,7 +15,7 @@ void Init() {
 #if SDL_PLATFORM_PSP
 	instance = new SaveManagerPSP;
 #else
-	instance = new SaveManagerPC;
+	instance = new SaveManagerGeneric;
 #endif
 
 	instance->Init();

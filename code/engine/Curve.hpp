@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -13,15 +15,15 @@ class Curve {
 	float* _points;
 
    public:
-	Curve(string path) : Curve(ifstream(path)) {}
+	Curve(string path) : Curve(SDL_IOFromFile(path.c_str(), "rb")) {}
 
-	Curve(ifstream file) {
-		file.read(reinterpret_cast<char*>(&_pointCount), 2);
+	Curve(SDL_IOStream* file) {
+		SDL_ReadIO(file, &_pointCount, 2);
 		_points = new float[_pointCount];
 
-		for (unsigned short i = 0; i < _pointCount; i++) {
-			file.read(reinterpret_cast<char*>(_points + i), 4);
-		}
+		SDL_ReadIO(file, _points, _pointCount * 4);
+
+		SDL_CloseIO(file);
 	}
 
 	float Sample(float x) const {

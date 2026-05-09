@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "engine/IProcessable.hpp"
+#include "engine/ResourceManager.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/world/IRoomObject.hpp"
@@ -33,18 +34,18 @@ class Room {
 	vector<IRoomObject*> _roomObjects;
 
    public:
-	Room(const string& folderPath, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
-		: Room(folderPath, LoadJson(folderPath + "/room.json"), renderer, atlases, spikeAtlas) {}
+	Room(const string& folderPath, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+		: Room(folderPath, ResourceManager::LoadJson(folderPath + "/room.json"), renderer, spikeAtlas) {}
 
-	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
-		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, atlases, spikeAtlas) {
+	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, spikeAtlas) {
 		yyjson_doc_free(jsonDoc);
 	}
 
-	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases, SDL_Surface* spikeAtlas)
+	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
 		  _spikeColliders(LoadSpikeColliders(folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
-		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, atlases, spikeAtlas)),
+		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, spikeAtlas)),
 		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
 		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
 		  _height(yyjson_get_num(yyjson_obj_get(roomJson, "height"))),
@@ -62,40 +63,6 @@ class Room {
 	Room& operator=(const Room&) = delete;
 
 	Room& operator=(Room&& other) noexcept = default;
-	/*
-	Room& operator=(Room&& other) noexcept {
-		if (this != &other) {
-			_colliders = move(other._colliders);
-			_spikeColliders = move(other._spikeColliders);
-			_ledges = move(other._ledges);
-			_width = other._width;
-			_height = other._height;
-			_targetWidth = other._targetWidth;
-			_targetHeight = other._targetHeight;
-			_xPosition = other._xPosition;
-			_yPosition = other._yPosition;
-			_chunks = move(other._chunks);
-			_neighbors = move(other._neighbors);
-		}
-
-		return *this;
-	}
-	*/
-
-	yyjson_val* LoadJson(const string& jsonPath) const {
-		cout << SDL_GetTicks() << ": loading JSON" << endl;
-		ifstream jsonFile(jsonPath);
-		if (!jsonFile.good()) {
-			cerr << "ERROR opening file: " << jsonPath << endl;
-		}
-
-		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
-
-		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
-		// yyjson_val* root = yyjson_doc_get_root(json);
-		// std::cout << "spike count " << yyjson_get_int(yyjson_obj_get(root, "spike_count")) << std::endl;
-		return yyjson_doc_get_root(json);
-	}
 
 	vector<CollisionRect> LoadColliders(yyjson_val* collidersJson) const {
 		cout << SDL_GetTicks() << ": loading colliders" << endl;
@@ -113,18 +80,22 @@ class Room {
 		cout << "Spike count now " << spikeCount << endl;
 		vector<SpikeCollider> spikes;
 
-		std::ifstream file;
-		file.open(folderPath + "/spikes.ow", std::ios::in | std::ios::binary);
+		SDL_IOStream* file = SDL_IOFromFile((folderPath + "/spikes.ow").c_str(), "rb");
+
+		if (file == NULL) {
+			cout << "ERROR: could not open spikes.ow: " << SDL_GetError() << endl;
+		}
 
 		for (int i = 0; i < spikeCount; i++) {
 			spikes.emplace_back(file);
 		}
 
+		SDL_CloseIO(file);
+
 		return spikes;
 	}
 
-	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, vector<SDL_Surface*> atlases,
-								 SDL_Surface* spikeAtlas) const {
+	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, SDL_Surface* spikeAtlas) const {
 		vector<RoomChunk> chunks;
 
 		size_t idx, max;
@@ -132,7 +103,7 @@ class Room {
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
 			cout << SDL_GetTicks() << ": loading chunk " << idx << endl;
-			chunks.emplace_back(folderPath + "/" + to_string(idx), chunk, renderer, atlases, spikeAtlas);
+			chunks.emplace_back(folderPath + "/" + to_string(idx), chunk, renderer, spikeAtlas);
 		}
 
 		return chunks;

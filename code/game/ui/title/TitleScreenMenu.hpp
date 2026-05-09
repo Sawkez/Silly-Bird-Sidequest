@@ -48,6 +48,8 @@ class TitleScreenMenu : public MenuTransparentBG {
 
 		lv_obj_add_event_cb(_buttons, ButtonPressedCallback, LV_EVENT_VALUE_CHANGED, _screen);
 		lv_buttonmatrix_set_button_ctrl_all(_buttons, LV_BUTTONMATRIX_CTRL_CLICK_TRIG);
+
+		lv_obj_set_size(_buttons, lv_dpx(250), lv_dpx(250));
 	}
 
 	void Activate() override {

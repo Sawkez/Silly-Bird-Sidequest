@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "engine/ResourceManager.hpp"
 #include "engine/graphics/Animation.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
 #include "yyjson.h"
@@ -31,19 +32,7 @@ class Jizz {
 		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))),
 		  _scarfPositions(LoadScarfPositions(yyjson_obj_get(yyjson_doc_get_root(styleJson), "scarf_positions"))) {}
 
-	Jizz(const std::string& stylePath, SDL_Renderer* renderer) : Jizz(stylePath, LoadJson(stylePath), renderer) {}
-
-	yyjson_doc* LoadJson(const string& stylePath) const {
-		ifstream jsonFile(stylePath + "/skin.json");
-		if (!jsonFile.good()) {
-			cerr << "ERROR opening skin.json file in " << stylePath << endl;
-		}
-
-		std::string jsonString((istreambuf_iterator<char>(jsonFile)), (istreambuf_iterator<char>()));
-
-		yyjson_doc* json = yyjson_read(jsonString.data(), jsonString.length(), 0);
-		return json;
-	}
+	Jizz(const std::string& stylePath, SDL_Renderer* renderer) : Jizz(stylePath, ResourceManager::LoadJson(stylePath + "/skin.json"), renderer) {}
 
 	SDL_Palette* LoadPalette(yyjson_val* json) const {
 		SDL_Palette* palette = SDL_CreatePalette(PALETTE_SIZE + 1);

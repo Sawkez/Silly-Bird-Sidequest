@@ -41,23 +41,40 @@ include_directories(${CMAKE_SOURCE_DIR}/code)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/lvgl)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/yyjson)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-set(SDL_STATIC ON CACHE BOOL "" FORCE)
-set(SDL3_IMAGE_STATIC ON CACHE BOOL "" FORCE)
-set(SDL3_IMAGE_VENDORED ON CACHE BOOL "" FORCE)
+if(ANDROID)
+	set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+	set(SDL_SHARED ON CACHE BOOL "" FORCE)
+	set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+	set(SDL3_IMAGE_STATIC OFF CACHE BOOL "" FORCE)
+	set(SDL3_IMAGE_VENDORED OFF CACHE BOOL "" FORCE)
+else()
+	set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+	set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+	set(SDL_STATIC ON CACHE BOOL "" FORCE)
+	set(SDL3_IMAGE_STATIC ON CACHE BOOL "" FORCE)
+	set(SDL3_IMAGE_VENDORED ON CACHE BOOL "" FORCE)
+endif()
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL_image)
 
-add_executable(sbsidequest code/engine/main.cpp)
-
-target_link_libraries(sbsidequest PRIVATE
-    yyjson
-    lvgl
-    SDL3::SDL3
-    SDL3_image::SDL3_image
-)
+if(ANDROID)
+    add_library(main SHARED code/engine/main.cpp)
+    target_link_libraries(main PRIVATE
+        yyjson
+        lvgl
+        SDL3::SDL3
+        SDL3_image::SDL3_image
+    )
+else()
+    add_executable(sbsidequest code/engine/main.cpp)
+    target_link_libraries(sbsidequest PRIVATE
+        yyjson
+        lvgl
+        SDL3::SDL3
+        SDL3_image::SDL3_image
+    )
+endif()
 
 if(WIN32)
 
