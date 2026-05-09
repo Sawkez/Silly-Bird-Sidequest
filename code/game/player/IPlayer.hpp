@@ -60,12 +60,30 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, COOLDOWN_WALLRUN, _COOLDOWN_COUNT };
 	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, BUFFER_WALLJUMP, _BUFFER_COUNT };
 
+	enum class Flag : uint16_t {
+		FLAG_PUSHING_FLOOR = 1 << 0,
+		FLAG_WAS_PUSHING_FLOOR = 1 << 1,
+		FLAG_CLOSE_TO_FLOOR = 1 << 2,
+		FLAG_PUSHING_CEILING = 1 << 3,
+		FLAG_CLOSE_TO_CEILING = 1 << 4,
+		FLAG_PUSHING_WALL = 1 << 5,
+		FLAG_QUICK_CLIMB = 1 << 6,
+		FLAG_FACING_LEFT = 1 << 7,
+		FLAG_SHORT_COLLISION = 1 << 8,
+		FLAG_DIVE_AVAILABLE = 1 << 9,
+		FLAG_DASH_AVAILABLE = 1 << 10
+	};
+
 	Vector2 position;
 	Vector2 velocity;
 
 	virtual const InputManager& GetInput() const = 0;
 	virtual const CollisionRect& GetCollision() const = 0;
 	virtual Vector2 GetCollisionOffset() const = 0;
+	virtual bool HasFlag(Flag flag) const = 0;
+	virtual void SetFlag(Flag flag) = 0;
+	virtual void UnsetFlag(Flag flag) = 0;
+	virtual void SetFlag(Flag flag, bool value) = 0;
 	virtual void SetState(int state) = 0;
 	virtual void SetShortCollision(bool isShort) = 0;
 	virtual void SetRoom(Room& room) = 0;
@@ -97,6 +115,7 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual bool IsPushingCeiling() const = 0;
 	virtual bool IsCloseToFloor() const = 0;
 	virtual bool IsPushingFloor() const = 0;
+	virtual bool WasPushingFloor() const = 0;
 	virtual bool IsPushingWall() const = 0;
 	virtual bool IsDashAvailable() const = 0;
 	virtual bool IsDiveAvailable() const = 0;
@@ -129,3 +148,18 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual void ShowScarf() = 0;
 	virtual void HideScarf() = 0;
 };
+
+uint16_t operator&(uint16_t a, IPlayer::Flag b) { return a & (uint16_t)b; }
+
+uint16_t operator|(uint16_t a, IPlayer::Flag b) { return a | (uint16_t)b; }
+
+uint16_t operator~(IPlayer::Flag flag) { return ~(uint16_t)flag; }
+
+uint16_t operator&(IPlayer::Flag a, IPlayer::Flag b) { return (uint16_t)a & (uint16_t)b; }
+
+uint16_t operator|(IPlayer::Flag a, IPlayer::Flag b) { return (uint16_t)a | (uint16_t)b; }
+
+uint16_t& operator|=(uint16_t& a, IPlayer::Flag b) {
+	a |= (uint16_t)b;
+	return a;
+}

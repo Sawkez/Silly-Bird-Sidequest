@@ -85,7 +85,7 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 
 	void PlayFromStart(int animationID, float speed = 1.0) {
 		Play(animationID, speed);
-		_animations[animationID].SetFrame(0);
+		_animations[animationID].Restart();
 	}
 
 	void PlayLastFrame(int animationID, float speed = 1.0) {
