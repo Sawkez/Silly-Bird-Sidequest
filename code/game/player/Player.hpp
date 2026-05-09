@@ -406,8 +406,6 @@ class Player : public IPlayer {
 		bool scarf = HasUpgrade(UPGRADE_DASH) ? _scarf.Draw(renderer, drawTargetRect, drawOffset) : false;
 		bool sprite = _sprite.Draw(renderer, drawTargetRect, drawOffset);
 
-		_floorCheck.Draw(renderer, drawTargetRect, drawOffset);
-
 		return parts || scarf || sprite;
 	}
 
