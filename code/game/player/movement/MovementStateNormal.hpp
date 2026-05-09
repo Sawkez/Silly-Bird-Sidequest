@@ -113,7 +113,7 @@ struct MovementStateNormal : public IMovementState {
 		if (!p.GetInput().IsTapped(ACTION_JUMP)) {
 		}
 
-		else if (p.IsCloseToFloor() || p.TimerActive(Player::TIMER_COYOTE)) {
+		else if (p.velocity.y > 0.0 && p.IsCloseToFloor() || p.TimerActive(Player::TIMER_COYOTE)) {
 			p.Buffer(Player::BUFFER_JUMP);
 		}
 
