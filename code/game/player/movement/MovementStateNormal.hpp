@@ -203,6 +203,7 @@ struct MovementStateNormal : public IMovementState {
 		p.UpdateLedgeTile();
 		if (p.CanGrabLedge()) {
 			p.SetState(Player::MOVEMENT_STATE_LEDGE);
+			return;
 		}
 
 		// updating animation
