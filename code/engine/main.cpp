@@ -27,7 +27,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
 	GameState::Init();
 	ModManager::Init();
-	ModManager::LoadLevelMod("content/sidequest");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 	Random::Init();
 	SaveManager::Init();

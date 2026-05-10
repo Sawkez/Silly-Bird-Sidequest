@@ -39,6 +39,13 @@ class ModSelectMenu : public MenuTransparentBG {
 
 		lv_group_add_obj(UIManager::GetMainGroup(), _panel);
 
+		lv_obj_add_event_cb(_panel, KeyPressedCallback, LV_EVENT_KEY, nullptr);
+	}
+
+	void Activate() override {
+		Menu::Activate();
+		lv_group_focus_obj(_panel);
+
 		int modCount = ModManager::GetLevelCount();
 		vector<std::string> levels = ModManager::GetLevelNames();
 
@@ -47,12 +54,5 @@ class ModSelectMenu : public MenuTransparentBG {
 		for (int i = 0; i < modCount; i++) {
 			_buttons.emplace_back(_panel, i, levels[i], ModSelectedCallback);
 		}
-
-		lv_obj_add_event_cb(_panel, KeyPressedCallback, LV_EVENT_KEY, nullptr);
-	}
-
-	void Activate() override {
-		Menu::Activate();
-		lv_group_focus_obj(_panel);
 	}
 };
