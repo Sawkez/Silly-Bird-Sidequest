@@ -6,6 +6,7 @@
 
 #include "engine/input/InputManager.hpp"
 #include "engine/input/UIInputManager.hpp"
+#include "engine/input/touch/TouchController.hpp"
 
 #if SDL_PLATFORM_PSP
 #define INITIAL_WINDOW_RES 480, 272
@@ -24,6 +25,7 @@ class GameState {
 	static inline constexpr float MAX_DELTA = 1.0;
 
 	static inline auto _input = InputManager();
+	static inline auto _touch = TouchController(_input);
 	static inline bool _running = true;
 	static inline bool _paused = true;
 	static inline unsigned long _frameStartMs = 0;

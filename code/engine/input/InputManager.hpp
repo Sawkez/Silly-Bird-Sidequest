@@ -237,4 +237,6 @@ class InputManager {
 	bool IsTapped(int id) const { return _actions[id].IsTapped(); }
 
 	Vector2 GetDir() const { return _dir; }
+
+	void SimulateAction(int action, bool down) { _actions[action].SetDown(down); }
 };
