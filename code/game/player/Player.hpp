@@ -86,7 +86,7 @@ class Player : public IPlayer {
 	static inline const Vector2 COLLISION_OFFSET_FULL{-4.0, -13.0};
 	static inline const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x, COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
 	static inline const Vector2 FLOOR_CHECK_OFFSET{-3.5, 0.0};
-	static inline const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL;
+	static inline const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL + Vector2{0.5, 0.0};
 
 	static inline constexpr float CEILING_DASH_VELOCITY = 200.0;
 
@@ -94,7 +94,7 @@ class Player : public IPlayer {
 	const InputManager& _input;
 	Jizz _jizz;
 	CollisionRect _collision = CollisionRect(FULL_COLLISION);
-	CollisionRect _ceilingCheck{0.0, 0.0, 8.0, 6.0};
+	CollisionRect _ceilingCheck{0.0, 0.0, 7.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 7.0, 12.0};
 	reference_wrapper<Room> _room;
 	AnimatedSpriteOverlay _sprite;
