@@ -191,5 +191,7 @@ class UIManager {
 	static void PopAndPush(MenuID menu) { PopAndPush(_menus[menu]); }
 	static void PopAndPush(Menu* menu) { lv_async_call(PopAndPushAsync, menu); }
 
+	static bool IsVisible() { return _stackTop > -1; }
+
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
 };

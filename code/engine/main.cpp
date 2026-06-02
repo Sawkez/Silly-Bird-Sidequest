@@ -76,7 +76,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 		UIManager::Draw();
 
-		GameState::GetTouch().Draw(GameState::GetMainRenderer());
+		if (!UIManager::IsVisible()) GameState::GetTouch().Draw(GameState::GetMainRenderer());
 
 		SDL_RenderPresent(GameState::GetMainRenderer());
 	}
