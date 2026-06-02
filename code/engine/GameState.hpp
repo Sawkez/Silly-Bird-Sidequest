@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "engine/PlatformDefines.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/input/UIInputManager.hpp"
 #include "engine/input/touch/TouchController.hpp"
@@ -25,7 +26,9 @@ class GameState {
 	static inline constexpr float MAX_DELTA = 1.0;
 
 	static inline auto _input = InputManager();
+#ifdef PLATFORM_HAS_TOUCH
 	static inline auto _touch = TouchController(_input);
+#endif
 	static inline bool _running = true;
 	static inline bool _paused = true;
 	static inline unsigned long _frameStartMs = 0;
@@ -42,7 +45,9 @@ class GameState {
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
+#ifdef PLATFORM_HAS_TOUCH
 		_touch.Init(_mainRenderer, _mainWindow);
+#endif
 	}
 
 	static void SetRunning(bool value) { _running = value; }
@@ -80,7 +85,9 @@ class GameState {
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 
 	static InputManager& GetInput() { return _input; }
+#ifdef PLATFORM_HAS_TOUCH
 	static TouchController& GetTouch() { return _touch; }
+#endif
 
 	static SDL_Renderer* GetMainRenderer() { return _mainRenderer; }
 	static SDL_Window* GetMainWindow() { return _mainWindow; }
