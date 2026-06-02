@@ -11,7 +11,7 @@
 #include "engine/physics/CollisionResult.hpp"
 #include "yyjson.h"
 
-struct CollisionRect : SDL_FRect, IDrawableRect {
+struct CollisionRect : public SDL_FRect, public IDrawableRect {
 	const float X_PRIORITY = 0.1;
 	const float MIN_COLLISION_DEPTH = -0.1;
 
