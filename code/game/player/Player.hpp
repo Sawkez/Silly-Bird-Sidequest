@@ -145,6 +145,7 @@ class Player : public IPlayer {
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
 		  _upgradeBits(upgrades) {
 		if (!HasUpgrade(UPGRADE_DASH)) HideScarf();
+		_timers[TIMER_TWERK] = TWERK_TIMER_MIN;
 		SaveManager::instance->saveData.upgrades = _upgradeBits;
 	}
 
@@ -198,6 +199,12 @@ class Player : public IPlayer {
 	bool TimerActive(int timer) const override { return _timers[timer] > 0.0; }
 
 	float GetTimer(int timer) const override { return _timers[timer]; }
+
+	void IncrementTwerkTimer() override {
+		_timers[TIMER_TWERK] = max(_timers[TIMER_TWERK], TWERK_TIMER_MIN);
+		_timers[TIMER_TWERK] += TWERK_TIMER_INCREMENT;
+		_timers[TIMER_TWERK] = min(_timers[TIMER_TWERK], TWERK_TIMER_MAX);
+	}
 
 	void Buffer(int buffer) override {
 		if (isnan(BUFFER_DURATIONS[buffer])) {

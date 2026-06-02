@@ -209,8 +209,8 @@ struct MovementStateNormal : public IMovementState {
 		// updating animation
 		if (p.IsPushingFloor()) {
 			if (p.velocity.x == 0.0 || p.IsPushingWall()) {
-				// TODO bored and twerk
-				p.PlayAnimation(Player::ANIM_IDLE);
+				p.PlayAnimation(p.TimerActive(Player::TIMER_TWERK) ? Player::ANIM_TWERK_UP : Player::ANIM_IDLE);
+				// TODO bored animations
 			}
 
 			else if (abs(p.velocity.x) <= SLOW_RUN_SPEED) {

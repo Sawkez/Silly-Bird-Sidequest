@@ -74,6 +74,10 @@ class IPlayer : public IDrawableRect, public IProcessable {
 		FLAG_DASH_AVAILABLE = 1 << 10
 	};
 
+	static inline const float TWERK_TIMER_MIN = -3.0;
+	static inline const float TWERK_TIMER_MAX = 2.0;
+	static inline const float TWERK_TIMER_INCREMENT = 1.0;
+
 	Vector2 position;
 	Vector2 velocity;
 
@@ -92,6 +96,7 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual void UnsetTimer(int timer) = 0;
 	virtual bool TimerActive(int timer) const = 0;
 	virtual float GetTimer(int timer) const = 0;
+	virtual void IncrementTwerkTimer() = 0;
 	virtual void Buffer(int buffer) = 0;
 	virtual void Unbuffer(int buffer) = 0;
 	virtual bool BufferActive(int buffer) const = 0;

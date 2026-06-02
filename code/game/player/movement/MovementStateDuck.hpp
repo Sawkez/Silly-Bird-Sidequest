@@ -6,6 +6,8 @@
 class MovementStateDuck : public IMovementState {
 	const float SQUISH_DUCK = 0.5;
 	const float SQUISH_STAND_UP = 1.5;
+	const float SQUISH_TWERK_DOWN = 0.9;
+	const float SQUISH_TWERK_UP = 1.1;
 	const float DUCK_GRAVITY = 0.01;
 	const float DUCK_JUMP_FORCE = 250.0;
 
@@ -13,12 +15,16 @@ class MovementStateDuck : public IMovementState {
 		p.Unbuffer(Player::BUFFER_SLIDE);
 
 		p.SetShortCollision(true);
-		p.SetSquish(SQUISH_DUCK);
-		p.PlayAnimation(Player::ANIM_DUCK);
+		p.SetSquish(p.TimerActive(Player::TIMER_TWERK) ? SQUISH_TWERK_DOWN : SQUISH_DUCK);
+
+		if (p.TimerActive(Player::TIMER_TWERK)) p.PlayAnimation(Player::ANIM_TWERK_DOWN);
+		p.IncrementTwerkTimer();
 	}
 
 	void Process(Player& p, float delta) const override {
 		p.velocity = Vector2{0.0, DUCK_GRAVITY * delta};
+
+		if (!p.TimerActive(Player::TIMER_TWERK)) p.PlayAnimation(Player::ANIM_DUCK);
 
 		// sliding
 		if (p.GetInput().GetDir().x != 0.0 && (p.GetInput().IsDown(ACTION_DIVE) || p.IsCloseToCeiling()) &&
@@ -55,7 +61,7 @@ class MovementStateDuck : public IMovementState {
 
 	void Deinit(Player& p) const override {
 		p.SetTimer(Player::TIMER_COYOTE);
-		p.SetSquish(SQUISH_STAND_UP);
+		p.SetSquish(p.TimerActive(Player::TIMER_TWERK) ? SQUISH_TWERK_UP : SQUISH_STAND_UP);
 		p.SetShortCollision(false);
 	}
 };
