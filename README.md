@@ -12,6 +12,7 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC, Android and
 - Collectible upgrades;
 - Wallrunning;
 - Save system;
+- Touch controls;
 
 ## WIP
 - GUI;
