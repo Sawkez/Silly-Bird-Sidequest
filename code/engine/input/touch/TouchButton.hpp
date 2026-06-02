@@ -36,6 +36,9 @@ class TouchButton {
 		std::cout << "Loading touch icon " << id << ": " << downPath << ", " << upPath << std::endl;
 		_downTexture = IMG_LoadTexture(renderer, downPath.c_str());
 		_upTexture = IMG_LoadTexture(renderer, upPath.c_str());
+
+		SDL_SetTextureAlphaMod(_downTexture, 128);
+		SDL_SetTextureAlphaMod(_upTexture, 128);
 	}
 
 	bool HasPoint(float x, float y) {
