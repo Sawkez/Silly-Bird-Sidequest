@@ -122,26 +122,6 @@ struct MovementStateNormal : public IMovementState {
 			// TODO dashblocker
 		}
 
-		// dashing
-		bool dashFirst =
-			!p.BufferActive(Player::BUFFER_DIVE) || p.GetBuffer(Player::BUFFER_DASH) < p.GetBuffer(Player::BUFFER_DIVE) || !p.IsDiveAvailable();
-
-		if (!p.BufferActive(Player::BUFFER_DASH)) {
-		}
-
-		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) && p.IsDashAvailable()) {
-			p.SetState(Player::MOVEMENT_STATE_DASH);
-			return;
-		}
-
-		// wallrunning
-		if (p.HasUpgrade(Player::UPGRADE_WALLRUN) && !p.IsPushingFloor() && p.IsPushingWall() && p.IsDiveAvailable() &&
-			p.GetInput().IsDown(ACTION_DIVE)) {
-			p.UnloadDive();
-			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
-			return;
-		}
-
 		// dive buffer
 		bool wantsToDive = p.velocity.y < GRAVITY * delta || !p.IsCloseToFloor();
 		bool wantsToUltraslide = p.velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && p.GetInput().IsDown(ACTION_DOWN);
@@ -197,6 +177,26 @@ struct MovementStateNormal : public IMovementState {
 
 			p.SetSquish(Player::X_SQUISH_MIN);
 			// TODO moving platforms
+		}
+
+		// dashing
+		bool dashFirst =
+			!p.BufferActive(Player::BUFFER_DIVE) || p.GetBuffer(Player::BUFFER_DASH) < p.GetBuffer(Player::BUFFER_DIVE) || !p.IsDiveAvailable();
+
+		if (!p.BufferActive(Player::BUFFER_DASH)) {
+		}
+
+		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) && p.IsDashAvailable()) {
+			p.SetState(Player::MOVEMENT_STATE_DASH);
+			return;
+		}
+
+		// wallrunning
+		if (p.HasUpgrade(Player::UPGRADE_WALLRUN) && !p.IsPushingFloor() && p.IsPushingWall() && p.IsDiveAvailable() &&
+			p.GetInput().IsDown(ACTION_DIVE)) {
+			p.UnloadDive();
+			p.SetState(Player::MOVEMENT_STATE_WALLRUN);
+			return;
 		}
 
 		// grabbing ledges
