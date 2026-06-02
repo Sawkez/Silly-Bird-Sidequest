@@ -42,7 +42,7 @@ class GameState {
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
-		_touch.Init(_mainWindow);
+		_touch.Init(_mainRenderer, _mainWindow);
 	}
 
 	static void SetRunning(bool value) { _running = value; }

@@ -33,30 +33,31 @@ class TouchController {
 	// clang-format off
 	
 	TouchController(InputManager& inputManager) : _buttons{
-		TouchButton(SDL_FPoint{0.0, 0.6}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_LEFT}),
-		TouchButton(SDL_FPoint{0.1, 0.6}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_UP}),
-		TouchButton(SDL_FPoint{0.2, 0.6}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_RIGHT}),
+		TouchButton(SDL_FPoint{0.05, 0.55}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_LEFT}),
+		TouchButton(SDL_FPoint{0.15, 0.55}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_UP}),
+		TouchButton(SDL_FPoint{0.25, 0.55}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_RIGHT}),
 
-		TouchButton(SDL_FPoint{0.0, 0.8}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_LEFT, ACTION_DOWN}),
-		TouchButton(SDL_FPoint{0.1, 0.8}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DOWN}),
-		TouchButton(SDL_FPoint{0.2, 0.8}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_RIGHT, ACTION_DOWN}),
+		TouchButton(SDL_FPoint{0.05, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_LEFT, ACTION_DOWN}),
+		TouchButton(SDL_FPoint{0.15, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DOWN}),
+		TouchButton(SDL_FPoint{0.25, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_RIGHT, ACTION_DOWN}),
 
-		TouchButton(SDL_FPoint{0.7, 0.6}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE, ACTION_JUMP}),
-		TouchButton(SDL_FPoint{0.8, 0.6}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_JUMP}),
-		TouchButton(SDL_FPoint{0.9, 0.6}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_JUMP, ACTION_INTERACT}),
+		TouchButton(SDL_FPoint{0.65, 0.55}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE, ACTION_JUMP}),
+		TouchButton(SDL_FPoint{0.75, 0.55}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_JUMP}),
+		TouchButton(SDL_FPoint{0.85, 0.55}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_JUMP, ACTION_INTERACT}),
 		
-		TouchButton(SDL_FPoint{0.7, 0.8}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE}),
-		TouchButton(SDL_FPoint{0.8, 0.8}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE, ACTION_JUMP, ACTION_INTERACT}),
-		TouchButton(SDL_FPoint{0.9, 0.8}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_INTERACT})
+		TouchButton(SDL_FPoint{0.65, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE}),
+		TouchButton(SDL_FPoint{0.75, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE, ACTION_JUMP, ACTION_INTERACT}),
+		TouchButton(SDL_FPoint{0.85, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_INTERACT})
 	} {}
 
 	// clang-format on
 
-	void Init(SDL_Window* window) {
+	void Init(SDL_Renderer* renderer, SDL_Window* window) {
 		for (int i = 0; i < _BUTTON_COUNT; i++) {
 			int w, h;
 			SDL_GetWindowSize(window, &w, &h);
 			_buttons[i].UpdateDrawRect(w, h);
+			_buttons[i].LoadIcons(renderer, i);
 		}
 	}
 

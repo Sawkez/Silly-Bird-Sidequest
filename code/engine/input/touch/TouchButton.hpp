@@ -14,6 +14,9 @@ class TouchButton {
 	SDL_FRect _logicRect;
 	SDL_FRect _drawRect;
 
+	SDL_Texture* _downTexture = nullptr;
+	SDL_Texture* _upTexture = nullptr;
+
 	bool _down = false;
 
    public:
@@ -24,6 +27,15 @@ class TouchButton {
 
 	void UpdateDrawRect(float windowWidth, float windowHeight) {
 		_drawRect = {_logicRect.x * windowWidth, _logicRect.y * windowHeight, _logicRect.w * windowWidth, _logicRect.h * windowHeight};
+	}
+
+	void LoadIcons(SDL_Renderer* renderer, int id) {
+		std::string downPath = "content/textures/icons/touch/down/" + std::to_string(id) + ".png";
+		std::string upPath = "content/textures/icons/touch/up/" + std::to_string(id) + ".png";
+
+		std::cout << "Loading touch icon " << id << ": " << downPath << ", " << upPath << std::endl;
+		_downTexture = IMG_LoadTexture(renderer, downPath.c_str());
+		_upTexture = IMG_LoadTexture(renderer, upPath.c_str());
 	}
 
 	bool HasPoint(float x, float y) {
@@ -49,12 +61,10 @@ class TouchButton {
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 		if (_down) {
-			SDL_SetRenderDrawColor(renderer, 128, 0, 0, 128);
+			SDL_RenderTexture(renderer, _downTexture, NULL, &_drawRect);
 		} else {
-			SDL_SetRenderDrawColor(renderer, 0, 128, 128, 128);
+			SDL_RenderTexture(renderer, _upTexture, NULL, &_drawRect);
 		}
-
-		SDL_RenderFillRect(renderer, &_drawRect);
 
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
