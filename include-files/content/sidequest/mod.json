@@ -1,1 +1,1 @@
-{"levels":[{"name":"Custom Tile Textures Test","path":"custom-tiles-test"}],"name":"Silly Bird Sidequest Built-in Content","tilesheet_sources":["brick.png"]}
+{"levels":[{"name":"Custom Tile Textures Test","path":"custom-tiles-test"},{"name":"Movement Tests","path":"movement-tests"}],"name":"Silly Bird Sidequest Built-in Content","tilesheet_sources":["brick.png"]}
