@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "engine/Math.hpp"
+#include "engine/PlatformDefines.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/input/Action.hpp"
 
@@ -74,7 +75,7 @@ class InputManager {
 				HandleEvent(event.gdevice);
 				return true;
 
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_KEYBOARD
 
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
@@ -142,14 +143,14 @@ class InputManager {
 				if (abs(event.value) > JOY_AXIS_DEADZONE) {
 					_dirJoystickPriority = true;
 				}
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_RIGHT_JOY
 			case SDL_GAMEPAD_AXIS_RIGHTX:
 			case SDL_GAMEPAD_AXIS_RIGHTY:
 #endif
 				_lastUsedJoystick = event.which;
 				return true;
 
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_TRIGGERS
 			case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
 				return ButtonEvent(Action::LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
 
@@ -237,4 +238,6 @@ class InputManager {
 	bool IsTapped(int id) const { return _actions[id].IsTapped(); }
 
 	Vector2 GetDir() const { return _dir; }
+
+	void SimulateAction(int action, bool down) { _actions[action].SetDown(down); }
 };

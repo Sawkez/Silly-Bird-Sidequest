@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "engine/PlatformDefines.hpp"
 #include "engine/input/UIAction.hpp"
 #include "engine/input/UIActionEvent.hpp"
 #include "lvgl/lvgl.h"
@@ -13,7 +14,7 @@ class UIInputManager {
 	UIInputManager() = delete;
 	static inline auto _event = UIActionEvent();
 
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_MOUSE
 	static inline lv_indev_t* _mouseInput = NULL;
 #endif
 	static inline lv_indev_t* _keypadInput = NULL;
@@ -28,7 +29,7 @@ class UIInputManager {
 														 {SDL_SCANCODE_ESCAPE, SDL_GAMEPAD_BUTTON_EAST, LV_KEY_ESC}};	 // esc
 
    public:
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_MOUSE
 	static void TouchReadCallback(lv_indev_t* mouseInput, lv_indev_data_t* data) {
 		float x, y;
 		Uint32 buttons = SDL_GetMouseState(&x, &y);
@@ -48,7 +49,7 @@ class UIInputManager {
 		_mainGroup = lv_group_create();
 		lv_group_set_default(_mainGroup);
 
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_MOUSE
 		_mouseInput = lv_indev_create();
 		lv_indev_set_type(_mouseInput, LV_INDEV_TYPE_POINTER);
 		lv_indev_set_mode(_mouseInput, LV_INDEV_MODE_EVENT);
@@ -65,7 +66,7 @@ class UIInputManager {
 		lv_key_t out = (lv_key_t)-2;
 
 		switch (event.type) {
-#if !SDL_PLATFORM_PSP
+#ifdef PLATFORM_HAS_KEYBOARD
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
 				for (int i = 0; i < _UI_ACTION_COUNT; i++) {

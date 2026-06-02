@@ -171,7 +171,7 @@ class UIManager {
 
 		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
 			Resize(event.window.data1, event.window.data2);
-			return true;
+			return false;
 		}
 
 		return (UIInputManager::HandleEvent(event));
@@ -190,6 +190,8 @@ class UIManager {
 	static void ClearStackAndPush(Menu* menu) { lv_async_call(ClearStackAndPushAsync, menu); }
 	static void PopAndPush(MenuID menu) { PopAndPush(_menus[menu]); }
 	static void PopAndPush(Menu* menu) { lv_async_call(PopAndPushAsync, menu); }
+
+	static bool IsVisible() { return _stackTop > -1; }
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
 };
