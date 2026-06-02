@@ -41,6 +41,8 @@ class GameState {
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+
+		_touch.Init(_mainWindow);
 	}
 
 	static void SetRunning(bool value) { _running = value; }
@@ -78,11 +80,10 @@ class GameState {
 	static void SetTargetFPS(float fps) { _frameDuration = 1000UL / fps; }
 
 	static InputManager& GetInput() { return _input; }
+	static TouchController& GetTouch() { return _touch; }
 
 	static SDL_Renderer* GetMainRenderer() { return _mainRenderer; }
 	static SDL_Window* GetMainWindow() { return _mainWindow; }
-
-	static void DrawTouchOverlay() { _touch.Draw(_mainRenderer); }
 
 	static void Deinit() {
 		SDL_DestroyRenderer(_mainRenderer);

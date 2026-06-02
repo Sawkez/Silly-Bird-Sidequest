@@ -171,7 +171,7 @@ class UIManager {
 
 		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
 			Resize(event.window.data1, event.window.data2);
-			return true;
+			return false;
 		}
 
 		return (UIInputManager::HandleEvent(event));

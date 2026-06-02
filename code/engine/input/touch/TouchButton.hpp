@@ -7,20 +7,42 @@
 class TouchButton {
    private:
 	int _actions[3];
-	SDL_FPoint _position;
-	float _size;
 	InputManager& _inputManager;
 
+	SDL_FRect _logicRect;
+	SDL_FRect _drawRect;
+
+	bool _down = false;
+
    public:
-	TouchButton(SDL_FPoint position, float size, InputManager& inputManager, int action0, int action1, int action2)
-		: _actions{action0, action1, action2}, _position(position), _size(size), _inputManager(inputManager) {}
+	TouchButton(SDL_FPoint positionNormalized, SDL_FPoint sizeNormalized, InputManager& inputManager, int action0, int action1, int action2)
+		: _actions{action0, action1, action2},
+		  _logicRect{positionNormalized.x, positionNormalized.y, sizeNormalized.x, sizeNormalized.y},
+		  _inputManager(inputManager) {}
+
+	void UpdateDrawRect(float windowWidth, float windowHeight) {
+		_drawRect = {_logicRect.x * windowWidth, _logicRect.y * windowHeight, _logicRect.w * windowWidth, _logicRect.h * windowHeight};
+	}
+
+	bool HasPoint(float x, float y) {
+		SDL_FPoint point{x, y};
+		return SDL_PointInRectFloat(&point, &_logicRect);
+	}
+
+	void Press() { _down = true; }
+
+	void Release() { _down = false; }
 
 	void Draw(SDL_Renderer* renderer) {
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-		SDL_FRect rect{_position.x, _position.y, _size, _size};
-		SDL_SetRenderDrawColor(renderer, 0, 128, 128, 128);
-		SDL_RenderFillRect(renderer, &rect);
+		if (_down) {
+			SDL_SetRenderDrawColor(renderer, 128, 0, 0, 128);
+		} else {
+			SDL_SetRenderDrawColor(renderer, 0, 128, 128, 128);
+		}
+
+		SDL_RenderFillRect(renderer, &_drawRect);
 
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}

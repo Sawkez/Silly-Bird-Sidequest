@@ -76,7 +76,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 		UIManager::Draw();
 
-		GameState::DrawTouchOverlay();
+		GameState::GetTouch().Draw(GameState::GetMainRenderer());
 
 		SDL_RenderPresent(GameState::GetMainRenderer());
 	}
@@ -94,6 +94,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (event->type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 	if (UIManager::HandleEvent(*event)) return SDL_APP_CONTINUE;
+	if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
 	if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 	if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
