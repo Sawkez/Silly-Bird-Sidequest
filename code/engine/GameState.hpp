@@ -82,6 +82,8 @@ class GameState {
 	static SDL_Renderer* GetMainRenderer() { return _mainRenderer; }
 	static SDL_Window* GetMainWindow() { return _mainWindow; }
 
+	static void DrawTouchOverlay() { _touch.Draw(_mainRenderer); }
+
 	static void Deinit() {
 		SDL_DestroyRenderer(_mainRenderer);
 		SDL_DestroyWindow(_mainWindow);

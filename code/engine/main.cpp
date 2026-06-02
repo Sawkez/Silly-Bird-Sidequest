@@ -76,6 +76,8 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 		UIManager::Draw();
 
+		GameState::DrawTouchOverlay();
+
 		SDL_RenderPresent(GameState::GetMainRenderer());
 	}
 
