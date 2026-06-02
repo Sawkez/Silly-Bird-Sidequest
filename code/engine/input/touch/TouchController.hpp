@@ -102,9 +102,20 @@ class TouchController {
 				bool newButtonFound = FindButton(event.tfinger.x, event.tfinger.y, newButton);
 				bool oldButtonFound = FindButton(event.tfinger.x - event.tfinger.dx, event.tfinger.y - event.tfinger.dy, oldButton);
 
-				if (newButtonFound) newButton->Press();
-				if (oldButtonFound && oldButton != newButton) oldButton->Release();
-				return oldButtonFound || newButtonFound;
+				if (!newButtonFound && !oldButtonFound) {
+					return false;
+
+				} else if (newButtonFound && !oldButtonFound) {
+					newButton->Press();
+
+				} else if (oldButtonFound && !newButtonFound) {
+					oldButton->Release();
+
+				} else {
+					newButton->Shift(*oldButton);
+				}
+
+				return true;
 			}
 
 			case SDL_EVENT_FINGER_UP: {

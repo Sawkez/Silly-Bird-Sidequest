@@ -46,6 +46,14 @@ class TouchButton {
 		return SDL_PointInRectFloat(&point, &_logicRect);
 	}
 
+	bool HasAction(int action) {
+		for (auto compareAction : _actions) {
+			if (compareAction == action) return true;
+		}
+
+		return false;
+	}
+
 	void Press() {
 		_down = true;
 		for (auto action : _actions) {
@@ -57,6 +65,25 @@ class TouchButton {
 		_down = false;
 		for (auto action : _actions) {
 			_inputManager.SimulateAction(action, false);
+		}
+	}
+
+	// When shifting from one button to another, activate only the actions that weren't already active from the other button
+	// and deactivate only the actions that won't be active from this button.
+	void Shift(TouchButton& other) {
+		other._down = false;
+		_down = true;
+
+		for (auto action : _actions) {
+			if (!other.HasAction(action)) {
+				_inputManager.SimulateAction(action, true);
+			}
+		}
+
+		for (auto action : other._actions) {
+			if (!HasAction(action)) {
+				_inputManager.SimulateAction(action, false);
+			}
 		}
 	}
 
