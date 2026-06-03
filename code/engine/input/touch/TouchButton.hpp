@@ -34,7 +34,7 @@ class TouchButton {
 		std::string downPath = "content/textures/icons/touch/down/" + std::to_string(id) + ".png";
 		std::string upPath = "content/textures/icons/touch/up/" + std::to_string(id) + ".png";
 
-		dc::msg << "Loading touch icon " << id << ": " << downPath << ", " << upPath << dc::endl;
+		std::cout << "Loading touch icon " << id << ": " << downPath << ", " << upPath << std::endl;
 		_downTexture = IMG_LoadTexture(renderer, downPath.c_str());
 		_upTexture = IMG_LoadTexture(renderer, upPath.c_str());
 
