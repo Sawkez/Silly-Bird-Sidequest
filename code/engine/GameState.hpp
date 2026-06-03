@@ -39,8 +39,20 @@ class GameState {
 
    public:
 	static void Init() {
+		std::cout << "Welcome to Silly Bird Sidequest!" << std::endl;
 		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, WINDOWFLAGS);
+
+		std::cout << "Available render drivers: ";
+
+		int driverCount = SDL_GetNumRenderDrivers();
+		for (int i = 0; i < driverCount; i++) {
+			std::cout << SDL_GetRenderDriver(i) << "; ";
+		}
+
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
+
+		std::cout << std::endl << "Using driver: " << SDL_GetRendererName(_mainRenderer) << std::endl << std::endl;
+
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
