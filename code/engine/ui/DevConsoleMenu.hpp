@@ -1,12 +1,16 @@
 #pragma once
 
+#include <deque>
 #include <string>
 
 #include "3rdparty/lvgl/lvgl.h"
+#include "engine/PlatformDefines.hpp"
+#include "engine/devconsole/DevConsoleMessage.hpp"
 #include "engine/ui/MenuTransparentBG.hpp"
 
 class DevConsoleMenu : public MenuTransparentBG {
 	lv_obj_t* _panel;
+	std::deque<DevConsoleMessage> _messages;
 
    public:
 	void Init() override {
@@ -18,9 +22,21 @@ class DevConsoleMenu : public MenuTransparentBG {
 		lv_obj_align(_panel, LV_ALIGN_TOP_MID, 0, 0);
 	}
 
+	void Activate() override {
+		MenuTransparentBG::Activate();
+
+		for (auto& message : _messages) {
+			message.EnsureLabelCreated(_panel);
+		}
+
+		_messages.back().ScrollIntoView();
+	}
+
 	void PrintLine(const std::string& text, const lv_color_t& color) {
-		lv_obj_t* label = lv_label_create(_panel);
-		lv_obj_set_style_text_color(label, color, 0);
-		lv_label_set_text(label, text.data());
+		if (_messages.size() >= PLATFORM_DEVCONSOLE_MAX_LINES) {
+			_messages.pop_front();
+		}
+
+		_messages.emplace_back(text, color);
 	}
 };
