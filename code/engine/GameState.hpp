@@ -51,7 +51,7 @@ class GameState {
 
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 
-		std::cout << std::endl << std::endl << "Using driver: " << SDL_GetRendererName(_mainRenderer) << std::endl;
+		std::cout << std::endl << "Using driver: " << SDL_GetRendererName(_mainRenderer) << std::endl << std::endl;
 
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
