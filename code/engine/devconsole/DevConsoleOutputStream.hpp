@@ -38,7 +38,7 @@ class DevConsoleOutputStream {
 	DevConsoleOutputStream& operator<<(const DevConsoleNewline& newline) {
 		_menu.PrintLine(_text, _color);
 		_stream << std::endl;
-		_text = "";
+		_text.clear();
 		return *this;
 	}
 };

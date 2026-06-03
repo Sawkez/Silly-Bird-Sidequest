@@ -6,6 +6,9 @@
 #include <iostream>
 #include <string>
 
+#include "engine/devconsole/DevConsole.hpp"
+#include "engine/devconsole/DevConsoleOutputStream.hpp"
+
 // #include "yyjson.h"
 
 struct SaveData {
@@ -26,11 +29,11 @@ struct SaveData {
 	void SetPath(const std::string& path) { strcpy(modPath, path.c_str()); }
 };
 
-std::ostream& operator<<(std::ostream& out, const SaveData& save) {
-	out << "Mod path: " << save.modPath << std::endl
-		<< "Room: " << save.room << std::endl
-		<< "Checkpoint: " << save.checkpoint << std::endl
-		<< "Upgrades: " << int(save.upgrades) << std::endl;
+DevConsoleOutputStream& operator<<(DevConsoleOutputStream& out, const SaveData& save) {
+	out << "Mod path: " << save.modPath << dc::endl
+		<< "Room: " << save.room << dc::endl
+		<< "Checkpoint: " << save.checkpoint << dc::endl
+		<< "Upgrades: " << int(save.upgrades) << dc::endl;
 
 	return out;
 }
