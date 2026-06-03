@@ -112,7 +112,7 @@ class Jizz {
 		dc::msg << "Loading " << _stylePath + "/" + textureName + ".png" << dc::endl;
 
 		if (surface == NULL) {
-			std::cerr << "ERROR loading character texture " << textureName << ": " << SDL_GetError() << std::endl;
+			dc::err << "ERROR loading character texture " << textureName << ": " << SDL_GetError() << dc::endl;
 		}
 
 		SDL_SetSurfacePalette(surface, _palette);
@@ -120,7 +120,7 @@ class Jizz {
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
 
 		if (texture == NULL) {
-			std::cerr << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << dc::endl;
 		}
 
 		SDL_DestroySurface(surface);

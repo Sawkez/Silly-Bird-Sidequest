@@ -159,7 +159,7 @@ class UIManager {
 		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, windowWidth, windowHeight);
 
 		if (_texture == NULL) {
-			std::cerr << "ERROR creating UI texture: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR creating UI texture: " << SDL_GetError() << dc::endl;
 			return;
 		};
 

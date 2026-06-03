@@ -40,7 +40,7 @@ class DirectoryListMenu : public MenuTransparentBG {
 
 		_paths = SDL_GlobDirectory(GetDirectoryToList().c_str(), "*", 0, &modCount);
 		if (_paths == nullptr) {
-			std::cerr << "Failed to list directory " << GetDirectoryToList() << ": " << SDL_GetError() << std::endl;
+			dc::err << "Failed to list directory " << GetDirectoryToList() << ": " << SDL_GetError() << dc::endl;
 		}
 
 		_buttons.reserve(modCount);

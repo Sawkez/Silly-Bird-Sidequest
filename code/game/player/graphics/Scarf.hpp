@@ -139,7 +139,7 @@ class Scarf : IProcessable, IDrawableRect {
 		}
 
 		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT) < 0) {
-			cerr << "ERROR rendering scarf geometry: " << SDL_GetError() << endl;
+			dc::err << "ERROR rendering scarf geometry: " << SDL_GetError() << dc::endl;
 			return false;
 		};
 

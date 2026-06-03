@@ -8,10 +8,11 @@
 class DevConsoleOutputStream {
    private:
 	DevConsoleMenu& _menu;
+	lv_color_t _color;
 	std::string _text = "";
 
    public:
-	DevConsoleOutputStream(DevConsoleMenu& menu) : _menu(menu) {}
+	DevConsoleOutputStream(DevConsoleMenu& menu, lv_color_t color) : _menu(menu), _color(color) {}
 
 	DevConsoleOutputStream& operator<<(const std::string& str) {
 		_text += str;
@@ -30,7 +31,7 @@ class DevConsoleOutputStream {
 	}
 
 	DevConsoleOutputStream& operator<<(const DevConsoleNewline& newline) {
-		_menu.PrintLine(_text);
+		_menu.PrintLine(_text, _color);
 		_text = "";
 		return *this;
 	}

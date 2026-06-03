@@ -39,7 +39,7 @@ class Animation {
 	Animation(SDL_Renderer* renderer, std::string path, int frameCount, float fps, bool looping = true)
 		: Animation(IMG_LoadTexture(renderer, path.data()), frameCount, fps, looping) {
 		if (_texture == NULL) {
-			std::cerr << "ERROR: couldn't load texture " << path << ": " << SDL_GetError() << std::endl;
+			dc::err << "ERROR: couldn't load texture " << path << ": " << SDL_GetError() << dc::endl;
 		}
 	}
 

@@ -41,7 +41,7 @@ class AnimatedSpriteOverlay : public AnimatedSprite {
 			int error = SDL_RenderTextureRotated(renderer, _overlayTextures.at(_current), &_source, &destination, _rotation, &_rotateOrigin, _flip);
 
 			if (error < 0) {
-				std::cerr << "ERROR: couldn't draw sprite overlay: " << SDL_GetError() << std::endl;
+				dc::err << "ERROR: couldn't draw sprite overlay: " << SDL_GetError() << dc::endl;
 				return false;
 			}
 		}

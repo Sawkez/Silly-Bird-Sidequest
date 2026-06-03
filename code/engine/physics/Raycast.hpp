@@ -106,7 +106,7 @@ class Raycast {
 		}
 
 		else {
-			std::cerr << "ERROR: generalized raycasts are not implemented!" << std::endl;
+			dc::err << "ERROR: generalized raycasts are not implemented!" << dc::endl;
 			return false;  // TODO implement
 		}
 	}

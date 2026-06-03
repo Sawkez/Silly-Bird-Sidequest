@@ -18,8 +18,9 @@ class DevConsoleMenu : public MenuTransparentBG {
 		lv_obj_align(_panel, LV_ALIGN_TOP_MID, 0, 0);
 	}
 
-	void PrintLine(const std::string& text) {
+	void PrintLine(const std::string& text, const lv_color_t& color) {
 		lv_obj_t* label = lv_label_create(_panel);
+		lv_obj_set_style_text_color(label, color, 0);
 		lv_label_set_text(label, text.data());
 	}
 };
