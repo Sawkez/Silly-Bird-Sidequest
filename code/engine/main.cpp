@@ -101,7 +101,9 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (UIManager::HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 #ifdef PLATFORM_HAS_TOUCH
-	if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
+	if (!UIManager::IsVisible()) {
+		if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
+	}
 #endif
 
 	if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;
