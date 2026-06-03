@@ -90,7 +90,7 @@ class Level : IProcessable, IDrawable {
 	}
 
 	void SetCurrentRoom(int room) {
-		cout << "Entered room " << room << endl;
+		dc::msg << "Entered room " << room << dc::endl;
 		GameState::Pause();
 		_currentRoom = Room(GetRoomPath(room), _renderer, _spikeAtlas);
 

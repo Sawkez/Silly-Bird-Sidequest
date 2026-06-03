@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/devconsole/DevConsole.hpp"
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
 
@@ -34,7 +35,7 @@ class MovementStateSlide : public IMovementState {
 		p.PlayAnimation(Player::ANIM_SLIDE);
 
 		if (abs(p.velocity.x) > SLIDE_INITIAL_SPEED) {
-			cout << "Ultrasliding with " << p.velocity.x << endl;
+			dc::msg << "Ultrasliding with " << p.velocity.x << dc::endl;
 		}
 	}
 

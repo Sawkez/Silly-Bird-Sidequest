@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "engine/Math.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/InputManager.hpp"
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
@@ -83,7 +84,7 @@ struct MovementStateNormal : public IMovementState {
 			*/
 
 			p.velocity.y = abs(p.velocity.y) * sqrtf(FAST_FALL_GRAVITY / GRAVITY);
-			std::cout << "setting velocity to " << p.velocity.y << std::endl;
+			dc::msg << "setting velocity to " << p.velocity.y << dc::endl;
 		}
 
 		// fastfalling normally, cancel up velocity

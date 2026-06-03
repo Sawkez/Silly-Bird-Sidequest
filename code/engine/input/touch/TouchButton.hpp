@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/InputManager.hpp"
 
 class TouchButton {
@@ -33,7 +34,7 @@ class TouchButton {
 		std::string downPath = "content/textures/icons/touch/down/" + std::to_string(id) + ".png";
 		std::string upPath = "content/textures/icons/touch/up/" + std::to_string(id) + ".png";
 
-		std::cout << "Loading touch icon " << id << ": " << downPath << ", " << upPath << std::endl;
+		dc::msg << "Loading touch icon " << id << ": " << downPath << ", " << upPath << dc::endl;
 		_downTexture = IMG_LoadTexture(renderer, downPath.c_str());
 		_upTexture = IMG_LoadTexture(renderer, upPath.c_str());
 

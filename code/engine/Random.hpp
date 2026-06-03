@@ -5,12 +5,13 @@
 
 #include "engine/Math.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 
 namespace Random {
 
 void Init() {
 	std::srand(time(NULL));
-	std::cout << "First random number: " << std::rand() << std::endl;
+	dc::msg << "First random number: " << std::rand() << dc::endl;
 }
 
 int Int(int min, int max) { return min + std::rand() % (max - min + 1); }

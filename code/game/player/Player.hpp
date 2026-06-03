@@ -402,10 +402,6 @@ class Player : public IPlayer {
 		_scarf.Process(delta);
 
 		_sprite.SetOverlayColor(_scarf.GetColor());
-
-		// cout << velocity << endl;
-		//  cout << _input.GetDir() << endl;
-		// cout << position << endl;
 	}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {
