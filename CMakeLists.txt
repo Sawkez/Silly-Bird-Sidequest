@@ -87,6 +87,11 @@ if(WIN32)
         "-s"
         "-Wl,--gc-sections"
     )
+
+    # for 32-bit windows and windows xp
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        target_compile_definitions(sbsidequest PRIVATE _WIN32_WINNT=0x0501 WINVER=0x0501)
+    endif()
 endif()
 
 if(PSP)

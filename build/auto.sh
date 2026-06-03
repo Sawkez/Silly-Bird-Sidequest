@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: \$0 <platform> <build_type>"
-    echo 'Platforms: linux, windows, psp'
+    echo 'Platforms: linux, windows, win32, psp'
     echo 'Build types: Debug, MinSizeRel (default)'
     exit 1
 fi
@@ -12,7 +12,6 @@ PLATFORM=$1
 BUILD_TYPE=${2:-MinSizeRel}
 BUILD_NAME=$PLATFORM
 SRC_DIR=$SCRIPT_DIR/..
-MINGW64_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw
 CMAKE_COMMAND=(cmake)
 
 case "$PLATFORM" in
@@ -40,8 +39,17 @@ case "$PLATFORM" in
     ;;
 
     windows)
-        export PKG_CONFIG=$MINGW64_DIR/lib/pkgconfig
+        MINGW_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw
+        export PKG_CONFIG=$MINGW_DIR/lib/pkgconfig
         CMAKE_COMMAND+=( "-DCMAKE_TOOLCHAIN_FILE=$SRC_DIR/mingw-w64.cmake" )
+        EXE_IN="sbsidequest.exe"
+        EXE_OUT="sbsidequest.exe"
+    ;;
+
+    win32)
+        MINGW_DIR=/usr/i686-w64-mingw32/sys-root/mingw
+        export PKG_CONFIG=$MINGW_DIR/lib/pkgconfig
+        CMAKE_COMMAND+=( "-DCMAKE_TOOLCHAIN_FILE=$SRC_DIR/mingw-w32.cmake" )
         EXE_IN="sbsidequest.exe"
         EXE_OUT="sbsidequest.exe"
     ;;
