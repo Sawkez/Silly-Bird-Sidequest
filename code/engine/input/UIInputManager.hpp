@@ -13,11 +13,14 @@ enum UIActionID { UI_ACTION_LEFT, UI_ACTION_RIGHT, UI_ACTION_UP, UI_ACTION_DOWN,
 class UIInputManager {
    private:
 	static inline const float SCROLL_MOUSE_SENSITIVITY = 50;
+	static inline const float SCROLL_JOY_SENSITIVITY = 50;
+	static inline const float SCROLL_JOY_DEADZONE_SQUARED = 0.3 * 0.3;
 
 	UIInputManager() = delete;
 	static inline auto _event = UIActionEvent();
 	static inline float _xScroll = 0;
 	static inline float _yScroll = 0;
+	static inline SDL_JoystickID _lastUsedJoystick = 0;
 
 #ifdef PLATFORM_HAS_MOUSE
 	static inline lv_indev_t* _mouseInput = NULL;
@@ -110,7 +113,7 @@ class UIInputManager {
 				break;
 
 			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-				// HandleJoyScroll(event.gaxis);
+				_lastUsedJoystick = event.gaxis.which;
 				return true;
 
 			default:
@@ -145,13 +148,34 @@ class UIInputManager {
 
 	static lv_group_t* GetMainGroup() { return _mainGroup; }
 
-	static void UpdateScroll() {
-		if (_xScroll == 0.0 && _yScroll == 0.0) return;
+	static void UpdateScroll(float delta) {
+		lv_obj_t* target;
 
-		lv_point_t mousePoint;
-		lv_indev_get_point(_mouseInput, &mousePoint);
+		SDL_Gamepad* controller = SDL_GetGamepadFromID(_lastUsedJoystick);
 
-		lv_obj_t* target = lv_indev_search_obj(lv_screen_active(), &mousePoint);
+#ifdef PLATFORM_HAS_RIGHT_JOY
+		float xJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_RIGHTX)) / SDL_MAX_SINT16;
+		float yJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_RIGHTY)) / SDL_MAX_SINT16;
+#else
+		float xJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_MAX_SINT16;
+		float yJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_MAX_SINT16;
+#endif
+
+		if (xJoy * xJoy + yJoy * yJoy > SCROLL_JOY_DEADZONE_SQUARED) {
+			target = lv_group_get_focused(_mainGroup);
+			_xScroll = xJoy;
+			_yScroll = yJoy;
+		}
+
+		else if (_xScroll == 0.0 && _yScroll == 0.0)
+			return;
+
+		else {
+			lv_point_t mousePoint;
+			lv_indev_get_point(_mouseInput, &mousePoint);
+
+			target = lv_indev_search_obj(lv_screen_active(), &mousePoint);
+		}
 
 		while (target && !lv_obj_has_flag(target, LV_OBJ_FLAG_SCROLLABLE)) {
 			target = lv_obj_get_parent(target);

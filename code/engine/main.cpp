@@ -68,7 +68,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	GameState::GetInput().UpdateTapStates();
 
-	UIManager::Process();
+	UIManager::Process(delta);
 
 	// render
 	if (!SaveManager::instance->OverrideDrawing()) {

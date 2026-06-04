@@ -105,8 +105,8 @@ class UIManager {
 		return display;
 	}
 
-	static void Process() {
-		UIInputManager::UpdateScroll();
+	static void Process(float delta) {
+		UIInputManager::UpdateScroll(delta);
 		lv_timer_handler();
 	}
 

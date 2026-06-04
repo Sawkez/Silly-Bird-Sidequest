@@ -30,6 +30,8 @@ class DevConsoleMenu : public MenuTransparentBG {
 		}
 
 		_messages.back().ScrollIntoView();
+
+		lv_group_focus_obj(_panel);
 	}
 
 	void PrintLine(const std::string& text, const lv_color_t& color) {
