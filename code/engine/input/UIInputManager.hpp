@@ -163,9 +163,11 @@ class UIInputManager {
 
 		if (xJoy * xJoy + yJoy * yJoy > SCROLL_JOY_DEADZONE_SQUARED) {
 			target = lv_group_get_focused(_mainGroup);
-			_xScroll = xJoy;
-			_yScroll = yJoy;
+			_xScroll = -xJoy;
+			_yScroll = -yJoy;
 		}
+
+#ifdef PLATFORM_HAS_MOUSE
 
 		else if (_xScroll == 0.0 && _yScroll == 0.0)
 			return;
@@ -176,6 +178,8 @@ class UIInputManager {
 
 			target = lv_indev_search_obj(lv_screen_active(), &mousePoint);
 		}
+
+#endif
 
 		while (target && !lv_obj_has_flag(target, LV_OBJ_FLAG_SCROLLABLE)) {
 			target = lv_obj_get_parent(target);

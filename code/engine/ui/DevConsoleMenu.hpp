@@ -19,7 +19,9 @@ class DevConsoleMenu : public MenuTransparentBG {
 		_panel = lv_obj_create(_screen);
 		lv_obj_set_layout(_panel, LV_LAYOUT_FLEX);
 		lv_obj_set_flex_flow(_panel, LV_FLEX_FLOW_COLUMN);
+		lv_obj_set_flag(_panel, LV_OBJ_FLAG_SCROLLABLE, true);
 		lv_obj_set_size(_panel, lv_pct(100), lv_pct(50));
+		lv_group_add_obj(lv_group_get_default(), _panel);
 		lv_obj_align(_panel, LV_ALIGN_TOP_MID, 0, 0);
 	}
 
