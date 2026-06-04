@@ -11,6 +11,7 @@
 class DevConsoleMenu : public MenuTransparentBG {
 	lv_obj_t* _panel;
 	std::deque<DevConsoleMessage> _messages;
+	bool _active = false;
 
    public:
 	void Init() override {
@@ -24,21 +25,33 @@ class DevConsoleMenu : public MenuTransparentBG {
 
 	void Activate() override {
 		MenuTransparentBG::Activate();
+		_active = true;
 
 		for (auto& message : _messages) {
-			message.EnsureLabelCreated(_panel);
+			message.CreateLabel(_panel);
 		}
 
 		_messages.back().ScrollIntoView();
-
 		lv_group_focus_obj(_panel);
+	}
+
+	void Deactivate() override {
+		MenuTransparentBG::Deactivate();
+		_active = false;
+
+		for (auto& message : _messages) {
+			message.DestroyLabel();
+		}
 	}
 
 	void PrintLine(const std::string& text, const lv_color_t& color) {
 		if (_messages.size() >= PLATFORM_DEVCONSOLE_MAX_LINES) {
 			_messages.pop_front();
+			std::cout << SDL_GetTicks() << ": removed message" << std::endl;
 		}
 
 		_messages.emplace_back(text, color);
+
+		if (_active) _messages.back().CreateLabel(_panel);
 	}
 };

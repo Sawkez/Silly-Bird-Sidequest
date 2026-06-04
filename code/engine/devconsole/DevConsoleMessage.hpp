@@ -32,19 +32,20 @@ class DevConsoleMessage {
 		return *this;
 	}
 
-	void EnsureLabelCreated(lv_obj_t* parent) {
+	void CreateLabel(lv_obj_t* parent) {
 		if (_label != nullptr) return;
 		_label = lv_label_create(parent);
 		lv_obj_set_style_text_color(_label, _color, 0);
 		lv_label_set_text(_label, _text.data());
-		_text.resize(0);
+	}
+
+	void DestroyLabel() {
+		if (_label == nullptr) return;
+		lv_obj_delete_async(_label);
+		_label = nullptr;
 	}
 
 	void ScrollIntoView() { lv_obj_scroll_to_view(_label, LV_ANIM_OFF); }
 
-	~DevConsoleMessage() {
-		if (_label == nullptr) return;
-
-		lv_obj_delete_async(_label);
-	}
+	~DevConsoleMessage() { DestroyLabel(); }
 };
