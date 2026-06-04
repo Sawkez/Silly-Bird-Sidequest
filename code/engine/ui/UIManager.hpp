@@ -105,7 +105,10 @@ class UIManager {
 		return display;
 	}
 
-	static void Process() { lv_timer_handler(); }
+	static void Process() {
+		UIInputManager::UpdateScroll();
+		lv_timer_handler();
+	}
 
 	static void PushAsync(void* data) {
 		auto menu = (Menu*)data;

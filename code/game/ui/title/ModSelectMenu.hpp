@@ -34,6 +34,8 @@ class ModSelectMenu : public MenuTransparentBG {
 		lv_obj_set_size(_panel, lv_pct(100), LV_SIZE_CONTENT);
 		lv_obj_center(_panel);
 
+		lv_obj_set_scroll_dir(_panel, LV_DIR_HOR);
+
 		lv_obj_set_layout(_panel, LV_LAYOUT_FLEX);
 		lv_gridnav_add(_panel, (lv_gridnav_ctrl_t)(LV_GRIDNAV_CTRL_ROLLOVER | LV_GRIDNAV_CTRL_HORIZONTAL_MOVE_ONLY));
 
