@@ -166,8 +166,11 @@ class UIInputManager {
 			_xScroll = -xJoy;
 			_yScroll = -yJoy;
 		}
-
-#ifdef PLATFORM_HAS_MOUSE
+#ifndef PLATFORM_HAS_MOUSE
+		else {
+			return;
+		}
+#else
 
 		else if (_xScroll == 0.0 && _yScroll == 0.0)
 			return;
