@@ -49,11 +49,11 @@ class DevConsoleMenu : public MenuTransparentBG, public IDevConsoleMenu {
 
 		_backButton = lv_button_create(_screen);
 		lv_obj_add_event_cb(_backButton, BackPressedCallback, LV_EVENT_CLICKED, nullptr);
-		lv_obj_set_align(_backButton, LV_ALIGN_BOTTOM_LEFT);
+		lv_obj_align_to(_backButton, _panel, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
 		lv_obj_add_flag(_backButton, LV_OBJ_FLAG_EVENT_BUBBLE);
 
 		_backButtonLabel = lv_label_create(_backButton);
-		lv_label_set_text(_backButtonLabel, "Close console");
+		lv_label_set_text(_backButtonLabel, "Close");
 	}
 
 	void Activate() override {
