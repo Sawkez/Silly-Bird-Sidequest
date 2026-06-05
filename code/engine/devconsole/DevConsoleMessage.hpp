@@ -37,6 +37,7 @@ class DevConsoleMessage {
 		_label = lv_label_create(parent);
 		lv_obj_set_style_text_color(_label, _color, 0);
 		lv_label_set_text(_label, _text.data());
+		lv_obj_add_flag(_label, LV_OBJ_FLAG_EVENT_BUBBLE);
 	}
 
 	void DestroyLabel() {

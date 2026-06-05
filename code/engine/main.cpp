@@ -30,7 +30,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	ModManager::Init();
 	ModManager::LoadLevelMod("content/sidequest");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
-	DevConsole::Init();
+	DevConsole::Init(&Menus::console);
 	Random::Init();
 	SaveManager::Init();
 
@@ -57,7 +57,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	// per-frame event updates
 	if (GameState::GetInput().IsTapped(ACTION_PAUSE)) UIManager::Push(UIManager::MENU_PAUSE);
-	if (GameState::GetInput().IsTapped(ACTION_CONSOLE)) UIManager::Push(&DevConsole::menu);
+	if (GameState::GetInput().IsTapped(ACTION_CONSOLE)) UIManager::Push(UIManager::MENU_CONSOLE);
 
 	GameState::GetInput().UpdateDir();
 

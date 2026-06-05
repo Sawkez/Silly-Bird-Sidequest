@@ -6,17 +6,19 @@
 #include <string>
 
 #include "engine/devconsole/DevConsoleNewline.hpp"
-#include "engine/ui/DevConsoleMenu.hpp"
+#include "engine/ui/IDevConsoleMenu.hpp"
 
 class DevConsoleOutputStream {
    private:
-	DevConsoleMenu& _menu;
+	IDevConsoleMenu* _menu = nullptr;
 	std::ostream& _stream;
 	lv_color_t _color;
 	std::string _text = "";
 
    public:
-	DevConsoleOutputStream(DevConsoleMenu& menu, lv_color_t color, std::ostream& stream) : _menu(menu), _color(color), _stream(stream) {}
+	DevConsoleOutputStream(lv_color_t color, std::ostream& stream) : _color(color), _stream(stream) {}
+
+	void Init(IDevConsoleMenu* menu) { _menu = menu; }
 
 	DevConsoleOutputStream& operator<<(const std::string& str) {
 		_text += str;
@@ -38,7 +40,7 @@ class DevConsoleOutputStream {
 	}
 
 	DevConsoleOutputStream& operator<<(const DevConsoleNewline& newline) {
-		_menu.PrintLine(_text, _color);
+		_menu->PrintLine(_text, _color);
 		_stream << std::endl;
 		_text.clear();
 		return *this;

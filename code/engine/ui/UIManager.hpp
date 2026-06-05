@@ -12,7 +12,7 @@
 
 class UIManager {
    public:
-	enum MenuID { MENU_TEST, MENU_PAUSE, MENU_TITLE, MENU_MODS, _MENU_COUNT };
+	enum MenuID { MENU_TEST, MENU_PAUSE, MENU_TITLE, MENU_MODS, MENU_CONSOLE, _MENU_COUNT };
 
    private:
 	UIManager() = delete;

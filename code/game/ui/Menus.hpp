@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/ui/DevConsoleMenu.hpp"
 #include "engine/ui/Menu.hpp"
 #include "engine/ui/TestMenu.hpp"
 #include "engine/ui/UIManager.hpp"
@@ -14,7 +15,8 @@ auto test = TestMenu();
 auto pause = PauseMenu();
 auto title = TitleScreenMenu();
 auto mods = ModSelectMenu();
+auto console = DevConsoleMenu();
 
 };	// namespace Menus
 
-Menu* UIManager::_menus[UIManager::_MENU_COUNT] = {&Menus::test, &Menus::pause, &Menus::title, &Menus::mods};
+Menu* UIManager::_menus[UIManager::_MENU_COUNT] = {&Menus::test, &Menus::pause, &Menus::title, &Menus::mods, &Menus::console};
