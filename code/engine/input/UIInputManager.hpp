@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/PlatformDefines.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/UIAction.hpp"
 #include "engine/input/UIActionEvent.hpp"
 #include "lvgl/lvgl.h"
@@ -11,8 +12,15 @@ enum UIActionID { UI_ACTION_LEFT, UI_ACTION_RIGHT, UI_ACTION_UP, UI_ACTION_DOWN,
 
 class UIInputManager {
    private:
+	static inline const float SCROLL_MOUSE_SENSITIVITY = 50;
+	static inline const float SCROLL_JOY_SENSITIVITY = 50;
+	static inline const float SCROLL_JOY_DEADZONE_SQUARED = 0.3 * 0.3;
+
 	UIInputManager() = delete;
 	static inline auto _event = UIActionEvent();
+	static inline float _xScroll = 0;
+	static inline float _yScroll = 0;
+	static inline SDL_JoystickID _lastUsedJoystick = 0;
 
 #ifdef PLATFORM_HAS_MOUSE
 	static inline lv_indev_t* _mouseInput = NULL;
@@ -37,6 +45,11 @@ class UIInputManager {
 		data->point.y = int(y);
 
 		data->state = (buttons & SDL_BUTTON_LEFT) > 0 ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+	}
+
+	static void HandleMouseScroll(const SDL_MouseWheelEvent& event) {
+		_xScroll += event.x;
+		_yScroll += event.y;
 	}
 #endif
 
@@ -78,9 +91,13 @@ class UIInputManager {
 
 				if (event.key.repeat && out == LV_KEY_ESC) return true;
 				break;
+#endif
 
-			case SDL_EVENT_MOUSE_MOTION:
+#ifdef PLATFORM_HAS_MOUSE
+			case SDL_EVENT_MOUSE_WHEEL:
+				HandleMouseScroll(event.wheel);
 			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_MOTION:
 			case SDL_EVENT_MOUSE_BUTTON_UP:
 				lv_indev_read(_mouseInput);
 				return true;
@@ -94,6 +111,10 @@ class UIInputManager {
 					}
 				}
 				break;
+
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+				_lastUsedJoystick = event.gaxis.which;
+				return true;
 
 			default:
 				return false;
@@ -126,4 +147,54 @@ class UIInputManager {
 	static const UIActionEvent& GetEvent() { return _event; }
 
 	static lv_group_t* GetMainGroup() { return _mainGroup; }
+
+	static void UpdateScroll(float delta) {
+		lv_obj_t* target;
+
+		SDL_Gamepad* controller = SDL_GetGamepadFromID(_lastUsedJoystick);
+
+#ifdef PLATFORM_HAS_RIGHT_JOY
+		float xJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_RIGHTX)) / SDL_MAX_SINT16;
+		float yJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_RIGHTY)) / SDL_MAX_SINT16;
+#else
+		float xJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_MAX_SINT16;
+		float yJoy = float(SDL_GetGamepadAxis(controller, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_MAX_SINT16;
+#endif
+
+		if (xJoy * xJoy + yJoy * yJoy > SCROLL_JOY_DEADZONE_SQUARED) {
+			target = lv_group_get_focused(_mainGroup);
+			_xScroll = -xJoy;
+			_yScroll = -yJoy;
+		}
+#ifndef PLATFORM_HAS_MOUSE
+		else {
+			return;
+		}
+#else
+
+		else if (_xScroll == 0.0 && _yScroll == 0.0)
+			return;
+
+		else {
+			lv_point_t mousePoint;
+			lv_indev_get_point(_mouseInput, &mousePoint);
+
+			target = lv_indev_search_obj(lv_screen_active(), &mousePoint);
+		}
+
+#endif
+
+		while (target && !lv_obj_has_flag(target, LV_OBJ_FLAG_SCROLLABLE)) {
+			target = lv_obj_get_parent(target);
+		}
+
+		if (target != nullptr) {
+			if (lv_obj_get_scroll_dir(target) == LV_DIR_HOR) {
+				_xScroll += _yScroll;
+			}
+
+			lv_obj_scroll_by_bounded(target, _xScroll * lv_dpx(SCROLL_MOUSE_SENSITIVITY), _yScroll * lv_dpx(SCROLL_MOUSE_SENSITIVITY), LV_ANIM_OFF);
+		}
+		_xScroll = _yScroll = 0.0f;
+	}
 };

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "engine/ResourceManager.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/graphics/Animation.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
 #include "yyjson.h"
@@ -108,10 +109,10 @@ class Jizz {
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {
 		SDL_Surface* surface = IMG_Load((_stylePath + "/" + textureName + ".png").data());
-		std::cout << "Loading " << _stylePath + "/" + textureName + ".png" << std::endl;
+		dc::msg << "Loading " << _stylePath + "/" + textureName + ".png" << dc::endl;
 
 		if (surface == NULL) {
-			std::cerr << "ERROR loading character texture " << textureName << ": " << SDL_GetError() << std::endl;
+			dc::err << "ERROR loading character texture " << textureName << ": " << SDL_GetError() << dc::endl;
 		}
 
 		SDL_SetSurfacePalette(surface, _palette);
@@ -119,7 +120,7 @@ class Jizz {
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
 
 		if (texture == NULL) {
-			std::cerr << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << dc::endl;
 		}
 
 		SDL_DestroySurface(surface);

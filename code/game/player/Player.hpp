@@ -189,7 +189,7 @@ class Player : public IPlayer {
 
 	void SetTimer(int timer) override {
 		if (isnan(TIMER_DURATIONS[timer])) {
-			cerr << "ERROR: timer " << timer << " duration is NAN" << endl;
+			dc::err << "ERROR: timer " << timer << " duration is NAN" << dc::endl;
 		}
 		SetTimer(timer, TIMER_DURATIONS[timer]);
 	}
@@ -208,7 +208,7 @@ class Player : public IPlayer {
 
 	void Buffer(int buffer) override {
 		if (isnan(BUFFER_DURATIONS[buffer])) {
-			cerr << "ERROR: buffer " << buffer << " duration is NAN" << endl;
+			dc::err << "ERROR: buffer " << buffer << " duration is NAN" << dc::endl;
 		}
 		_buffers[buffer] = BUFFER_DURATIONS[buffer];
 	}
@@ -402,10 +402,6 @@ class Player : public IPlayer {
 		_scarf.Process(delta);
 
 		_sprite.SetOverlayColor(_scarf.GetColor());
-
-		// cout << velocity << endl;
-		//  cout << _input.GetDir() << endl;
-		// cout << position << endl;
 	}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset = {}) const override {

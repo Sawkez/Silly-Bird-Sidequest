@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/InputManager.hpp"
 
 class TouchButton {

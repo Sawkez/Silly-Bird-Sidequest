@@ -52,7 +52,7 @@ class RoomChunk {
 	std::vector<ForegroundTile> LoadTiles(const std::string& chunkFilePath, int tileCount) {
 		SDL_IOStream* file = SDL_IOFromFile((chunkFilePath + ".chunk").c_str(), "rb");
 		if (file == NULL) {
-			std::cerr << "ERROR: chunk file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR: chunk file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << dc::endl;
 		}
 
 		std::vector<ForegroundTile> tiles;
@@ -69,7 +69,7 @@ class RoomChunk {
 	std::vector<SpikeTile> LoadSpikes(const std::string& chunkFilePath, int spikeCount) {
 		SDL_IOStream* file = SDL_IOFromFile((chunkFilePath + ".spikes").c_str(), "rb");
 		if (file == NULL) {
-			std::cerr << "ERROR: spike file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR: spike file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << dc::endl;
 		}
 
 		std::vector<SpikeTile> spikes;
@@ -86,7 +86,7 @@ class RoomChunk {
 		SDL_Surface* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_RGBA4444);
 
 		if (cacheSurface == NULL) {
-			std::cerr << "ERROR when caching chunk: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR when caching chunk: " << SDL_GetError() << dc::endl;
 		}
 
 		std::map<uint8_t, SDL_Surface*> atlases;
@@ -121,7 +121,7 @@ class RoomChunk {
 
 	void Draw(SDL_Renderer* renderer) const {
 		if (_cache == NULL) {
-			std::cerr << "ERROR: chunk not cached!" << std::endl;
+			dc::err << "ERROR: chunk not cached!" << dc::endl;
 		}
 
 		SDL_FRect destination{0, 0, float(_rect.w), float(_rect.h)};

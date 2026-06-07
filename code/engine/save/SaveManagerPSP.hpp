@@ -136,12 +136,12 @@ class SaveManagerPSP : public SaveManagerBase {
 				break;
 
 			case PSP_UTILITY_DIALOG_FINISHED:
-				std::cout << "Save result: " << params.base.result << std::endl;
+				dc::msg << "Save result: " << params.base.result << dc::endl;
 
 				if (params.mode == PSP_UTILITY_SAVEDATA_LISTLOAD &&
 					params.base.result == 0) {	// 0 means loaded, 1 means cancelled, don't know what enum this is
-					std::cout << "Loaded data: " << std::endl;
-					std::cout << *((SaveData*)params.dataBuf) << std::endl;
+					dc::msg << "Loaded data: " << dc::endl;
+					dc::msg << *((SaveData*)params.dataBuf) << dc::endl;
 
 					_loadedCallback();
 				}

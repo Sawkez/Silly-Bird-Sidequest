@@ -8,6 +8,7 @@
 #include "engine/IProcessable.hpp"
 #include "engine/Math.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/graphics/Animation.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
@@ -57,7 +58,7 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 		int error = SDL_RenderTextureRotated(renderer, animation.GetTexture(), &_source, &destination, _rotation, &_rotateOrigin, _flip);
 
 		if (error < 0) {
-			std::cerr << "ERROR: couldn't draw AnimatedSprite: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR: couldn't draw AnimatedSprite: " << SDL_GetError() << dc::endl;
 			return false;
 		}
 

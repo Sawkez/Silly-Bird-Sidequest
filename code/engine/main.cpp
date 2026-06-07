@@ -8,6 +8,7 @@
 
 #include "engine/GameState.hpp"
 #include "engine/Random.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
@@ -29,6 +30,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	ModManager::Init();
 	ModManager::LoadLevelMod("content/sidequest");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
+	DevConsole::Init(&Menus::console);
 	Random::Init();
 	SaveManager::Init();
 
@@ -55,6 +57,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	// per-frame event updates
 	if (GameState::GetInput().IsTapped(ACTION_PAUSE)) UIManager::Push(UIManager::MENU_PAUSE);
+	if (GameState::GetInput().IsTapped(ACTION_CONSOLE)) UIManager::Push(UIManager::MENU_CONSOLE);
 
 	GameState::GetInput().UpdateDir();
 
@@ -65,7 +68,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	GameState::GetInput().UpdateTapStates();
 
-	UIManager::Process();
+	UIManager::Process(delta);
 
 	// render
 	if (!SaveManager::instance->OverrideDrawing()) {
@@ -98,7 +101,9 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (UIManager::HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 #ifdef PLATFORM_HAS_TOUCH
-	if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
+	if (!UIManager::IsVisible()) {
+		if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
+	}
 #endif
 
 	if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;

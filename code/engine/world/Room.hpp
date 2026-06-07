@@ -56,7 +56,7 @@ class Room {
 		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))),
 		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))),
 		  _roomObjects(LoadRoomObjects(yyjson_obj_get(roomJson, "room_objects"))) {
-		cout << SDL_GetTicks() << ": finished room load" << endl;
+		dc::msg << SDL_GetTicks() << ": finished room load" << dc::endl;
 	}
 
 	Room(const Room&) = delete;
@@ -65,7 +65,7 @@ class Room {
 	Room& operator=(Room&& other) noexcept = default;
 
 	vector<CollisionRect> LoadColliders(yyjson_val* collidersJson) const {
-		cout << SDL_GetTicks() << ": loading colliders" << endl;
+		dc::msg << SDL_GetTicks() << ": loading colliders" << dc::endl;
 		vector<CollisionRect> colliders;
 
 		size_t idx, max;
@@ -76,14 +76,14 @@ class Room {
 	}
 
 	vector<SpikeCollider> LoadSpikeColliders(const string& folderPath, int spikeCount) const {
-		cout << SDL_GetTicks() << ": loading spike colliders" << endl;
-		cout << "Spike count now " << spikeCount << endl;
+		dc::msg << SDL_GetTicks() << ": loading spike colliders" << dc::endl;
+		dc::msg << "Spike count now " << spikeCount << dc::endl;
 		vector<SpikeCollider> spikes;
 
 		SDL_IOStream* file = SDL_IOFromFile((folderPath + "/spikes.ow").c_str(), "rb");
 
 		if (file == NULL) {
-			cout << "ERROR: could not open spikes.ow: " << SDL_GetError() << endl;
+			dc::msg << "ERROR: could not open spikes.ow: " << SDL_GetError() << dc::endl;
 		}
 
 		for (int i = 0; i < spikeCount; i++) {
@@ -102,7 +102,7 @@ class Room {
 		yyjson_val* chunk;
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
-			cout << SDL_GetTicks() << ": loading chunk " << idx << endl;
+			dc::msg << SDL_GetTicks() << ": loading chunk " << idx << dc::endl;
 			chunks.emplace_back(folderPath + "/" + to_string(idx), chunk, renderer, spikeAtlas);
 		}
 
@@ -110,7 +110,7 @@ class Room {
 	}
 
 	vector<SDL_Point> LoadLedges(yyjson_val* ledgesJson) const {
-		cout << SDL_GetTicks() << ": loading ledges" << endl;
+		dc::msg << SDL_GetTicks() << ": loading ledges" << dc::endl;
 		vector<SDL_Point> ledges;
 
 		size_t idx, max;
@@ -123,7 +123,7 @@ class Room {
 	}
 
 	vector<RoomNeighbor> LoadNeighbors(yyjson_val* neighborsJson) const {
-		cout << SDL_GetTicks() << ": loading neighbors" << endl;
+		dc::msg << SDL_GetTicks() << ": loading neighbors" << dc::endl;
 		vector<RoomNeighbor> neighbors;
 
 		size_t idx, max;
@@ -134,7 +134,7 @@ class Room {
 	}
 
 	vector<Vector2> LoadCheckpoints(yyjson_val* checkpointsJson) const {
-		cout << SDL_GetTicks() << ": loading checkpoints" << endl;
+		dc::msg << SDL_GetTicks() << ": loading checkpoints" << dc::endl;
 		vector<Vector2> checkpoints;
 
 		size_t idx, max;
@@ -146,7 +146,7 @@ class Room {
 	}
 
 	vector<IRoomObject*> LoadRoomObjects(yyjson_val* objectsJson) const {
-		cout << SDL_GetTicks() << ": loading room objects" << endl;
+		dc::msg << SDL_GetTicks() << ": loading room objects" << dc::endl;
 		vector<IRoomObject*> objects;
 
 		size_t idx, max;

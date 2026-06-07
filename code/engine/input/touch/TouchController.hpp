@@ -24,6 +24,9 @@ class TouchController {
 		BUTTON_ALL,
 		BUTTON_USE,
 
+		BUTTON_PAUSE,
+		BUTTON_CONSOLE,
+
 		_BUTTON_COUNT
 	};
 
@@ -47,7 +50,10 @@ class TouchController {
 		
 		TouchButton(SDL_FPoint{0.65, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE}),
 		TouchButton(SDL_FPoint{0.75, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_DIVE, ACTION_JUMP, ACTION_INTERACT}),
-		TouchButton(SDL_FPoint{0.85, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_INTERACT})
+		TouchButton(SDL_FPoint{0.85, 0.75}, SDL_FPoint{0.1, 0.2}, inputManager, {ACTION_INTERACT}),
+
+		TouchButton(SDL_FPoint{0.05, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_PAUSE}),
+		TouchButton(SDL_FPoint{0.10, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_CONSOLE}),
 	} {}
 
 	// clang-format on

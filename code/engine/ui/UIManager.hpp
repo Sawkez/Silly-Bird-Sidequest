@@ -12,7 +12,7 @@
 
 class UIManager {
    public:
-	enum MenuID { MENU_TEST, MENU_PAUSE, MENU_TITLE, MENU_MODS, _MENU_COUNT };
+	enum MenuID { MENU_TEST, MENU_PAUSE, MENU_TITLE, MENU_MODS, MENU_CONSOLE, _MENU_COUNT };
 
    private:
 	UIManager() = delete;
@@ -105,7 +105,10 @@ class UIManager {
 		return display;
 	}
 
-	static void Process() { lv_timer_handler(); }
+	static void Process(float delta) {
+		UIInputManager::UpdateScroll(delta);
+		lv_timer_handler();
+	}
 
 	static void PushAsync(void* data) {
 		auto menu = (Menu*)data;
@@ -159,7 +162,7 @@ class UIManager {
 		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, windowWidth, windowHeight);
 
 		if (_texture == NULL) {
-			std::cerr << "ERROR creating UI texture: " << SDL_GetError() << std::endl;
+			dc::err << "ERROR creating UI texture: " << SDL_GetError() << dc::endl;
 			return;
 		};
 
