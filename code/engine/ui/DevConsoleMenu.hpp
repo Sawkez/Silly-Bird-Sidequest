@@ -99,12 +99,18 @@ class DevConsoleMenu : public MenuTransparentBG, public IDevConsoleMenu {
 	}
 
 	void PrintLine(const std::string& text, const lv_color_t& color) override {
+				bool lastMessageVisible = false;
+		if (_active && !_messages.empty()) lastMessageVisible = _messages.back().IsVisible();
+
 		if (_messages.size() >= PLATFORM_DEVCONSOLE_MAX_LINES) {
 			_messages.pop_front();
 		}
 
 		_messages.emplace_back(text, color);
 
-		if (_active) _messages.back().CreateLabel(_panel);
+		if (_active) {
+			_messages.back().CreateLabel(_panel);
+			if (lastMessageVisible) _messages.back().ScrollIntoView();
+		}
 	}
 };
