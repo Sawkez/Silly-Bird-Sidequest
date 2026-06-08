@@ -6,6 +6,6 @@
 
 struct UIAction {
 	SDL_Scancode key;
-	Uint8 button;
+	Sint16 button;
 	lv_key_t out;
 };
