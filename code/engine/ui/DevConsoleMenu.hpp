@@ -19,7 +19,7 @@ class DevConsoleMenu : public MenuTransparentBG, public IDevConsoleMenu {
 	lv_obj_t* _backButton;
 	lv_obj_t* _backButtonLabel;
 	lv_obj_t* _controlStripe;
-#ifdef PLATFORM_HAS_KEYBOARD
+#ifdef PLATFORM_HAS_CONSOLE_COMMANDS
 	DevConsoleInput _input;
 #endif
 
@@ -70,7 +70,7 @@ class DevConsoleMenu : public MenuTransparentBG, public IDevConsoleMenu {
 		_backButtonLabel = lv_label_create(_backButton);
 		lv_label_set_text(_backButtonLabel, "Close");
 
-#ifdef PLATFORM_HAS_KEYBOARD
+#ifdef PLATFORM_HAS_CONSOLE_COMMANDS
 		_input.Init(_controlStripe);
 #endif
 	}
