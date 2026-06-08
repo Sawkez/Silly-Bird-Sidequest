@@ -118,6 +118,12 @@ class GameState {
 		SDL_StartTextInput(_mainWindow);
 	}
 
+	static void StopTextInput() {
+		SDL_StopTextInput(_mainWindow);
+		_takingInput = false;
+		_keyboardInputCallback = nullptr;
+	}
+
 	static bool HandleEvent(const SDL_Event& event) {
 		if (!_takingInput) return false;
 		return _keyboardInputCallback(event);
