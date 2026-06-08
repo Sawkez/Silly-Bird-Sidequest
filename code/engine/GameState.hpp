@@ -36,6 +36,8 @@ class GameState {
 	static inline unsigned long _frameDuration = 16;
 	static inline SDL_Window* _mainWindow = NULL;
 	static inline SDL_Renderer* _mainRenderer = NULL;
+	static inline bool _takingInput = false;
+	static inline bool (*_keyboardInputCallback)(const SDL_Event& event) = nullptr;
 
    public:
 	static void Init() {
@@ -108,5 +110,16 @@ class GameState {
 		SDL_DestroyRenderer(_mainRenderer);
 		SDL_DestroyWindow(_mainWindow);
 		SDL_Quit();
+	}
+
+	static void StartTextInput(bool (*callback)(const SDL_Event& event)) {
+		_takingInput = true;
+		_keyboardInputCallback = callback;
+		SDL_StartTextInput(_mainWindow);
+	}
+
+	static bool HandleEvent(const SDL_Event& event) {
+		if (!_takingInput) return false;
+		return _keyboardInputCallback(event);
 	}
 };

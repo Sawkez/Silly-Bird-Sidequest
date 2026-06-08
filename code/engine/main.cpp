@@ -98,6 +98,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
+	if (GameState::HandleEvent(*event)) return SDL_APP_CONTINUE;
+
 	if (UIManager::HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 #ifdef PLATFORM_HAS_TOUCH
