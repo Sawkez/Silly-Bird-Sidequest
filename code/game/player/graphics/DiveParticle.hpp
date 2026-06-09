@@ -25,7 +25,7 @@ class DiveParticle : public IParticle {
    public:
 	DiveParticle(SDL_Texture* texture) : IParticle(texture), _scaleCurve("content/curves/particles/dive_scale.curve") {}
 
-	void Start(Vector2 position) {
+	void Start(Vector2 position) override {
 		_position = position;
 		_velocity = Random::Direction() * Random::Float(MIN_INITIAL_SPEED, MAX_INITIAL_SPEED);
 		_angle = Random::Angle();

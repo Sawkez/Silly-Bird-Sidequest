@@ -54,7 +54,7 @@ class Scarf : IProcessable, IDrawableRect {
 
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
 
-	void Process(float delta) {
+	void Process(float delta) override {
 		_windStrength = (M_PI * 0.5) * fabsf(M_PI * 0.5 - _windAngle);
 		_time += delta * _windStrength * TIME_SCALE;
 
