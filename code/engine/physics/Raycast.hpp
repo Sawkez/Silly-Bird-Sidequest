@@ -28,6 +28,9 @@ class Raycast {
 				case DOWN:
 					if (_position.x < rect.x || _position.x > rect.x + rect.w) continue;
 					break;
+
+				case NONE:
+					break;
 			}
 
 			float relative;
@@ -47,6 +50,9 @@ class Raycast {
 
 				case DOWN:
 					relative = rect.y - _position.y;
+					break;
+
+				case NONE:
 					break;
 			}
 
