@@ -9,6 +9,7 @@
 #include "engine/GameState.hpp"
 #include "engine/Random.hpp"
 #include "engine/devconsole/DevConsole.hpp"
+#include "engine/devconsole/DevConsoleCommandRegister.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
@@ -33,6 +34,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	DevConsole::Init(&Menus::console);
 	Random::Init();
 	SaveManager::Init();
+	DevConsoleCommandRegister::Init();
 
 	if (argc < 2) {
 		WorldManager::LoadLevel("content/sidequest-hidden/levels/title-screen-bg");
@@ -97,6 +99,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (SaveManager::instance->OverrideDrawing()) return SDL_APP_CONTINUE;
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
+
+	if (GameState::HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 	if (UIManager::HandleEvent(*event)) return SDL_APP_CONTINUE;
 

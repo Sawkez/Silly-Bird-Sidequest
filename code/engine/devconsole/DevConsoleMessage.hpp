@@ -46,6 +46,11 @@ class DevConsoleMessage {
 		_label = nullptr;
 	}
 
+	bool IsVisible() const {
+		if (_label == nullptr) return false;
+		return lv_obj_is_visible(_label);
+	}
+
 	void ScrollIntoView() { lv_obj_scroll_to_view(_label, LV_ANIM_OFF); }
 
 	~DevConsoleMessage() { DestroyLabel(); }
