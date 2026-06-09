@@ -28,7 +28,7 @@ class DevConsoleInput {
 	static void RunCommand() {
 		const char* command = lv_textarea_get_text(_inputField);
 		dc::msg << "> " << command << dc::endl;
-		DevConsoleCommandManager::RunCommand(command);
+		DevConsoleCommandManager::RunCommand(command, true);
 		lv_textarea_set_text(_inputField, "");
 	}
 
