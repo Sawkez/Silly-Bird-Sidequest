@@ -10,7 +10,7 @@
 
 class DevConsoleCommandManager {
    private:
-	static inline const int COMMAND_COUNT = 1;
+	static inline const int COMMAND_COUNT = 2;
 	static inline DevConsoleCommand _commands[COMMAND_COUNT];
 
 #ifdef PLATFORM_HAS_STRING_COMMANDS
