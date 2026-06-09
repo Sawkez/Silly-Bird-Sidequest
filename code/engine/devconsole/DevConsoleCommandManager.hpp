@@ -18,9 +18,10 @@ class DevConsoleCommandManager {
 #endif
 
    public:
-	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&), unsigned char flags, int index) {
+	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&), unsigned char flags, int index,
+								const std::string& description) {
 		if (index >= COMMAND_COUNT) std::cerr << "ERROR REGISTERING COMMAND: INDEX " << index << "OUT OF RANGE" << std::endl;
-		_commands[index] = DevConsoleCommand(function, flags);
+		_commands[index] = DevConsoleCommand(function, flags, description);
 
 #ifdef PLATFORM_HAS_STRING_COMMANDS
 		_commandsByName.insert({name, _commands[index]});
@@ -77,7 +78,7 @@ class DevConsoleCommandManager {
 
 	static void ListCommands() {
 		for (const auto& pair : _commandsByName) {
-			dc::msg << pair.first << dc::endl;
+			dc::msg << pair.first << ": " << pair.second.GetDescription() << dc::endl;
 		}
 	}
 };
