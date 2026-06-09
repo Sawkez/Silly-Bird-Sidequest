@@ -9,8 +9,7 @@ namespace DevConsoleCommandRegister {
 void Init() {
 	auto reg = DevConsoleCommandManager::RegisterCommand;
 
-	reg("", ConsoleCommandsMisc::Typo, 0, 0);
-	reg("help", ConsoleCommandsMisc::Help, 0, 1);
+	reg("help", ConsoleCommandsMisc::Help, 0, 0);
 }
 
 }  // namespace DevConsoleCommandRegister

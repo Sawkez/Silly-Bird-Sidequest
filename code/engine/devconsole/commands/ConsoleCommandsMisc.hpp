@@ -1,13 +1,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "engine/devconsole/DevConsole.hpp"
+#include "engine/devconsole/DevConsoleCommandManager.hpp"
 
 namespace ConsoleCommandsMisc {
 
-void Help(const std::string& args) { dc::msg << "I haven't added any commands yet but thanks for asking" << dc::endl; }
-
-void Typo(const std::string& args) { dc::err << "Command not found: " << args << dc::endl; }
+void Help(const std::vector<std::string>& args) { DevConsoleCommandManager::ListCommands(); }
 
 }  // namespace ConsoleCommandsMisc
