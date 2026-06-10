@@ -54,8 +54,8 @@ class Scarf : IProcessable, IDrawableRect {
 
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
 
-	void Process(float delta) {
-		_windStrength = (M_PI * 0.5) * fabsf(M_PI * 0.5 - _windAngle);
+	void Process(float delta) override {
+		_windStrength = (M_PI * 0.5) * std::abs(M_PI * 0.5 - _windAngle);
 		_time += delta * _windStrength * TIME_SCALE;
 
 		_currentColor.MoveToward(_targetColor, COLOR_CHANGE_SPEED * delta);
@@ -138,7 +138,7 @@ class Scarf : IProcessable, IDrawableRect {
 			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor};
 		}
 
-		if (SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT) < 0) {
+		if (!SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT)) {
 			dc::err << "ERROR rendering scarf geometry: " << SDL_GetError() << dc::endl;
 			return false;
 		};

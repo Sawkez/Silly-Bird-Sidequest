@@ -161,7 +161,7 @@ class Player : public IPlayer {
 
 	void UnsetFlag(Flag flag) override { _flags &= ~flag; }
 
-	void SetFlag(Flag flag, bool value) {
+	void SetFlag(Flag flag, bool value) override {
 		if (value) {
 			SetFlag(flag);
 		} else {

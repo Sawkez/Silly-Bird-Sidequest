@@ -112,7 +112,7 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 	}
 
 	Vector2 TransformPoint(Vector2 point) const {
-		if (_flip & SDL_FLIP_HORIZONTAL != 0) point.x = -point.x;
+		if ((_flip & SDL_FLIP_HORIZONTAL) != 0) point.x = -point.x;
 		point *= scale * 0.5;
 		return point.Rotated(GetRotationRadians());
 	}

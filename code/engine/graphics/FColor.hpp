@@ -23,6 +23,8 @@ struct FColor : SDL_FColor {
 				return g;
 			case 2:
 				return b;
+			default:
+				return r;
 		}
 	}
 
