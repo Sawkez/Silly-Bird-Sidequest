@@ -14,7 +14,6 @@ class UpgradePickup : public PlayerDetector {
 
 	bool _firstFrame = true;
 	SDL_Texture* _texture;
-	SDL_FRect _drawRect;
 	int _upgrade;
 
 	static inline const std::string UPGRADE_NAMES[IPlayer::_UPGRADE_COUNT]{"dive", "dash", "slide", "diveboost", "rejuvenator", "wallrun"};
@@ -45,16 +44,18 @@ class UpgradePickup : public PlayerDetector {
 	}
 
    public:
-	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, const Vector2& relativePosition, int upgrade)
-		: PlayerDetector(MakeRect(positionCentered), false),
-		  _upgrade(upgrade),
-		  _texture(LoadTexture(renderer, upgrade)),
-		  _drawRect(MakeRect(relativePosition)) {}
+	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, int upgrade)
+		: PlayerDetector(MakeRect(positionCentered), false), _upgrade(upgrade), _texture(LoadTexture(renderer, upgrade)) {}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		if (!_active) return false;
-		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &_drawRect)) return false;
-		SDL_RenderTexture(renderer, _texture, NULL, &_drawRect);
+
+		SDL_FRect target = _rect;
+		target.x += drawOffset.x;
+		target.y += drawOffset.y;
+
+		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &target)) return false;
+		SDL_RenderTexture(renderer, _texture, NULL, &target);
 		return true;
 	}
 
