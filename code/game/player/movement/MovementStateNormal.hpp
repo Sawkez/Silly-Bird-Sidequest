@@ -219,6 +219,7 @@ struct MovementStateNormal : public IMovementState {
 			}
 
 			else {
+				p.SetTimer(Player::TIMER_TWERK, Player::TWERK_TIMER_MIN);
 				p.PlayAnimation(Player::ANIM_RUN, abs(p.velocity.x) / TOP_SPEED);
 			}
 		}
