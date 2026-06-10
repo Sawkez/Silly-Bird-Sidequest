@@ -7,7 +7,9 @@
 #include "engine/PlatformDefines.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/input/UIInputManager.hpp"
+#ifdef PLATFORM_HAS_TOUCH
 #include "engine/input/touch/TouchController.hpp"
+#endif
 
 #if SDL_PLATFORM_PSP
 #define INITIAL_WINDOW_RES 480, 272
@@ -76,6 +78,9 @@ class GameState {
 		_frameEndMs = SDL_GetTicks();
 		_frameStartMs = _frameEndMs - _frameDuration;
 		_input.ResetToState();
+#ifdef PLATFORM_HAS_TOUCH
+		_touch.Reset();
+#endif
 	}
 
 	static bool IsPaused() { return _paused; }

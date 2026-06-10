@@ -135,4 +135,10 @@ class TouchController {
 				return false;
 		}
 	}
+
+	void Reset() {
+		for (int i = 0; i < _BUTTON_COUNT; i++) {
+			_buttons[i].Release();
+		}
+	}
 };
