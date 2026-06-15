@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-
 project("Silly Bird Sidequest")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(BUILD_PRX 1)
