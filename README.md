@@ -71,11 +71,13 @@ The executable can be found in build/export/windows.
 The executable can be found in build/export/psp-pbp. Custom firmware is required to run it.
 
 ### For Android
-1. Install Android SDK, JDK, NDK etc.
-2. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
-3. Compile: ```cd android-project && ./gradlew assembleRelease```
+1. Install [Android Studio](https://developer.android.com/studio)
+2. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules```
+3. Open Silly-Bird-Sidequest/android-project in Android Studio
+4. Click <img width="40" height="36" alt="image" src="https://github.com/user-attachments/assets/a08836ce-5f99-48d3-a0c3-946a865b327e" /> in the top-right corner and wait for the project to sync
+5. Click <img width="40" height="36" alt="image" src="https://github.com/user-attachments/assets/04811722-c1d7-423d-875c-fab21ed3e341" /> in the top-right corner and wait for the project to build
 
-The APK can be found in android-project/app/build/outputs/apk/release.
+The APK can be found in android-project/app/build/outputs/apk/debug.
 
 ## Building from Windows
 Compiling from Windows is not supported. Consider using WSL.
