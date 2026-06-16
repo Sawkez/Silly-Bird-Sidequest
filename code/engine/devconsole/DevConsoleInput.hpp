@@ -6,6 +6,7 @@
 #include "engine/GameState.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/devconsole/DevConsoleCommandManager.hpp"
+#include "game/ui/Styles.hpp"
 
 class DevConsoleInput {
    private:
@@ -56,6 +57,7 @@ class DevConsoleInput {
 		lv_obj_add_event_cb(_inputField, InputFieldFocusedCallback, LV_EVENT_FOCUSED, nullptr);
 		lv_obj_add_event_cb(_inputField, InputFieldUnfocusedCallback, LV_EVENT_DEFOCUSED, nullptr);
 		lv_obj_add_event_cb(_inputField, KeyPressedCallback, LV_EVENT_KEY, nullptr);
+		lv_obj_set_style_text_font(_inputField, Styles::GetMonoFont(), 0);
 
 		_runButton = lv_button_create(stripe);
 		lv_group_add_obj(lv_group_get_default(), _runButton);

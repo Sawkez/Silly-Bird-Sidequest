@@ -44,7 +44,7 @@ class TitleScreenMenu : public MenuTransparentBG {
 		lv_buttonmatrix_set_map(_buttons, _buttonMap);
 		lv_obj_align(_buttons, LV_ALIGN_LEFT_MID, 0, 0);
 
-		lv_obj_add_style(_buttons, &Styles::focus, LV_PART_ITEMS | LV_STATE_FOCUSED);
+		lv_obj_add_style(_buttons, Styles::GetFocusStyle(), LV_PART_ITEMS | LV_STATE_FOCUSED);
 
 		lv_obj_add_event_cb(_buttons, ButtonPressedCallback, LV_EVENT_VALUE_CHANGED, _screen);
 		lv_buttonmatrix_set_button_ctrl_all(_buttons, LV_BUTTONMATRIX_CTRL_CLICK_TRIG);

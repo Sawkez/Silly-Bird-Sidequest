@@ -12,7 +12,8 @@ class PauseMenu : public MenuTransparentBG {
    private:
 	enum ButtonID { CONTINUE, RETRY, SAVE, QUIT_TITLE };
 
-	static inline const char* _buttonMap[] = {"Continue", "\n", "Retry", "\n", "Save", "\n", "Quit to title screen", NULL};
+	static inline const char* _buttonMap[] = {"Continue", "\n", "Retry", "\n", "Save", "\n", "Quit to title screen",
+											  NULL};
 	lv_obj_t* _buttons;
 
 	static void ButtonPressedCallback(lv_event_t* event) {
@@ -68,7 +69,7 @@ class PauseMenu : public MenuTransparentBG {
 
 		lv_obj_set_size(_buttons, lv_dpx(250), lv_dpx(250));
 
-		lv_obj_add_style(_buttons, &Styles::focus, LV_PART_ITEMS | LV_STATE_FOCUSED);
+		lv_obj_add_style(_buttons, Styles::GetFocusStyle(), LV_PART_ITEMS | LV_STATE_FOCUSED);
 		lv_obj_center(_buttons);
 
 		lv_group_add_obj(UIInputManager::GetMainGroup(), _screen);

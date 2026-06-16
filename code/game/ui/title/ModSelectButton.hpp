@@ -20,7 +20,7 @@ class ModSelectButton {
 
 		lv_obj_add_event_cb(_button, callback, LV_EVENT_CLICKED, &_index);
 
-		lv_obj_add_style(_button, &Styles::focus, LV_PART_MAIN | LV_STATE_FOCUSED);
+		lv_obj_add_style(_button, Styles::GetFocusStyle(), LV_PART_MAIN | LV_STATE_FOCUSED);
 	}
 
 	lv_obj_t* GetButton() { return _button; }
