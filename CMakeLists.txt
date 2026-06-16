@@ -60,8 +60,14 @@ endif()
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL_image)
 
+set(FONT_SOURCES
+    code/fonts/drafting_mono_12.c
+    code/fonts/drafting_mono_14.c
+    code/fonts/drafting_mono_28.c
+)
+
 if(ANDROID)
-    add_library(main SHARED code/engine/main.cpp)
+    add_library(main SHARED code/engine/main.cpp ${FONT_SOURCES})
     target_link_libraries(main PRIVATE
         yyjson
         lvgl
@@ -69,7 +75,7 @@ if(ANDROID)
         SDL3_image::SDL3_image
     )
 else()
-    add_executable(sbsidequest code/engine/main.cpp)
+    add_executable(sbsidequest code/engine/main.cpp ${FONT_SOURCES})
     target_link_libraries(sbsidequest PRIVATE
         yyjson
         lvgl

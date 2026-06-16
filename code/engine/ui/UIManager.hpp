@@ -65,21 +65,8 @@ class UIManager {
 
 		lv_display_set_dpi(_display, LV_DPI_DEF * contentScale);
 
-		const lv_font_t* font;
-		if (contentScale > 1.75f)
-			font = &lv_font_montserrat_28;
-		else if (contentScale > 0.75f)
-			font = &lv_font_montserrat_14;
-		else
-			font = &lv_font_montserrat_12;
-
-		lv_display_set_theme(_display, lv_theme_default_init(_display, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
-															 LV_THEME_DEFAULT_DARK, font));
-
-		lv_obj_set_style_bg_opa(lv_display_get_layer_bottom(_display), LV_OPA_TRANSP, 0);
-
 		UIInputManager::Init();
-		Styles::Init();
+		Styles::Init(_display, contentScale);
 
 		for (int i = 0; i < _MENU_COUNT; i++) {
 			_menus[i]->Init();
@@ -159,7 +146,8 @@ class UIManager {
 			SDL_DestroyTexture(_texture);
 		}
 
-		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, windowWidth, windowHeight);
+		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, windowWidth,
+									 windowHeight);
 
 		if (_texture == NULL) {
 			dc::err << "ERROR creating UI texture: " << SDL_GetError() << dc::endl;
@@ -197,4 +185,5 @@ class UIManager {
 	static bool IsVisible() { return _stackTop > -1; }
 
 	static lv_group_t* GetMainGroup() { return UIInputManager::GetMainGroup(); }
+	static lv_display_t* GetMainDisplay() { return _display; }
 };

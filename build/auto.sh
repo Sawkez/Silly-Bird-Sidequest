@@ -71,6 +71,7 @@ mkdir -p $EXPORT_DIR || exit 1
 rm -rf $EXPORT_DIR/* || exit 1
 cp $BUILD_DIR/$EXE_IN $EXPORT_DIR/$EXE_OUT || exit 1
 cp -r $SRC_DIR/include-files/* $EXPORT_DIR/ || exit 1
+cp -r $SRC_DIR/licenses $EXPORT_DIR/licenses || exit 1
 
 if [ "$BUILD_NAME" = "psp-prx" ]; then
     cp $BUILD_DIR/sbsidequest $EXPORT_DIR/sbsidequest || exit 1

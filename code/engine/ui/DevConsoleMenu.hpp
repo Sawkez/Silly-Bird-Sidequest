@@ -115,4 +115,12 @@ class DevConsoleMenu : public MenuTransparentBG, public IDevConsoleMenu {
 			if (lastMessageVisible) _messages.back().ScrollIntoView();
 		}
 	}
+
+	void Clear() override {
+		for (auto& message : _messages) {
+			message.DestroyLabel();
+		}
+
+		_messages.clear();
+	}
 };

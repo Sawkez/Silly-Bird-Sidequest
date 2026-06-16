@@ -3,6 +3,7 @@
 #include <string>
 
 #include "3rdparty/lvgl/lvgl.h"
+#include "game/ui/Styles.hpp"
 
 class DevConsoleMessage {
    private:
@@ -16,7 +17,8 @@ class DevConsoleMessage {
 	DevConsoleMessage(const DevConsoleMessage&) = delete;
 	DevConsoleMessage& operator=(const DevConsoleMessage&) = delete;
 
-	DevConsoleMessage(DevConsoleMessage&& other) noexcept : _text(std::move(other._text)), _color(other._color), _label(other._label) {
+	DevConsoleMessage(DevConsoleMessage&& other) noexcept
+		: _text(std::move(other._text)), _color(other._color), _label(other._label) {
 		other._label = nullptr;
 	}
 
@@ -38,6 +40,7 @@ class DevConsoleMessage {
 		lv_obj_set_style_text_color(_label, _color, 0);
 		lv_label_set_text(_label, _text.data());
 		lv_obj_add_flag(_label, LV_OBJ_FLAG_EVENT_BUBBLE);
+		lv_obj_set_style_text_font(_label, Styles::GetMonoFont(), 0);
 	}
 
 	void DestroyLabel() {

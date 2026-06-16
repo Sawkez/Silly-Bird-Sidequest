@@ -8,6 +8,8 @@
 
 namespace ConsoleCommandsMisc {
 
-void Help(const std::vector<std::string>& args) { DevConsoleCommandManager::ListCommands(); }
+void help(const std::vector<std::string>& args) { DevConsoleCommandManager::ListCommands(); }
+
+void clear(const std::vector<std::string>& args) { DevConsole::Clear(); }
 
 }  // namespace ConsoleCommandsMisc
