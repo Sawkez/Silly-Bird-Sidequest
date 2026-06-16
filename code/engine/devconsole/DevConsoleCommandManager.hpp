@@ -10,7 +10,7 @@
 
 class DevConsoleCommandManager {
    private:
-	static inline const int COMMAND_COUNT = 3;
+	static inline const int COMMAND_COUNT = 4;
 	static inline DevConsoleCommand _commands[COMMAND_COUNT];
 
 #ifdef PLATFORM_HAS_STRING_COMMANDS
@@ -18,9 +18,10 @@ class DevConsoleCommandManager {
 #endif
 
    public:
-	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&), unsigned char flags, int index,
-								const std::string& description) {
-		if (index >= COMMAND_COUNT) std::cerr << "ERROR REGISTERING COMMAND: INDEX " << index << "OUT OF RANGE" << std::endl;
+	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&),
+								unsigned char flags, int index, const std::string& description) {
+		if (index >= COMMAND_COUNT)
+			std::cerr << "ERROR REGISTERING COMMAND: INDEX " << index << "OUT OF RANGE" << std::endl;
 		_commands[index] = DevConsoleCommand(function, flags, description);
 
 #ifdef PLATFORM_HAS_STRING_COMMANDS
@@ -28,7 +29,9 @@ class DevConsoleCommandManager {
 #endif
 	}
 
-	static void RunCommand(int command, const std::vector<std::string>& args, bool fromUser) { _commands[command].Run(args, fromUser); }
+	static void RunCommand(int command, const std::vector<std::string>& args, bool fromUser) {
+		_commands[command].Run(args, fromUser);
+	}
 
 	static void RunCommand(const std::string& command, bool fromUser) {
 		// Stripping leading spaces

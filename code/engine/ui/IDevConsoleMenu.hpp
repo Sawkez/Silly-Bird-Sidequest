@@ -7,4 +7,5 @@
 class IDevConsoleMenu {
    public:
 	virtual void PrintLine(const std::string& text, const lv_color_t& color) = 0;
+	virtual void Clear() = 0;
 };
