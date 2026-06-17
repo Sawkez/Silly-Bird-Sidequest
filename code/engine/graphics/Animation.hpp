@@ -10,24 +10,34 @@
 #include "engine/graphics/PlaybackPosition.hpp"
 #include "yyjson.h"
 
+// Animation based on a sprite sheet.
+// Sprite sheet must have power of 2 width.
+// Each frame of the animation must be square.
 class Animation {
    private:
 	SDL_Texture* _texture;
 	int _frameCount;
-	int _frameWidth;
-	int _frameHeight;
+	int _frameCountHorizontal;
+	int _frameSize;
 	float _frameDuration;
 	bool _looping;
 
    public:
 	Animation(SDL_Texture* texture, int frameCount, float fps, bool looping = true)
-		: _texture(texture), _frameCount(frameCount), _frameDuration(1.0 / fps), _looping(looping) {
-		float w, h;
-		SDL_GetTextureSize(texture, &w, &h);
-		_frameWidth = int(w);
-		_frameHeight = int(h);
+		: _texture(texture),
+		  _frameCount(frameCount),
+		  _frameCountHorizontal(1),
+		  _frameDuration(1.0 / fps),
+		  _looping(looping) {
+		float w;
+		SDL_GetTextureSize(texture, &w, nullptr);
+		int textureWidth = int(w);
 
-		_frameWidth /= _frameCount;
+		while (_frameCountHorizontal * _frameCountHorizontal < _frameCount) {
+			_frameCountHorizontal = _frameCountHorizontal << 1;
+		}
+
+		_frameSize = textureWidth / _frameCountHorizontal;
 	}
 
 	Animation(SDL_Texture* texture, yyjson_val* animJson)
@@ -60,16 +70,19 @@ class Animation {
 	}
 
 	SDL_FRect GetSourceRect(const PlaybackPosition& playbackPosition) const {
-		return SDL_FRect{float(playbackPosition.frame) * _frameWidth, 0, float(_frameWidth), float(_frameHeight)};
+		int row = playbackPosition.frame / _frameCountHorizontal;
+		int collumn = playbackPosition.frame - row * _frameCountHorizontal;
+
+		return SDL_FRect{float(collumn * _frameSize), float(row * _frameSize), float(_frameSize), float(_frameSize)};
 	}
 
 	SDL_Texture* GetTexture() const { return _texture; }
 
-	int GetFrameWidth() const { return _frameWidth; }
+	int GetFrameWidth() const { return _frameSize; }
 
-	int GetFrameHeight() const { return _frameHeight; }
+	int GetFrameHeight() const { return _frameSize; }
 
 	int GetFrameCount() const { return _frameCount; }
 
-	Vector2 GetFrameSize() const { return Vector2{float(_frameWidth), float(_frameHeight)}; }
+	Vector2 GetFrameSize() const { return Vector2{float(_frameSize), float(_frameSize)}; }
 };
