@@ -16,9 +16,9 @@ class AnimatedSpriteOverlay : public AnimatedSprite {
 	vector<SDL_Texture*> _overlayTextures;
 
    public:
-	AnimatedSpriteOverlay(const vector<Animation>& animations, const vector<SDL_Texture*>& overlayTextures, Uint8 overlayRed, Uint8 overlayGreen,
-						  Uint8 overlayBlue, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO,
-						  Vector2 rotateOrigin = Vector2{0.0, 0.0})
+	AnimatedSpriteOverlay(const vector<Animation>& animations, const vector<SDL_Texture*>& overlayTextures,
+						  Uint8 overlayRed, Uint8 overlayGreen, Uint8 overlayBlue, Vector2 offset = Vector2::ZERO,
+						  Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2{0.0, 0.0})
 		: AnimatedSprite(animations, offset, scaleOrigin, rotateOrigin),
 		  _overlayTextures(overlayTextures),
 		  _overlayRed(overlayRed),
@@ -35,10 +35,11 @@ class AnimatedSpriteOverlay : public AnimatedSprite {
 			destination.x += drawOffset.x;
 			destination.y += drawOffset.y;
 
-			SDL_Texture* texture = _overlayTextures.at(_current);
+			SDL_Texture* texture = _overlayTextures.at(_playbackPosition.animation);
 			SDL_SetTextureColorMod(texture, _overlayRed, _overlayGreen, _overlayBlue);
 
-			int error = SDL_RenderTextureRotated(renderer, _overlayTextures.at(_current), &_source, &destination, _rotation, &_rotateOrigin, _flip);
+			int error = SDL_RenderTextureRotated(renderer, _overlayTextures.at(_playbackPosition.animation), &_source,
+												 &destination, _rotation, &_rotateOrigin, _flip);
 
 			if (error < 0) {
 				dc::err << "ERROR: couldn't draw sprite overlay: " << SDL_GetError() << dc::endl;

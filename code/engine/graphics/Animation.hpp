@@ -7,6 +7,7 @@
 
 #include "engine/Math.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/graphics/PlaybackPosition.hpp"
 #include "yyjson.h"
 
 class Animation {
@@ -15,10 +16,7 @@ class Animation {
 	int _frameCount;
 	int _frameWidth;
 	int _frameHeight;
-	int _frame = 0;
 	float _frameDuration;
-	float _frameTime = 0.0;
-	float _speed = 1.0;
 	bool _looping;
 
    public:
@@ -33,7 +31,8 @@ class Animation {
 	}
 
 	Animation(SDL_Texture* texture, yyjson_val* animJson)
-		: Animation(texture, yyjson_get_int(yyjson_obj_get(animJson, "frame_count")), yyjson_get_num(yyjson_obj_get(animJson, "fps")),
+		: Animation(texture, yyjson_get_int(yyjson_obj_get(animJson, "frame_count")),
+					yyjson_get_num(yyjson_obj_get(animJson, "fps")),
 					yyjson_get_bool(yyjson_obj_get(animJson, "looping"))) {}
 
 	Animation(SDL_Renderer* renderer, std::string path, int frameCount, float fps, bool looping = true)
@@ -43,24 +42,26 @@ class Animation {
 		}
 	}
 
-	void Process(float delta) {
-		_frameTime += delta * _speed;
+	void Process(float delta, PlaybackPosition& playbackPosition, float speed) {
+		playbackPosition.frameTime += delta * speed;
 
-		while (_frameTime >= _frameDuration) {
-			_frame++;
-			_frameTime -= _frameDuration;
+		while (playbackPosition.frameTime >= _frameDuration) {
+			playbackPosition.frame++;
+			playbackPosition.frameTime -= _frameDuration;
 		}
 
-		if (_frame >= _frameCount) {
+		if (playbackPosition.frame >= _frameCount) {
 			if (_looping) {
-				_frame = Math::Wrap(_frame, 0, _frameCount - 1);
+				playbackPosition.frame = Math::Wrap(playbackPosition.frame, 0, _frameCount - 1);
 			} else {
-				_frame = _frameCount - 1;
+				playbackPosition.frame = _frameCount - 1;
 			}
 		}
 	}
 
-	SDL_FRect GetSourceRect() const { return SDL_FRect{float(_frame) * _frameWidth, 0, float(_frameWidth), float(_frameHeight)}; }
+	SDL_FRect GetSourceRect(const PlaybackPosition& playbackPosition) const {
+		return SDL_FRect{float(playbackPosition.frame) * _frameWidth, 0, float(_frameWidth), float(_frameHeight)};
+	}
 
 	SDL_Texture* GetTexture() const { return _texture; }
 
@@ -68,15 +69,7 @@ class Animation {
 
 	int GetFrameHeight() const { return _frameHeight; }
 
+	int GetFrameCount() const { return _frameCount; }
+
 	Vector2 GetFrameSize() const { return Vector2{float(_frameWidth), float(_frameHeight)}; }
-
-	void SetSpeed(float speed) { _speed = speed; }
-
-	void SetFrame(int frame) { _frame = frame; }
-
-	void SetLastFrame() { _frame = _frameCount - 1; }
-
-	void Restart() { SetFrame(0); }
-
-	int GetFrame() const { return _frame; }
 };

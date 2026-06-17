@@ -26,21 +26,23 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 	Vector2 _scaleOrigin = Vector2::ZERO;
 	Vector2 _rotateOrigin = Vector2::ZERO;
 	float _rotation = 0.0;
-	int _current = 0;
 	SDL_FlipMode _flip = SDL_FLIP_NONE;
+
+	float _speed = 1.0f;
+	PlaybackPosition _playbackPosition;
 
    public:
 	Vector2 position = Vector2::ZERO;
 	Vector2 scale{1.0, 1.0};
 
-	AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO, Vector2 scaleOrigin = Vector2::ZERO,
-				   Vector2 rotateOrigin = Vector2{0.0, 0.0})
+	AnimatedSprite(const vector<Animation>& animations, Vector2 offset = Vector2::ZERO,
+				   Vector2 scaleOrigin = Vector2::ZERO, Vector2 rotateOrigin = Vector2{0.0, 0.0})
 		: _animations(animations), _offset(offset), _scaleOrigin(scaleOrigin), _rotateOrigin(rotateOrigin) {}
 
 	void Process(float delta) override {
-		Animation& animation = _animations.at(_current);
-		animation.Process(delta);
-		_source = animation.GetSourceRect();
+		Animation& animation = _animations.at(_playbackPosition.animation);
+		animation.Process(delta, _playbackPosition, _speed);
+		_source = animation.GetSourceRect(_playbackPosition);
 		_destination = GetRect();
 	}
 
@@ -53,9 +55,10 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 			return false;
 		}
 
-		const Animation& animation = _animations.at(_current);
+		const Animation& animation = _animations.at(_playbackPosition.animation);
 
-		int error = SDL_RenderTextureRotated(renderer, animation.GetTexture(), &_source, &destination, _rotation, &_rotateOrigin, _flip);
+		int error = SDL_RenderTextureRotated(renderer, animation.GetTexture(), &_source, &destination, _rotation,
+											 &_rotateOrigin, _flip);
 
 		if (error < 0) {
 			dc::err << "ERROR: couldn't draw AnimatedSprite: " << SDL_GetError() << dc::endl;
@@ -76,39 +79,36 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 	void Play(int animationID, float speed = 1.0) {
 		Animation& newAnimation = _animations.at(animationID);
 
-		if (_current != animationID) newAnimation.Restart();
+		if (_playbackPosition.animation != animationID) Restart();
 
-		// TODO transitions
-
-		newAnimation.SetSpeed(speed);
-		_current = animationID;
+		SetSpeed(speed);
+		_playbackPosition.animation = animationID;
 	}
 
 	void PlayFromStart(int animationID, float speed = 1.0) {
 		Play(animationID, speed);
-		_animations[animationID].Restart();
+		Restart();
 	}
 
 	void PlayLastFrame(int animationID, float speed = 1.0) {
 		Play(animationID, speed);
-		_animations[animationID].SetLastFrame();
+		SetLastFrame();
 	}
 
+	void SetFrame(int frame) { _playbackPosition.frame = frame; }
+	void SetLastFrame() { SetFrame(_animations[_playbackPosition.animation].GetFrameCount() - 1); }
+	void Restart() { SetFrame(0); }
+
+	void SetSpeed(float speed) { _speed = speed; }
+
 	SDL_FRect GetRect() const {
-		Vector2 frameSize = _animations.at(_current).GetFrameSize();
+		Vector2 frameSize = _animations.at(_playbackPosition.animation).GetFrameSize();
 		SDL_FRect rect{position.x, position.y, frameSize.x, frameSize.y};
 		rect = Math::ScaleRect(rect, _scaleOrigin, scale);
 		rect.x += _offset.x - _rotateOrigin.x;
 		rect.y += _offset.y - _rotateOrigin.y;
 
 		return rect;
-
-		/*
-		Vector2 sizeScaled = _animations.at(_current).GetFrameSize() * scale;
-		return SDL_FRect{position.x - _scaleOrigin.x * scale.x + _scaleOrigin.x + _offset.x - _rotateOrigin.x,
-						 position.y - _scaleOrigin.y * scale.y + _scaleOrigin.y + _offset.y - _rotateOrigin.y,
-						 sizeScaled.x, sizeScaled.y};
-		*/
 	}
 
 	Vector2 TransformPoint(Vector2 point) const {
@@ -117,5 +117,5 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 		return point.Rotated(GetRotationRadians());
 	}
 
-	PlaybackPosition GetPlaybackPosition() const { return {_current, _animations[_current].GetFrame()}; }
+	const PlaybackPosition& GetPlaybackPosition() const { return _playbackPosition; }
 };
