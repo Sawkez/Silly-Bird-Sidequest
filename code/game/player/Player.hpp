@@ -84,7 +84,8 @@ class Player : public IPlayer {
 	static inline constexpr int COLLISION_ITERATIONS = 3;
 	static inline constexpr float MIN_COLLISION_TIME = 0.1;
 	static inline const Vector2 COLLISION_OFFSET_FULL{-4.0, -13.0};
-	static inline const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x, COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
+	static inline const Vector2 COLLISION_OFFSET_SHORT{COLLISION_OFFSET_FULL.x,
+													   COLLISION_OFFSET_FULL.y + FULL_COLLISION.h - SHORT_COLLISION.h};
 	static inline const Vector2 FLOOR_CHECK_OFFSET{-3.5, 0.0};
 	static inline const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL + Vector2{0.5, 0.0};
 
@@ -128,8 +129,8 @@ class Player : public IPlayer {
    private:
 	void ResetCollisionFlags() {
 		SetFlag(Flag::FLAG_WAS_PUSHING_FLOOR, IsPushingFloor());
-		_flags &= ~(Flag::FLAG_PUSHING_FLOOR | Flag::FLAG_CLOSE_TO_FLOOR | Flag::FLAG_PUSHING_WALL | Flag::FLAG_PUSHING_CEILING |
-					Flag::FLAG_CLOSE_TO_CEILING);
+		_flags &= ~(Flag::FLAG_PUSHING_FLOOR | Flag::FLAG_CLOSE_TO_FLOOR | Flag::FLAG_PUSHING_WALL |
+					Flag::FLAG_PUSHING_CEILING | Flag::FLAG_CLOSE_TO_CEILING);
 	}
 
    public:
@@ -141,8 +142,10 @@ class Player : public IPlayer {
 		  _jizz("content/sidequest/skins/classic", renderer),
 		  _room(room),
 		  _scarf(room.GetColliders()),
-		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS, BODY_CENTER),
-		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0}, IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
+		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,
+				  FEET_POS, BODY_CENTER),
+		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0},
+						 IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
 		  _upgradeBits(upgrades) {
 		if (!HasUpgrade(UPGRADE_DASH)) HideScarf();
 		_timers[TIMER_TWERK] = TWERK_TIMER_MIN;
@@ -153,7 +156,9 @@ class Player : public IPlayer {
 
 	const CollisionRect& GetCollision() const override { return _collision; }
 
-	Vector2 GetCollisionOffset() const override { return IsShortCollision() ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL; }
+	Vector2 GetCollisionOffset() const override {
+		return IsShortCollision() ? COLLISION_OFFSET_SHORT : COLLISION_OFFSET_FULL;
+	}
 
 	bool HasFlag(Flag flag) const override { return (_flags & flag) != 0; }
 
@@ -375,7 +380,8 @@ class Player : public IPlayer {
 		}
 
 		float squishDist = targetSquish - _sprite.scale.x;
-		_squishVelocity = clamp(_squishVelocity + SQUISH_ACCEL * squishDist * delta, -MAX_SQUISH_VELOCITY, MAX_SQUISH_VELOCITY);
+		_squishVelocity =
+			clamp(_squishVelocity + SQUISH_ACCEL * squishDist * delta, -MAX_SQUISH_VELOCITY, MAX_SQUISH_VELOCITY);
 		_squishVelocity *= powf(SQUISH_DAMPENING, delta);
 
 		_sprite.scale.x = clamp(_sprite.scale.x + _squishVelocity * delta, X_SQUISH_MIN, X_SQUISH_MAX);
@@ -468,7 +474,9 @@ class Player : public IPlayer {
 	float GetSquish() const override { return _sprite.scale.x; }
 	void SetSquish(float squish) override { _sprite.scale.x = squish; }
 
-	void PlayAnimation(int animation, float speed = 1.0) override { _sprite.Play(animation, speed); }
+	void PlayAnimation(int animation, float speed = 1.0, bool transition = false) override {
+		_sprite.Play(animation, speed, transition);
+	}
 	void PlayAnimationFromStart(int animation, float speed = 1.0) override { _sprite.PlayFromStart(animation, speed); }
 	void PlayAnimationLastFrame(int animation, float speed = 1.0) override { _sprite.PlayLastFrame(animation, speed); }
 
@@ -488,7 +496,8 @@ class Player : public IPlayer {
 	void ResetLastDownVelocity() override { _lastDownVelocity = 0.0; }
 
 	void UpdateLedgeTile() override {
-		float tileX = roundf(position.x / WorldConstants::TILE_SIZE_F + (IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT));
+		float tileX = roundf(position.x / WorldConstants::TILE_SIZE_F +
+							 (IsFacingLeft() ? LEDGE_CHECK_OFFSET_LEFT : LEDGE_CHECK_OFFSET_RIGHT));
 		float tileY = roundf(position.y / WorldConstants::TILE_SIZE_F + LEDGE_CHECK_OFFSET_UP);
 
 		_ledgeTile.x = static_cast<int>(tileX) * WorldConstants::TILE_SIZE;

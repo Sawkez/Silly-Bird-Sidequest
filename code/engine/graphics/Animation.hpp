@@ -7,33 +7,42 @@
 
 #include "engine/Math.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/graphics/PlaybackPosition.hpp"
 #include "yyjson.h"
 
+// Animation based on a sprite sheet.
+// Sprite sheet must have power of 2 width.
+// Each frame of the animation must be square.
 class Animation {
    private:
 	SDL_Texture* _texture;
 	int _frameCount;
-	int _frameWidth;
-	int _frameHeight;
-	int _frame = 0;
+	int _frameCountHorizontal;
+	int _frameSize;
 	float _frameDuration;
-	float _frameTime = 0.0;
-	float _speed = 1.0;
 	bool _looping;
 
    public:
 	Animation(SDL_Texture* texture, int frameCount, float fps, bool looping = true)
-		: _texture(texture), _frameCount(frameCount), _frameDuration(1.0 / fps), _looping(looping) {
-		float w, h;
-		SDL_GetTextureSize(texture, &w, &h);
-		_frameWidth = int(w);
-		_frameHeight = int(h);
+		: _texture(texture),
+		  _frameCount(frameCount),
+		  _frameCountHorizontal(1),
+		  _frameDuration(1.0 / fps),
+		  _looping(looping) {
+		float w;
+		SDL_GetTextureSize(texture, &w, nullptr);
+		int textureWidth = int(w);
 
-		_frameWidth /= _frameCount;
+		while (_frameCountHorizontal * _frameCountHorizontal < _frameCount) {
+			_frameCountHorizontal = _frameCountHorizontal << 1;
+		}
+
+		_frameSize = textureWidth / _frameCountHorizontal;
 	}
 
 	Animation(SDL_Texture* texture, yyjson_val* animJson)
-		: Animation(texture, yyjson_get_int(yyjson_obj_get(animJson, "frame_count")), yyjson_get_num(yyjson_obj_get(animJson, "fps")),
+		: Animation(texture, yyjson_get_int(yyjson_obj_get(animJson, "frame_count")),
+					yyjson_get_num(yyjson_obj_get(animJson, "fps")),
 					yyjson_get_bool(yyjson_obj_get(animJson, "looping"))) {}
 
 	Animation(SDL_Renderer* renderer, std::string path, int frameCount, float fps, bool looping = true)
@@ -43,40 +52,37 @@ class Animation {
 		}
 	}
 
-	void Process(float delta) {
-		_frameTime += delta * _speed;
+	void Process(float delta, PlaybackPosition& playbackPosition, float speed) {
+		playbackPosition.frameTime += delta * speed;
 
-		while (_frameTime >= _frameDuration) {
-			_frame++;
-			_frameTime -= _frameDuration;
+		while (playbackPosition.frameTime >= _frameDuration) {
+			playbackPosition.frame++;
+			playbackPosition.frameTime -= _frameDuration;
 		}
 
-		if (_frame >= _frameCount) {
+		if (playbackPosition.frame >= _frameCount) {
 			if (_looping) {
-				_frame = Math::Wrap(_frame, 0, _frameCount - 1);
+				playbackPosition.frame = Math::Wrap(playbackPosition.frame, 0, _frameCount - 1);
 			} else {
-				_frame = _frameCount - 1;
+				playbackPosition.frame = _frameCount - 1;
 			}
 		}
 	}
 
-	SDL_FRect GetSourceRect() const { return SDL_FRect{float(_frame) * _frameWidth, 0, float(_frameWidth), float(_frameHeight)}; }
+	SDL_FRect GetSourceRect(const PlaybackPosition& playbackPosition) const {
+		int row = playbackPosition.frame / _frameCountHorizontal;
+		int collumn = playbackPosition.frame - row * _frameCountHorizontal;
+
+		return SDL_FRect{float(collumn * _frameSize), float(row * _frameSize), float(_frameSize), float(_frameSize)};
+	}
 
 	SDL_Texture* GetTexture() const { return _texture; }
 
-	int GetFrameWidth() const { return _frameWidth; }
+	int GetFrameWidth() const { return _frameSize; }
 
-	int GetFrameHeight() const { return _frameHeight; }
+	int GetFrameHeight() const { return _frameSize; }
 
-	Vector2 GetFrameSize() const { return Vector2{float(_frameWidth), float(_frameHeight)}; }
+	int GetFrameCount() const { return _frameCount; }
 
-	void SetSpeed(float speed) { _speed = speed; }
-
-	void SetFrame(int frame) { _frame = frame; }
-
-	void SetLastFrame() { _frame = _frameCount - 1; }
-
-	void Restart() { SetFrame(0); }
-
-	int GetFrame() const { return _frame; }
+	Vector2 GetFrameSize() const { return Vector2{float(_frameSize), float(_frameSize)}; }
 };
