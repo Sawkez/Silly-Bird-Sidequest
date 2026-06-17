@@ -20,7 +20,8 @@ struct MovementStateNormal : public IMovementState {
 	static inline constexpr float GRAVITY = 900.0;
 	static inline constexpr float FAST_FALL_GRAVITY = 1200.0;
 
-	static inline constexpr float FAST_FALL_WINDOW = GRAVITY * 14.0 / 120.0;  // 10 frames total, 5 frames either direction at 60 fps
+	static inline constexpr float FAST_FALL_WINDOW =
+		GRAVITY * 14.0 / 120.0;	 // 10 frames total, 5 frames either direction at 60 fps
 	static inline constexpr float FALL_SPEED_CAP = 200.0;
 
 	static inline constexpr float JUMP_FORCE = 250.0;
@@ -158,7 +159,8 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// ducking with down key
-		bool canDuck = p.IsPushingFloor() && !p.BufferActive(Player::BUFFER_JUMP) && p.HasUpgrade(Player::UPGRADE_SLIDE);
+		bool canDuck =
+			p.IsPushingFloor() && !p.BufferActive(Player::BUFFER_JUMP) && p.HasUpgrade(Player::UPGRADE_SLIDE);
 
 		if (canDuck && p.velocity.x == 0.0 && p.GetInput().GetDir() == Vector2{0.0, 1.0}) {
 			p.SetState(Player::MOVEMENT_STATE_DUCK);
@@ -166,7 +168,8 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// diving
-		if (p.BufferActive(Player::BUFFER_DIVE) && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DIVE) && p.IsDiveAvailable()) {
+		if (p.BufferActive(Player::BUFFER_DIVE) && p.velocity.y > GRAVITY * delta &&
+			p.HasUpgrade(Player::UPGRADE_DIVE) && p.IsDiveAvailable()) {
 			p.SetState(Player::MOVEMENT_STATE_DIVE);
 			return;
 		}
@@ -181,13 +184,14 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// dashing
-		bool dashFirst =
-			!p.BufferActive(Player::BUFFER_DIVE) || p.GetBuffer(Player::BUFFER_DASH) < p.GetBuffer(Player::BUFFER_DIVE) || !p.IsDiveAvailable();
+		bool dashFirst = !p.BufferActive(Player::BUFFER_DIVE) ||
+						 p.GetBuffer(Player::BUFFER_DASH) < p.GetBuffer(Player::BUFFER_DIVE) || !p.IsDiveAvailable();
 
 		if (!p.BufferActive(Player::BUFFER_DASH)) {
 		}
 
-		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) && p.IsDashAvailable()) {
+		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) &&
+				 p.IsDashAvailable()) {
 			p.SetState(Player::MOVEMENT_STATE_DASH);
 			return;
 		}
@@ -220,7 +224,7 @@ struct MovementStateNormal : public IMovementState {
 
 			else {
 				p.SetTimer(Player::TIMER_TWERK, Player::TWERK_TIMER_MIN);
-				p.PlayAnimation(Player::ANIM_RUN, abs(p.velocity.x) / TOP_SPEED);
+				p.PlayAnimation(Player::ANIM_RUN, abs(p.velocity.x) / TOP_SPEED, true);
 			}
 		}
 

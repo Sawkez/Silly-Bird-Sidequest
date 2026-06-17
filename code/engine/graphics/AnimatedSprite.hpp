@@ -76,10 +76,10 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 
 	void SetFlip(SDL_FlipMode flip) { _flip = flip; }
 
-	void Play(int animationID, float speed = 1.0) {
+	void Play(int animationID, float speed = 1.0, bool transition = false) {
 		Animation& newAnimation = _animations.at(animationID);
 
-		if (_playbackPosition.animation != animationID) Restart();
+		if (!transition && _playbackPosition.animation != animationID) Restart();
 
 		SetSpeed(speed);
 		_playbackPosition.animation = animationID;

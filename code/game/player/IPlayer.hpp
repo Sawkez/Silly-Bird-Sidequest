@@ -42,7 +42,15 @@ class IPlayer : public IDrawableRect, public IProcessable {
 		_MOVEMENT_STATE_COUNT
 	};
 
-	enum Upgrade { UPGRADE_DIVE, UPGRADE_DASH, UPGRADE_SLIDE, UPGRADE_DIVEBOOST, UPGRADE_REJUVENATOR, UPGRADE_WALLRUN, _UPGRADE_COUNT };
+	enum Upgrade {
+		UPGRADE_DIVE,
+		UPGRADE_DASH,
+		UPGRADE_SLIDE,
+		UPGRADE_DIVEBOOST,
+		UPGRADE_REJUVENATOR,
+		UPGRADE_WALLRUN,
+		_UPGRADE_COUNT
+	};
 
 	enum Timer {
 		TIMER_COYOTE,
@@ -58,7 +66,16 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	};
 
 	enum Cooldown { COOLDOWN_LEDGE, COOLDOWN_SLIDE, COOLDOWN_INTERACT, COOLDOWN_WALLRUN, _COOLDOWN_COUNT };
-	enum Buffer { BUFFER_JUMP, BUFFER_DIVE, BUFFER_DASH, BUFFER_SLIDE, BUFFER_LEDGE_JUMP, BUFFER_INTERACT, BUFFER_WALLJUMP, _BUFFER_COUNT };
+	enum Buffer {
+		BUFFER_JUMP,
+		BUFFER_DIVE,
+		BUFFER_DASH,
+		BUFFER_SLIDE,
+		BUFFER_LEDGE_JUMP,
+		BUFFER_INTERACT,
+		BUFFER_WALLJUMP,
+		_BUFFER_COUNT
+	};
 
 	enum class Flag : uint16_t {
 		FLAG_PUSHING_FLOOR = 1 << 0,
@@ -130,7 +147,7 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual bool IsFacingLeft() const = 0;
 	virtual float GetSquish() const = 0;
 	virtual void SetSquish(float squish) = 0;
-	virtual void PlayAnimation(int animation, float speed) = 0;
+	virtual void PlayAnimation(int animation, float speed, bool transition = false) = 0;
 	virtual void PlayAnimationFromStart(int animation, float speed) = 0;
 	virtual void PlayAnimationLastFrame(int animation, float speed) = 0;
 	virtual const Room& GetRoom() const = 0;
