@@ -1,10 +1,14 @@
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include <memory>
 #include <vector>
 
 #include "engine/mods/LevelMod.hpp"
 #include "engine/mods/ResourceMod.hpp"
+#include "engine/mods/SkinMod.hpp"
+#include "game/player/graphics/Jizz.hpp"
 
 class ModManager {
    private:
@@ -12,12 +16,19 @@ class ModManager {
 
 	static inline std::unique_ptr<ResourceMod> _builtin;
 	static inline std::unique_ptr<LevelMod> _level;
-	// TODO add skin mods
+	static inline std::unique_ptr<SkinMod> _skin;
+	static inline std::unique_ptr<Jizz> _jizz;
 
    public:
 	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden"); }
 
 	static void LoadLevelMod(const std::string& path) { _level = std::make_unique<LevelMod>(path); }
+
+	static void LoadSkinMod(const std::string& path) { _skin = std::make_unique<SkinMod>(path); }
+
+	static void LoadSkin(SDL_Renderer* renderer, int index) {
+		_jizz = std::make_unique<Jizz>(_skin->GetSkinPath(index), renderer);
+	}
 
 	static std::vector<std::string> GetLevelNames() {
 		std::vector<std::string> names;
@@ -41,4 +52,6 @@ class ModManager {
 			return _level->GetTileSourcePath(sourceID);
 		}
 	}
+
+	static const Jizz& GetJizz() { return *_jizz; }
 };

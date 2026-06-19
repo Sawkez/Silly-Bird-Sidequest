@@ -41,7 +41,7 @@ class Animation {
 	}
 
 	Animation(SDL_Texture* texture, yyjson_val* animJson)
-		: Animation(texture, yyjson_get_int(yyjson_obj_get(animJson, "frame_count")),
+		: Animation(texture, int(yyjson_get_num(yyjson_obj_get(animJson, "frame_count"))),
 					yyjson_get_num(yyjson_obj_get(animJson, "fps")),
 					yyjson_get_bool(yyjson_obj_get(animJson, "looping"))) {}
 

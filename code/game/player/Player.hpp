@@ -9,6 +9,7 @@
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/graphics/ParticleSpawner.hpp"
 #include "engine/input/InputManager.hpp"
+#include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/CollisionResult.hpp"
 #include "engine/save/SaveManager.hpp"
@@ -93,7 +94,7 @@ class Player : public IPlayer {
 
 	// objects
 	const InputManager& _input;
-	Jizz _jizz;
+	const Jizz& _jizz;
 	CollisionRect _collision = CollisionRect(FULL_COLLISION);
 	CollisionRect _ceilingCheck{0.0, 0.0, 7.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 7.0, 12.0};
@@ -139,7 +140,7 @@ class Player : public IPlayer {
 
 	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
 		: _input(input),
-		  _jizz("content/sidequest/skins/classic", renderer),
+		  _jizz(ModManager::GetJizz()),
 		  _room(room),
 		  _scarf(room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,

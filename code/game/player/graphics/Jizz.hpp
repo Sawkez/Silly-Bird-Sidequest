@@ -26,7 +26,7 @@ class Jizz {
 	std::string _stylePath;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
-	vector<vector<uint8_t>> _scarfPositions;
+	std::vector<std::vector<uint8_t>> _scarfPositions;
 	std::vector<Animation> _animations;
 	std::vector<SDL_Texture*> _scarfOverlays;
 	bool _allowTwerk;
@@ -97,13 +97,13 @@ class Jizz {
 		return palette;
 	}
 
-	vector<vector<uint8_t>> LoadScarfPositions(yyjson_val* json) const {
-		vector<vector<uint8_t>> anims;
+	std::vector<std::vector<uint8_t>> LoadScarfPositions(yyjson_val* json) const {
+		std::vector<std::vector<uint8_t>> anims;
 
 		int animIdx, animMax;
 		yyjson_val* anim;
 		yyjson_arr_foreach(json, animIdx, animMax, anim) {
-			vector<uint8_t> frames;
+			std::vector<uint8_t> frames;
 
 			int frameIdx, frameMax;
 			yyjson_val* frame;
@@ -120,9 +120,12 @@ class Jizz {
 	const std::vector<SDL_Texture*>& GetOverlayTextures(SDL_Renderer* renderer) const { return _scarfOverlays; }
 
 	Vector2 GetScarfPosition(PlaybackPosition playback) const {
-		uint8_t position = _scarfPositions.at(playback.animation).at(playback.frame);
-
-		return Vector2{float(position & 0xFF), float((position >> 4) & 0xFF)};
+		try {
+			uint8_t position = _scarfPositions.at(playback.animation).at(playback.frame);
+			return Vector2{float(position & 0xFF), float((position >> 4) & 0xFF)};
+		} catch (const std::out_of_range& exception) {
+			return Vector2::ZERO;
+		}
 	}
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {
