@@ -2,14 +2,14 @@
 
 #include <vector>
 
-#include "engine/mods/ModLevelInfo.hpp"
 #include "engine/mods/ResourceMod.hpp"
+#include "engine/mods/SubmodInfo.hpp"
 #include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 class LevelMod : public ResourceMod {
    private:
-	std::vector<ModLevelInfo> _levels;
+	std::vector<SubmodInfo> _levels;
 	int _levelCount;
 
    public:
@@ -20,7 +20,7 @@ class LevelMod : public ResourceMod {
 		_levelCount = yyjson_arr_size(levelsJson);
 		_levels.reserve(_levelCount);
 
-		int idx, max;
+		int idx;
 		yyjson_val* level;
 		yyjson_arr_foreach(levelsJson, idx, _levelCount, level) { _levels.emplace_back(level); }
 	}
@@ -35,5 +35,5 @@ class LevelMod : public ResourceMod {
 
 	std::string GetLevelPath(int index) { return "levels/" + _levels[index].GetPath() + "/"; }
 	int GetLevelCount() const { return _levelCount; }
-	const std::vector<ModLevelInfo>& GetLevels() const { return _levels; }
+	const std::vector<SubmodInfo>& GetLevels() const { return _levels; }
 };
