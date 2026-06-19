@@ -59,6 +59,7 @@ class Scarf : IProcessable, IDrawableRect {
 	FColor _targetColor;
 
 	Vector2 _segmentPositions[SEGMENT_COUNT];
+	float _segmentHalfWidths[SEGMENT_COUNT];
 	float _windAngle = M_PI / 4.0;
 	float _time = 0.0;
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
@@ -72,6 +73,8 @@ class Scarf : IProcessable, IDrawableRect {
 		for (int i = 0; i < SEGMENT_COUNT; i++) {
 			_segmentPositions[i] = Vector2(0.1, 0.1) * i;
 		}
+
+		UpdateWidths();
 	}
 
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
@@ -124,6 +127,13 @@ class Scarf : IProcessable, IDrawableRect {
 		}
 	}
 
+	void UpdateWidths() {
+		for (int i = 0; i < SEGMENT_COUNT; i++) {
+			_segmentHalfWidths[i] =
+				Math::Lerp(_jizz.GetScarfBaseWidth(), _jizz.GetScarfTipWidth(), float(i) / float(SEGMENT_COUNT));
+		}
+	}
+
 	SDL_Color GetColor() const { return _currentColor.GetIntColor(); }
 
 	SDL_FRect GetRect() const {
@@ -159,8 +169,7 @@ class Scarf : IProcessable, IDrawableRect {
 			// rotating 90 degrees quickly
 			dir = Vector2{-dir.y, dir.x};
 
-			float width =
-				Math::Lerp(_jizz.GetScarfBaseWidth(), _jizz.GetScarfTipWidth(), float(i) / float(SEGMENT_COUNT));
+			float width = _segmentHalfWidths[i];
 
 			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir * width + drawOffset, _currentColor};
 
