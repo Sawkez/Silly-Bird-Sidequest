@@ -122,7 +122,8 @@ class Jizz {
 	Vector2 GetScarfPosition(PlaybackPosition playback) const {
 		try {
 			uint8_t position = _scarfPositions.at(playback.animation).at(playback.frame);
-			return Vector2{float(position & 0xFF), float((position >> 4) & 0xFF)};
+			return Vector2{float(position & 0x0F), float((position >> 4) & 0x0F)};
+
 		} catch (const std::out_of_range& exception) {
 			return Vector2::ZERO;
 		}

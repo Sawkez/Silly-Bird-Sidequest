@@ -402,10 +402,8 @@ class Player : public IPlayer {
 		_diveParticles.position.y -= BODY_CENTER.y;
 		_diveParticles.Process(delta);
 
-		// TODO figure out why the offset
-		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition());	// + Vector2(-10.0, -32.0);
-		scarfPosition += Vector2(-6.0, -24.0);
-		_scarf.Pin(position - _sprite.TransformPoint(scarfPosition));
+		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition());
+		_scarf.Pin(_sprite.TextureToWorld(scarfPosition));
 		_scarf.Process(delta);
 
 		_sprite.SetOverlayColor(_scarf.GetColor());
