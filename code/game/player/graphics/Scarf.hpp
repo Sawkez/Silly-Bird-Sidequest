@@ -169,14 +169,21 @@ class Scarf : IProcessable, IDrawableRect {
 			// rotating 90 degrees quickly
 			dir = Vector2{-dir.y, dir.x};
 
+			float uv = float(i) / float(SEGMENT_COUNT);
 			float width = _segmentHalfWidths[i];
 
-			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir * width + drawOffset, _currentColor};
+			float topUV = dir.y > 0.0 ? 0.0 : 1.0;
+			float bottomUV = dir.y > 0.0 ? 1.0 : 0.0;
 
-			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir * width + drawOffset, _currentColor};
+			vertices[i * 2] =
+				SDL_Vertex{_segmentPositions[i] - dir * width + drawOffset, _currentColor, SDL_FPoint{uv, topUV}};
+
+			vertices[i * 2 + 1] =
+				SDL_Vertex{_segmentPositions[i] + dir * width + drawOffset, _currentColor, SDL_FPoint{uv, bottomUV}};
 		}
 
-		if (!SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT)) {
+		if (!SDL_RenderGeometry(renderer, _jizz.GetScarfTexture(), vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES,
+								GEOMETRY_INDEX_COUNT)) {
 			dc::err << "ERROR rendering scarf geometry: " << SDL_GetError() << dc::endl;
 			return false;
 		};
