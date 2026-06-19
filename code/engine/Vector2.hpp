@@ -16,7 +16,8 @@ class Vector2 : public SDL_FPoint {
 	Vector2() : Vector2(0.0, 0.0) {}
 
 	Vector2(yyjson_val* vectorJson)
-		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))), float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
+		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))),
+					 float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
 
 	float LengthSquared() const { return std::min(x * x + y * y, FLT_MAX); }
 
@@ -28,7 +29,9 @@ class Vector2 : public SDL_FPoint {
 		return Vector2{x / len, y / len};
 	}
 
-	Vector2 Rotated(float angle) const { return {cosf(angle) * x - sinf(angle) * y, sinf(angle) * x - cosf(angle) * y}; }
+	Vector2 Rotated(float angle) const {
+		return {cosf(angle) * x - sinf(angle) * y, sinf(angle) * x + cosf(angle) * y};
+	}
 
 	float DistanceSquared(const Vector2& other) const { return (*this - other).LengthSquared(); }
 
@@ -63,6 +66,12 @@ class Vector2 : public SDL_FPoint {
 	Vector2& operator+=(const Vector2& b) {
 		x += b.x;
 		y += b.y;
+		return *this;
+	}
+
+	Vector2& operator-=(const Vector2& b) {
+		x -= b.x;
+		y -= b.y;
 		return *this;
 	}
 
