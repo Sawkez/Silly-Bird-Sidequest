@@ -23,7 +23,7 @@ class Scarf : IProcessable, IDrawableRect {
 	static constexpr float MAX_DIST = 1.25;
 	static constexpr float TIME_SCALE = 4.2;
 	static constexpr float SINE_SCALE = 0.2;
-	static constexpr float WIND_DIF = -0.25;
+	static constexpr float SINE_SCALE_HORIZONTAL = -0.125;
 
 	static constexpr float COLOR_CHANGE_SPEED = 2.5;
 
@@ -94,7 +94,9 @@ class Scarf : IProcessable, IDrawableRect {
 				return;
 			}
 
-			float _segmentWindAngle = _windAngle + sinf(_time + i * WIND_DIF) * windStrength * SINE_SCALE;
+			float _segmentWindAngle =
+				_windAngle +
+				sinf(_time + i * SINE_SCALE_HORIZONTAL * _jizz.GetScarfSegmentLength()) * windStrength * SINE_SCALE;
 			Math::Lerp(_windAngle, M_PI * 0.5, _jizz.GetScarfWeight());
 			Vector2 wind{cosf(_segmentWindAngle), sinf(_segmentWindAngle)};
 			wind *= _jizz.GetScarfSegmentLength();
