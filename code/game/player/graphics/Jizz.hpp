@@ -28,6 +28,7 @@ class Jizz {
 	yyjson_doc* _json;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
+	SDL_Texture* _scarfTexture;
 	std::vector<std::vector<uint8_t>> _scarfPositions;
 	std::vector<Animation> _animations;
 	std::vector<SDL_Texture*> _scarfOverlays;
@@ -67,7 +68,8 @@ class Jizz {
 		  _scarfWeight(yyjson_get_num(yyjson_obj_get(jsonRoot, "scarf_weight"))),
 		  _scarfSegmentLength(yyjson_get_num(yyjson_obj_get(jsonRoot, "scarf_segment_length"))),
 		  _scarfChargedColor(yyjson_obj_get(jsonRoot, "scarf_charged_color")),
-		  _scarfEmptyColor(yyjson_obj_get(jsonRoot, "scarf_empty_color")) {
+		  _scarfEmptyColor(yyjson_obj_get(jsonRoot, "scarf_empty_color")),
+		  _scarfTexture(IMG_LoadTexture(renderer, (stylePath + "/scarf.png").data())) {
 		LoadAnimations(jsonRoot);
 		LoadScarfOverlays();
 	}
@@ -154,6 +156,8 @@ class Jizz {
 
 		return texture;
 	}
+
+	SDL_Texture* GetScarfTexture() const { return _scarfTexture; }
 
 	bool CanTwerk() const { return _allowTwerk; }
 	float GetScarfBaseWidth() const { return _scarfBaseWidth; }
