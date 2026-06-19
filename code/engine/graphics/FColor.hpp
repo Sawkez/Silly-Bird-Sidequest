@@ -3,15 +3,21 @@
 #include <SDL3/SDL.h>
 
 #include "engine/Math.hpp"
+#include "yyjson.h"
 
 struct FColor : SDL_FColor {
 	FColor(float red, float green, float blue) : SDL_FColor{red, green, blue, 1.0f} {}
 
-	FColor(Uint8 red, Uint8 green, Uint8 blue) : SDL_FColor{float(red) / 255.0f, float(green) / 255.0f, float(blue) / 255.0f, 1.0f} {}
+	FColor(Uint8 red, Uint8 green, Uint8 blue)
+		: SDL_FColor{float(red) / 255.0f, float(green) / 255.0f, float(blue) / 255.0f, 1.0f} {}
 
 	FColor(int red, int green, int blue) : FColor(Uint8(red), Uint8(green), Uint8(blue)) {}
 
 	FColor(SDL_Color color) : FColor(color.r, color.g, color.b) {}
+
+	FColor(yyjson_val* json)
+		: FColor(yyjson_get_int(yyjson_arr_get(json, 0)), yyjson_get_int(yyjson_arr_get(json, 1)),
+				 yyjson_get_int(yyjson_arr_get(json, 2))) {}
 
 	SDL_Color GetIntColor() const { return {Uint8(r * 255), Uint8(g * 255), Uint8(b * 255), 255}; }
 
