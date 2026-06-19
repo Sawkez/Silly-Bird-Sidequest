@@ -11,6 +11,7 @@
 #include "engine/graphics/FColor.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "game/player/graphics/Jizz.hpp"
 
 using namespace std;
 
@@ -19,8 +20,7 @@ class Scarf : IProcessable, IDrawableRect {
 	static constexpr int SEGMENT_COUNT = 10;
 	static constexpr float MOVE_SPEED = 45.0;
 	static constexpr float LOW_WIND_SPEED = 30.0;
-	static constexpr float SEGMENT_DIST = 2.0;
-	static constexpr float MAX_DIST = 2.5;
+	static constexpr float MAX_DIST = 1.25;
 	static constexpr float TIME_SCALE = 4.2;
 	static constexpr float SINE_SCALE = 0.2;
 	static constexpr float WIND_DIF = -0.25;
@@ -28,25 +28,47 @@ class Scarf : IProcessable, IDrawableRect {
 	static constexpr float COLOR_CHANGE_SPEED = 2.5;
 
 	static constexpr int GEOMETRY_INDEX_COUNT = 18 * 3;
-	static constexpr int GEOMETRY_INDICES[GEOMETRY_INDEX_COUNT] = {0,  1,  2,  1,  2,  3,  2,  3,  4,  3,  4,  5,  4,  5,  6,  5,  6,  7,
-																   6,  7,  8,  7,  8,  9,  8,  9,  10, 9,  10, 11, 10, 11, 12, 11, 12, 13,
-																   12, 13, 14, 13, 14, 15, 14, 15, 16, 15, 16, 17, 16, 17, 18, 17, 18, 19};
 
-	FColor _chargedColor{198, 15, 64};
-	FColor _emptyColor{255, 240, 35};
+	// clang-format off
+	static constexpr int GEOMETRY_INDICES[GEOMETRY_INDEX_COUNT] = {
+		0,1,2,
+		  1,2,3,
+			2,3,4,
+			  3,4,5,
+				4,5,6,
+				  5,6,7,
+				    6,7,8,
+					  7,8,9,
+						8,9,10,
+						  9,10,11,
+							10,11,12,
+							   11,12,13,
+							   	  12,13,14,
+								  	 13,14,15,
+									 	14,15,16,
+										   15,16,17,
+										   	  16,17,18,
+											  	 17,18,19
+	};
+	// clang-format on
+
+	const Jizz& _jizz;
 	FColor _activeColor{255, 255, 255};
 
 	FColor _currentColor;
 	FColor _targetColor;
 
 	Vector2 _segmentPositions[SEGMENT_COUNT];
-	float _windStrength = 60.0;
 	float _windAngle = M_PI / 4.0;
 	float _time = 0.0;
 	reference_wrapper<const vector<CollisionRect>> _staticColliders;
 
    public:
-	Scarf(const vector<CollisionRect>& colliders) : _staticColliders(ref(colliders)), _currentColor(_chargedColor), _targetColor(_chargedColor) {
+	Scarf(const vector<CollisionRect>& colliders, const Jizz& jizz)
+		: _staticColliders(ref(colliders)),
+		  _jizz(jizz),
+		  _currentColor(_jizz.GetScarfChargedColor()),
+		  _targetColor(_jizz.GetScarfChargedColor()) {
 		for (int i = 0; i < SEGMENT_COUNT; i++) {
 			_segmentPositions[i] = Vector2(0.1, 0.1) * i;
 		}
@@ -55,8 +77,8 @@ class Scarf : IProcessable, IDrawableRect {
 	void Pin(Vector2 pinPosition) { _segmentPositions[0] = pinPosition; }
 
 	void Process(float delta) override {
-		_windStrength = (M_PI * 0.5) * std::abs(M_PI * 0.5 - _windAngle);
-		_time += delta * _windStrength * TIME_SCALE;
+		float windStrength = (M_PI * 0.5) * std::abs(M_PI * 0.5 - _windAngle);
+		_time += delta * windStrength * TIME_SCALE;
 
 		_currentColor.MoveToward(_targetColor, COLOR_CHANGE_SPEED * delta);
 
@@ -69,16 +91,17 @@ class Scarf : IProcessable, IDrawableRect {
 				return;
 			}
 
-			float _segmentWindAngle = _windAngle + sinf(_time + i * WIND_DIF) * _windStrength * SINE_SCALE;
+			float _segmentWindAngle = _windAngle + sinf(_time + i * WIND_DIF) * windStrength * SINE_SCALE;
+			Math::Lerp(_windAngle, M_PI * 0.5, _jizz.GetScarfWeight());
 			Vector2 wind{cosf(_segmentWindAngle), sinf(_segmentWindAngle)};
-			wind *= SEGMENT_DIST;
+			wind *= _jizz.GetScarfSegmentLength();
 
 			/* more faithful to the Godot version but probably unnecessary
 			float dist = pos.Distance(target);
 			float speed = MOVE_SPEED * (dist / MAX_DIST) + max(0.0, LOW_WIND_SPEED * (1.0 - _windStrength));
 			*/
 
-			float speed = MOVE_SPEED + max(0.0, LOW_WIND_SPEED * (1.0 - _windStrength));
+			float speed = MOVE_SPEED + max(0.0, LOW_WIND_SPEED * (1.0 - windStrength) * (1.0 - _jizz.GetScarfWeight()));
 
 			bool colliding = false;
 
@@ -93,8 +116,10 @@ class Scarf : IProcessable, IDrawableRect {
 				pos.MoveToward(target + wind, speed * delta);
 			}
 
-			if (pos.DistanceSquared(target) > MAX_DIST * MAX_DIST) {
-				pos = target + target.DirectionTo(pos) * MAX_DIST;
+			float maxDist = MAX_DIST * _jizz.GetScarfSegmentLength();
+
+			if (pos.DistanceSquared(target) > maxDist * maxDist) {
+				pos = target + target.DirectionTo(pos) * maxDist;
 			}
 		}
 	}
@@ -102,7 +127,8 @@ class Scarf : IProcessable, IDrawableRect {
 	SDL_Color GetColor() const { return _currentColor.GetIntColor(); }
 
 	SDL_FRect GetRect() const {
-		if (isnan(_segmentPositions[SEGMENT_COUNT - 1].x) || isnan(_segmentPositions[SEGMENT_COUNT - 1].y)) return {0.0, 0.0, 0.0, 0.0};
+		if (isnan(_segmentPositions[SEGMENT_COUNT - 1].x) || isnan(_segmentPositions[SEGMENT_COUNT - 1].y))
+			return {0.0, 0.0, 0.0, 0.0};
 
 		SDL_FRect rect;
 		Vector2 drawPoints[2] = {_segmentPositions[0], _segmentPositions[SEGMENT_COUNT - 1]};
@@ -133,9 +159,12 @@ class Scarf : IProcessable, IDrawableRect {
 			// rotating 90 degrees quickly
 			dir = Vector2{-dir.y, dir.x};
 
-			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir + drawOffset, _currentColor};
+			float width =
+				Math::Lerp(_jizz.GetScarfBaseWidth(), _jizz.GetScarfTipWidth(), float(i) / float(SEGMENT_COUNT));
 
-			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir + drawOffset, _currentColor};
+			vertices[i * 2] = SDL_Vertex{_segmentPositions[i] - dir * width + drawOffset, _currentColor};
+
+			vertices[i * 2 + 1] = SDL_Vertex{_segmentPositions[i] + dir * width + drawOffset, _currentColor};
 		}
 
 		if (!SDL_RenderGeometry(renderer, NULL, vertices, SEGMENT_COUNT * 2, GEOMETRY_INDICES, GEOMETRY_INDEX_COUNT)) {
@@ -148,11 +177,11 @@ class Scarf : IProcessable, IDrawableRect {
 
 	void Load() {
 		_currentColor = _activeColor;
-		_targetColor = _chargedColor;
+		_targetColor = _jizz.GetScarfChargedColor();
 	}
 
 	void Unload() {
 		_currentColor = _activeColor;
-		_targetColor = _emptyColor;
+		_targetColor = _jizz.GetScarfEmptyColor();
 	}
 };
