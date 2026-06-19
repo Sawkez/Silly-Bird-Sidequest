@@ -111,10 +111,25 @@ class AnimatedSprite : IDrawableRect, IProcessable {
 		return rect;
 	}
 
-	Vector2 TransformPoint(Vector2 point) const {
-		if ((_flip & SDL_FLIP_HORIZONTAL) != 0) point.x = -point.x;
-		point *= scale * 0.5;
-		return point.Rotated(GetRotationRadians());
+	Vector2 TextureToWorld(Vector2 point) const {
+		point *= scale;
+		point.y = point.y;
+
+		if ((_flip & SDL_FLIP_HORIZONTAL) != 0) {
+			point.x = _destination.w - point.x;
+		}
+
+		if ((_flip & SDL_FLIP_VERTICAL) != 0) {
+			point.y = _destination.h - point.y;
+		}
+
+		point -= _rotateOrigin;
+		point = point.Rotated(GetRotationRadians());
+
+		point.x += _destination.x + _rotateOrigin.x;
+		point.y += _destination.y + _rotateOrigin.y;
+
+		return point;
 	}
 
 	const PlaybackPosition& GetPlaybackPosition() const { return _playbackPosition; }
