@@ -142,7 +142,7 @@ class Player : public IPlayer {
 		: _input(input),
 		  _jizz(ModManager::GetJizz()),
 		  _room(room),
-		  _scarf(room.GetColliders()),
+		  _scarf(room.GetColliders(), _jizz),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,
 				  FEET_POS, BODY_CENTER),
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0},

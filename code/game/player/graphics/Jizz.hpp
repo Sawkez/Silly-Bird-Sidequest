@@ -148,4 +148,12 @@ class Jizz {
 		SDL_DestroySurface(surface);
 		return texture;
 	}
+
+	bool CanTwerk() const { return _allowTwerk; }
+	float GetScarfBaseWidth() const { return _scarfBaseWidth; }
+	float GetScarfTipWidth() const { return _scarfTipWidth; }
+	float GetScarfWeight() const { return _scarfWeight; }
+	float GetScarfSegmentLength() const { return _scarfSegmentLength; }
+	const FColor& GetScarfChargedColor() const { return _scarfChargedColor; }
+	const FColor& GetScarfEmptyColor() const { return _scarfEmptyColor; }
 };
