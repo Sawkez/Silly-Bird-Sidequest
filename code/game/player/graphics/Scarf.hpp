@@ -108,8 +108,8 @@ class Scarf : IProcessable, IDrawableRect {
 
 			bool colliding = false;
 
-			for (auto collider : _staticColliders.get()) {
-				if (SDL_PointInRectFloat(&pos, &collider)) {
+			for (const auto& collider : _staticColliders.get()) {
+				if (collider.OverlapsCircle(pos, _segmentHalfWidths[i])) {
 					colliding = true;
 					break;
 				}
