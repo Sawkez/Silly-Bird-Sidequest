@@ -36,7 +36,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	SaveManager::Init();
 	DevConsoleCommandRegister::Init();
 	ModManager::LoadSkinMod("content/sidequest");
-	ModManager::LoadSkin(GameState::GetMainRenderer(), 0);
+	ModManager::LoadSkin(GameState::GetMainRenderer(), 1);
 
 	if (argc < 2) {
 		WorldManager::LoadLevel("content/sidequest-hidden/levels/title-screen-bg");
