@@ -132,7 +132,7 @@ class Scarf : IProcessable, IDrawableRect {
 	void UpdateWidths() {
 		for (int i = 0; i < SEGMENT_COUNT; i++) {
 			_segmentHalfWidths[i] =
-				Math::Lerp(_jizz.GetScarfBaseWidth(), _jizz.GetScarfTipWidth(), float(i) / float(SEGMENT_COUNT));
+				Math::Lerp(_jizz.GetScarfBaseWidth(), _jizz.GetScarfTipWidth(), float(i) / float(SEGMENT_COUNT)) * 0.5;
 		}
 	}
 
