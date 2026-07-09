@@ -20,7 +20,7 @@ void Init() {
 	}
 }
 
-char* LoadText(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
+char* LoadFile(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
 	while (!SDL_StorageReady) {
 		SDL_Delay(1);
 	}
@@ -41,7 +41,7 @@ char* LoadText(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
 
 yyjson_doc* LoadJson(SDL_Storage* storage, const std::string& path) {
 	Uint64 size;
-	char* jsonStr = LoadText(storage, path, &size);
+	char* jsonStr = LoadFile(storage, path, &size);
 	yyjson_doc* doc = yyjson_read(jsonStr, size, 0);
 	delete[] jsonStr;
 	return doc;
