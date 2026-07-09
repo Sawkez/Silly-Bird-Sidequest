@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 
-#include "engine/StorageIO.hpp"
+#include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
 #include "engine/world/SpikeTile.hpp"
 #include "yyjson.h"

@@ -6,9 +6,9 @@
 #include <string>
 
 #include "engine/Math.hpp"
-#include "engine/ResourceManager.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 // Animation based on a sprite sheet.

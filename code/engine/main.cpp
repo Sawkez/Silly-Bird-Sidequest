@@ -8,12 +8,12 @@
 
 #include "engine/GameState.hpp"
 #include "engine/Random.hpp"
-#include "engine/ResourceManager.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/devconsole/DevConsoleCommandRegister.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/save/SaveManager.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"

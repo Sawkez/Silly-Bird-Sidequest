@@ -4,10 +4,10 @@
 #include <vector>
 
 #include "engine/IProcessable.hpp"
-#include "engine/ResourceManager.hpp"
-#include "engine/StorageIO.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/resource/ResourceManager.hpp"
+#include "engine/resource/StorageIO.hpp"
 #include "engine/world/IRoomObject.hpp"
 #include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"

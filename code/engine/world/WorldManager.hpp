@@ -4,8 +4,8 @@
 #include <string>
 
 #include "engine/GameState.hpp"
-#include "engine/ResourceManager.hpp"
 #include "engine/mods/ModManager.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/save/SaveData.hpp"
 #include "engine/save/SaveManager.hpp"
 #include "engine/world/Level.hpp"

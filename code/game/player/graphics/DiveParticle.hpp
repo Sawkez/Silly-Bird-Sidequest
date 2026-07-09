@@ -4,9 +4,9 @@
 
 #include "engine/Curve.hpp"
 #include "engine/Random.hpp"
-#include "engine/ResourceManager.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IParticle.hpp"
+#include "engine/resource/ResourceManager.hpp"
 
 class DiveParticle : public IParticle {
    private:

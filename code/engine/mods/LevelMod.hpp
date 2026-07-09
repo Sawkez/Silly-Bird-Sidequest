@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include "engine/ResourceManager.hpp"
 #include "engine/mods/ModLevelInfo.hpp"
 #include "engine/mods/ResourceMod.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 class LevelMod : public ResourceMod {

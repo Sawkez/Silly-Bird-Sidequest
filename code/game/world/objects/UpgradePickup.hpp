@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "engine/ResourceManager.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/world/PlayerDetector.hpp"
 #include "game/player/IPlayer.hpp"
 

@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "engine/Math.hpp"
-#include "engine/ResourceManager.hpp"
 #include "engine/mods/ModManager.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/world/TileBase.hpp"
 #include "engine/world/WorldConstants.hpp"
 

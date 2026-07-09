@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "engine/ResourceManager.hpp"
 #include "engine/mods/Mod.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 class ResourceMod : public Mod {

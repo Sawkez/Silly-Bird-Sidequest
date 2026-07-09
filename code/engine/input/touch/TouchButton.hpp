@@ -4,9 +4,9 @@
 
 #include <vector>
 
-#include "engine/ResourceManager.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/InputManager.hpp"
+#include "engine/resource/ResourceManager.hpp"
 
 class TouchButton {
    private:

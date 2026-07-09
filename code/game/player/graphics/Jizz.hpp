@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "engine/ResourceManager.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/graphics/Animation.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 class Jizz {
