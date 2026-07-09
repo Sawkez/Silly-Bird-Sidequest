@@ -13,14 +13,27 @@ namespace ResourceManager {
 
 SDL_Storage* gameData;
 
-void Init() { gameData = SDL_OpenTitleStorage(nullptr, 0); }
+void Init() {
+	gameData = SDL_OpenTitleStorage(nullptr, 0);
+	while (gameData != nullptr && !SDL_StorageReady(gameData)) {
+		SDL_Delay(1);
+	}
+}
 
 char* LoadText(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
+	while (!SDL_StorageReady) {
+		SDL_Delay(1);
+	}
+
 	Uint64 size;
-	SDL_GetStorageFileSize(storage, path.c_str(), &size);
+	if (!SDL_GetStorageFileSize(storage, path.c_str(), &size)) {
+		dc::err << "ERROR: " << SDL_GetError() << dc::endl;
+	};
 
 	auto data = new char[size];
-	SDL_ReadStorageFile(storage, path.c_str(), data, size);
+	if (!SDL_ReadStorageFile(storage, path.c_str(), data, size)) {
+		dc::err << "ERROR: " << SDL_GetError() << dc::endl;
+	};
 
 	if (outSize != nullptr) *outSize = size;
 	return data;
@@ -35,10 +48,14 @@ yyjson_doc* LoadJson(SDL_Storage* storage, const std::string& path) {
 }
 
 SDL_Surface* LoadSurface(SDL_Storage* storage, const std::string& path) {
-	return IMG_Load_IO(StorageIO(storage, path).stream, false);
+	SDL_Surface* surface = IMG_Load_IO(StorageIO(storage, path).stream, false);
+	if (surface == nullptr) dc::err << "ERROR loading surface " << path << ": " << SDL_GetError() << dc::endl;
+	return surface;
 }
 
 SDL_Texture* LoadTexture(SDL_Renderer* renderer, SDL_Storage* storage, const std::string& path) {
-	return IMG_LoadTexture_IO(renderer, StorageIO(storage, path).stream, false);
+	SDL_Texture* texture = IMG_LoadTexture_IO(renderer, StorageIO(storage, path).stream, false);
+	if (texture == nullptr) dc::err << "ERROR loading texture " << path << ": " << SDL_GetError() << dc::endl;
+	return texture;
 }
 }  // namespace ResourceManager

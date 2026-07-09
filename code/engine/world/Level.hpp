@@ -46,7 +46,7 @@ class Level : IProcessable, IDrawable {
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {}
 
-	std::string GetRoomPath(int index) { return _path + "/rooms/" + to_string(index); }
+	std::string GetRoomPath(int index) { return _path + "rooms/" + to_string(index); }
 
 	void Process(float delta) override {
 		_player.Process(delta);
