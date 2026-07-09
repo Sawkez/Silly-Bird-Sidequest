@@ -19,21 +19,24 @@ class Jizz {
 	static const vector<std::string> PLAYER_ANIMATIONS;
 
    private:
-	yyjson_doc* _json;
+	SDL_Storage* _storage;
 	std::string _stylePath;
+	yyjson_doc* _json;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
 	vector<vector<Vector2>> _scarfPositions;
 
    public:
-	Jizz(const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
-		: _json(styleJson),
+	Jizz(SDL_Storage* storage, const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
+		: _storage(storage),
+		  _json(styleJson),
 		  _stylePath(stylePath),
 		  _renderer(renderer),
 		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))),
 		  _scarfPositions(LoadScarfPositions(yyjson_obj_get(yyjson_doc_get_root(styleJson), "scarf_positions"))) {}
 
-	Jizz(const std::string& stylePath, SDL_Renderer* renderer) : Jizz(stylePath, ResourceManager::LoadJson(stylePath + "/skin.json"), renderer) {}
+	Jizz(SDL_Storage* storage, const std::string& stylePath, SDL_Renderer* renderer)
+		: Jizz(storage, stylePath, ResourceManager::LoadJson(storage, stylePath + "/skin.json"), renderer) {}
 
 	SDL_Palette* LoadPalette(yyjson_val* json) const {
 		SDL_Palette* palette = SDL_CreatePalette(PALETTE_SIZE + 1);
@@ -65,7 +68,8 @@ class Jizz {
 			int frameIdx, frameMax;
 			yyjson_val* frame;
 			yyjson_arr_foreach(anim, frameIdx, frameMax, frame) {
-				frames.push_back({float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
+				frames.push_back(
+					{float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
 			}
 
 			anims.push_back(frames);
@@ -105,7 +109,9 @@ class Jizz {
 				IMG_LoadTexture(renderer, (_stylePath + "/scarf/wallrun.png").data())};
 	}
 
-	Vector2 GetScarfPosition(PlaybackPosition playback) const { return _scarfPositions.at(playback.animation).at(playback.frame); }
+	Vector2 GetScarfPosition(PlaybackPosition playback) const {
+		return _scarfPositions.at(playback.animation).at(playback.frame);
+	}
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {
 		SDL_Surface* surface = IMG_Load((_stylePath + "/" + textureName + ".png").data());
@@ -120,7 +126,8 @@ class Jizz {
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
 
 		if (texture == NULL) {
-			dc::err << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << dc::endl;
+			dc::err << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError()
+					<< dc::endl;
 		}
 
 		SDL_DestroySurface(surface);

@@ -34,6 +34,8 @@ class ModManager {
 
 	static std::string GetLevelPath(int index) { return _level->GetLevelPath(index); }
 
+	static SDL_Storage* GetLevelStorage() { return _level->GetStorage(); }
+
 	static std::string GetTileSourcePath(uint8_t sourceID) {
 		if (sourceID & BUILTIN_TILE_BIT) {
 			return _builtin->GetTileSourcePath(sourceID & ~BUILTIN_TILE_BIT);

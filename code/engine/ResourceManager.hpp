@@ -8,20 +8,22 @@
 
 namespace ResourceManager {
 
-std::string LoadText(const std::string& path, int* outSize) {
-	size_t size;
-	void* data = SDL_LoadFile(path.c_str(), &size);
+char* LoadText(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
+	Uint64 size;
+	SDL_GetStorageFileSize(storage, path.data(), &size);
 
-	std::string text(static_cast<char*>(data), size);
-	SDL_free(data);
+	auto data = new char[size];
+	SDL_ReadStorageFile(storage, path.data(), data, size);
 
-	if (outSize != nullptr) *outSize = static_cast<int>(size);
-	return text;
+	if (outSize != nullptr) *outSize = size;
+	return data;
 }
 
-yyjson_doc* LoadJson(const std::string& path) {
-	int size;
-	std::string data = LoadText(path, &size);
-	return yyjson_read(data.data(), size, 0);
+yyjson_doc* LoadJson(SDL_Storage* storage, const std::string& path) {
+	Uint64 size;
+	char* jsonStr = LoadText(storage, path, &size);
+	yyjson_doc* doc = yyjson_read(jsonStr, size, 0);
+	delete[] jsonStr;
+	return doc;
 }
 }  // namespace ResourceManager

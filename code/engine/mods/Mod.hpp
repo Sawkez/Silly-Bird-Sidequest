@@ -15,7 +15,7 @@ class Mod {
 	Mod(const std::string& path, SDL_Storage* storage, yyjson_val* json)
 		: _path(path), _name(yyjson_get_str(yyjson_obj_get(json, "name"))), _storage(storage) {}
 
-	Mod(const std::string& path, SDL_Storage* storage, yyjson_doc* doc) : Mod(path, yyjson_doc_get_root(doc)) {
+	Mod(const std::string& path, SDL_Storage* storage, yyjson_doc* doc) : Mod(path, storage, yyjson_doc_get_root(doc)) {
 		yyjson_doc_free(doc);
 	}
 

@@ -37,12 +37,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	DevConsoleCommandRegister::Init();
 
 	if (argc < 2) {
-		WorldManager::LoadLevel("content/sidequest-hidden/levels/title-screen-bg");
+		WorldManager::LoadLevel(0);
 		UIManager::Push(UIManager::MENU_TITLE);
 	}
 
 	else {
-		WorldManager::LoadLevel(argv[1]);
+		WorldManager::LoadLevel(stoi(argv[1]));
 	}
 
 	GameState::Unpause();

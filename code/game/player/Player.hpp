@@ -137,9 +137,9 @@ class Player : public IPlayer {
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
+	Player(SDL_Storage* storage, const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
 		: _input(input),
-		  _jizz("content/sidequest/skins/classic", renderer),
+		  _jizz(storage, "content/sidequest/skins/classic", renderer),
 		  _room(room),
 		  _scarf(room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,

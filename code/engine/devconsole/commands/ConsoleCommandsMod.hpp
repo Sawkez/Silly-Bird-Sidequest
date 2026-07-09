@@ -11,6 +11,6 @@ namespace ConsoleCommandsMod {
 void loadModLevelIndex(const std::vector<std::string>& args) {
 	ModManager::LoadLevelMod(args[0]);
 	int index = std::stoi(args[1]);
-	WorldManager::LoadLevel(ModManager::GetLevelPath(index));
+	WorldManager::LoadLevel(index);
 }
 }  // namespace ConsoleCommandsMod

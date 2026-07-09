@@ -12,7 +12,7 @@ class ResourceMod : public Mod {
 	std::vector<std::string> _tileSources;
 
    public:
-	ResourceMod(const std::string& path, yyjson_val* json) : Mod(path, storage, json) {
+	ResourceMod(const std::string& path, SDL_Storage* storage, yyjson_val* json) : Mod(path, storage, json) {
 		int idx, max;
 		yyjson_val* sources = yyjson_obj_get(json, "tilesheet_sources");
 		yyjson_val* source;
@@ -30,7 +30,7 @@ class ResourceMod : public Mod {
 	ResourceMod(const std::string& path, SDL_Storage* storage)
 		: ResourceMod(path, storage, ResourceManager::LoadJson(storage, "mod.json")) {}
 
-	ResourceMod(const std::string& path) : ResourceMod(path, SDL_OpenTitleStorage(path, 0)) {}
+	ResourceMod(const std::string& path) : ResourceMod(path, SDL_OpenTitleStorage(path.c_str(), 0)) {}
 
 	std::string GetTileSourcePath(uint8_t sourceID) const { return "tiles/fg/" + _tileSources[sourceID]; }
 };
