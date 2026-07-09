@@ -39,15 +39,15 @@ set(SDL3IMAGE_XCF OFF CACHE BOOL "" FORCE)
 set(SDL3IMAGE_XPM OFF CACHE BOOL "" FORCE)
 set(SDL3IMAGE_XV OFF CACHE BOOL "" FORCE)
 
+set(MINIZ_NO_STDIO ON CACHE BOOL "" FORCE)
+set(ZIP_ENABLE_DEFLATE OFF CACHE BOOL "" FORCE)
+set(ZIP_HAVE_SYMLINK OFF CACHE BOOL "" FORCE)
+
 include_directories(${CMAKE_SOURCE_DIR}/code)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/lvgl)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/yyjson)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/zip)
 
-set(MINIZ_NO_STDIO ON CACHE BOOL "" FORCE)
-set(ZIP_ENABLE_INFLATE OFF CACHE BOOL "" FORCE)
-set(ZIP_ENABLE_DEFLATE OFF CACHE BOOL "" FORCE)
-set(ZIP_HAVE_SYMLINK OFF CACHE BOOL "" FORCE)
 set_target_properties(zip PROPERTIES POSITION_INDEPENDENT_CODE OFF)
 target_compile_options(zip PRIVATE -Wno-error=type-limits)
 
