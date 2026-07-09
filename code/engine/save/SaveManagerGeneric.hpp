@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ctime>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -12,22 +11,22 @@
 #include "game/ui/save/ListLoadMenu.hpp"
 #include "game/ui/save/ListSaveMenu.hpp"
 
-#if SDL_PLATFORM_WINDOWS
-#define OS_DIR_SEPARATOR "\\"
-
-#else
-#define OS_DIR_SEPARATOR "/"
-
-#endif
-
 class SaveManagerGeneric : public SaveManagerBase, public ISaveManagerGeneric {
    private:
 	ListSaveMenu _saveMenu;
 	ListLoadMenu _loadMenu;
 
+	static inline const char ORGANIZATION[] = "noentertainment";
+	static inline const char APPLICATION[] = "sbsidequest";
+
    public:
+	SDL_Storage* OpenUserDir() const override {
+		SDL_Storage* userDir = SDL_OpenUserStorage(ORGANIZATION, APPLICATION, 0);
+		while (!SDL_StorageReady(userDir));
+		return userDir;
+	}
+
 	void Init() override {
-		std::filesystem::create_directories(std::filesystem::path(GetManualSaveDir()));
 		ListSaveMenu::_manager = this;
 		ListLoadMenu::_manager = this;
 		_saveMenu.Init();
@@ -36,61 +35,23 @@ class SaveManagerGeneric : public SaveManagerBase, public ISaveManagerGeneric {
 
 	void ShowSaveMenu() override { UIManager::Push(&_saveMenu); }
 	void ShowLoadMenu() override { UIManager::Push(&_loadMenu); }
-	void Autosave() override { SaveToDirectory(GetAutosaveDir()); }
+	void Autosave() override { SaveToDirectory("auto"); }
+	void Autoload() override { LoadFromDirectory("auto"); }
 
 	void SaveToDirectory(const std::string& path) override {
-		std::filesystem::create_directories(std::filesystem::path(path));
-
-		SDL_IOStream* file = SDL_IOFromFile((path + "/DATA.BIN").c_str(), "wb");
-		if (file) {
-			SDL_WriteIO(file, &saveData, sizeof(SaveData));
-			SDL_CloseIO(file);
-		}
+		SDL_Storage* userDir = OpenUserDir();
+		SDL_CreateStorageDirectory(userDir, path.c_str());
+		SDL_WriteStorageFile(userDir, (path + "/DATA.BIN").c_str(), &saveData, sizeof(SaveData));
+		SDL_CloseStorage(userDir);
 	}
 
 	void LoadFromDirectory(const std::string& path) override {
-		SDL_IOStream* file = SDL_IOFromFile((path + "/DATA.BIN").c_str(), "rb");
-		if (file) {
-			SDL_ReadIO(file, &saveData, sizeof(SaveData));
-			SDL_CloseIO(file);
-		}
+		SDL_Storage* userDir = OpenUserDir();
+		SDL_ReadStorageFile(userDir, (path + "/DATA.BIN").c_str(), &saveData, sizeof(SaveData));
+		SDL_CloseStorage(userDir);
+
 		_loadedCallback();
 	}
-
-#if SDL_PLATFORM_WINDOWS
-	std::string GetUserDir() const override {
-		const char* appdata = std::getenv("APPDATA");
-		return std::string(appdata) + "\\Silly Bird Sidequest";
-	}
-
-	std::string GetManualSaveDir() const override { return GetUserDir() + "\\manual"; }
-
-	std::string GetAutosaveDir() const override { return GetUserDir() + "\\auto"; }
-
-#elif SDL_PLATFORM_LINUX
-	std::string GetUserDir() const override {
-		const char* xdgDataHome = std::getenv("XDG_DATA_HOME");
-		if (xdgDataHome != NULL) {
-			return std::string(xdgDataHome) + "/Silly Bird Sidequest";
-
-		} else {
-			const char* home = std::getenv("HOME");
-			return std::string(home) + "/.local/share/Silly Bird Sidequest";
-		}
-	}
-
-	std::string GetManualSaveDir() const override { return GetUserDir() + "/manual"; }
-
-	std::string GetAutosaveDir() const override { return GetUserDir() + "/auto"; }
-
-#elif SDL_PLATFORM_ANDROID
-	std::string GetUserDir() const override { return SDL_GetPrefPath("noentertainment", "sbsidequest"); }
-
-	std::string GetManualSaveDir() const override { return GetUserDir() + "/manual"; }
-
-	std::string GetAutosaveDir() const override { return GetUserDir() + "/auto"; }
-
-#endif
 
 	virtual void NewSave() override {
 		time_t time = std::time(nullptr);
@@ -98,7 +59,7 @@ class SaveManagerGeneric : public SaveManagerBase, public ISaveManagerGeneric {
 		std::ostringstream oss;
 		oss << std::put_time(localTime, "%d%m%Y_%H_%M_%S");
 
-		SaveToDirectory(GetManualSaveDir() + OS_DIR_SEPARATOR + oss.str());
+		SaveToDirectory("manual/" + oss.str());
 	}
 
 	void Draw() override {}
