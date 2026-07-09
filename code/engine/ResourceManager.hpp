@@ -30,8 +30,11 @@ yyjson_doc* LoadJson(SDL_Storage* storage, const std::string& path) {
 	return doc;
 }
 
+SDL_Surface* LoadSurface(SDL_Storage* storage, const std::string& path) {
+	return IMG_Load_IO(StorageIO(storage, path).stream, false);
+}
+
 SDL_Texture* LoadTexture(SDL_Renderer* renderer, SDL_Storage* storage, const std::string& path) {
-	dc::msg << " ??? " << path << dc::endl;
 	return IMG_LoadTexture_IO(renderer, StorageIO(storage, path).stream, false);
 }
 }  // namespace ResourceManager

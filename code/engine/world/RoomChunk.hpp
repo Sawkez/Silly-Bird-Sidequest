@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 
+#include "engine/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
 #include "engine/world/SpikeTile.hpp"
 #include "yyjson.h"
@@ -22,14 +23,16 @@ class RoomChunk {
    public:
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
 
-	RoomChunk(const std::string& chunkFilePath, yyjson_val* chunkJson, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+	RoomChunk(SDL_Storage* storage, const std::string& chunkFilePath, yyjson_val* chunkJson, SDL_Renderer* renderer,
+			  SDL_Surface* spikeAtlas)
 		: _rect{
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "x")),
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "y")),
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "width")),
 			  yyjson_get_int(yyjson_obj_get(chunkJson, "height")),
 		  },
-		  _cache(CacheTiles(renderer, spikeAtlas, chunkFilePath, yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count")),
+		  _cache(CacheTiles(storage, renderer, spikeAtlas, chunkFilePath,
+							yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count")),
 							yyjson_get_int(yyjson_obj_get(chunkJson, "spike_count")))) {}
 
 	RoomChunk(const RoomChunk&) = delete;
@@ -49,40 +52,40 @@ class RoomChunk {
 		return *this;
 	}
 
-	std::vector<ForegroundTile> LoadTiles(const std::string& chunkFilePath, int tileCount) {
-		SDL_IOStream* file = SDL_IOFromFile((chunkFilePath + ".chunk").c_str(), "rb");
-		if (file == NULL) {
+	std::vector<ForegroundTile> LoadTiles(SDL_Storage* storage, const std::string& chunkFilePath, int tileCount) {
+		StorageIO file(storage, chunkFilePath + ".chunk");
+
+		if (file.stream == NULL) {
 			dc::err << "ERROR: chunk file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << dc::endl;
 		}
 
 		std::vector<ForegroundTile> tiles;
 
 		for (int i = 0; i < tileCount; i++) {
-			tiles.emplace_back(file);
+			tiles.emplace_back(file.stream);
 		}
-
-		SDL_CloseIO(file);
 
 		return tiles;
 	}
 
-	std::vector<SpikeTile> LoadSpikes(const std::string& chunkFilePath, int spikeCount) {
-		SDL_IOStream* file = SDL_IOFromFile((chunkFilePath + ".spikes").c_str(), "rb");
-		if (file == NULL) {
+	std::vector<SpikeTile> LoadSpikes(SDL_Storage* storage, const std::string& chunkFilePath, int spikeCount) {
+		StorageIO file(storage, chunkFilePath + ".spikes");
+
+		if (file.stream == NULL) {
 			dc::err << "ERROR: spike file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << dc::endl;
 		}
 
 		std::vector<SpikeTile> spikes;
 
 		for (int i = 0; i < spikeCount; i++) {
-			spikes.emplace_back(file);
+			spikes.emplace_back(file.stream);
 		}
 
-		SDL_CloseIO(file);
 		return spikes;
 	}
 
-	SDL_Texture* CacheTiles(SDL_Renderer* renderer, SDL_Surface* spikeAtlas, const std::string& chunkFilePath, int tileCount, int spikeCount) {
+	SDL_Texture* CacheTiles(SDL_Storage* storage, SDL_Renderer* renderer, SDL_Surface* spikeAtlas,
+							const std::string& chunkFilePath, int tileCount, int spikeCount) {
 		SDL_Surface* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_RGBA4444);
 
 		if (cacheSurface == NULL) {
@@ -91,14 +94,14 @@ class RoomChunk {
 
 		std::map<uint8_t, SDL_Surface*> atlases;
 
-		std::vector<ForegroundTile> tiles = LoadTiles(chunkFilePath, tileCount);
+		std::vector<ForegroundTile> tiles = LoadTiles(storage, chunkFilePath, tileCount);
 
 		for (auto tile : tiles) {
-			tile.EnsureAtlasLoaded(atlases);
+			tile.EnsureAtlasLoaded(storage, atlases);
 			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
 
-		std::vector<SpikeTile> spikes = LoadSpikes(chunkFilePath, spikeCount);
+		std::vector<SpikeTile> spikes = LoadSpikes(storage, chunkFilePath, spikeCount);
 
 		for (auto spike : spikes) {
 			spike.Draw(cacheSurface, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
