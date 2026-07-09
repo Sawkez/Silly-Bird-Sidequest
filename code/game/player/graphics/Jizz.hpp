@@ -110,8 +110,20 @@ class Jizz {
 	}
 
 	SDL_Texture* LoadPaletteTexture(const std::string& textureName) const {
-		SDL_Texture* texture = LoadTexture(textureName);
-		SDL_SetTexturePalette(texture, _palette);
+		SDL_Surface* surface = ResourceManager::LoadSurface(_storage, _stylePath + "/" + textureName + ".png");
+		if (surface == nullptr) {
+			dc::err << "ERROR: " << SDL_GetError() << dc::endl;
+		}
+
+		if (!SDL_SetSurfacePalette(surface, _palette)) {
+			dc::err << "ERROR setting palette for " << textureName << ": " << SDL_GetError() << dc::endl;
+		}
+
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
+		if (texture == nullptr) {
+			dc::err << "ERROR: " << SDL_GetError() << dc::endl;
+		}
+
 		return texture;
 	}
 };
