@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "engine/Math.hpp"
+#include "engine/StorageIO.hpp"
 
 using namespace std;
 
@@ -15,15 +16,13 @@ class Curve {
 	float* _points;
 
    public:
-	Curve(string path) : Curve(SDL_IOFromFile(path.c_str(), "rb")) {}
+	Curve(SDL_Storage* storage, string path) : Curve(StorageIO(storage, path).stream) {}
 
 	Curve(SDL_IOStream* file) {
 		SDL_ReadIO(file, &_pointCount, 2);
 		_points = new float[_pointCount];
 
 		SDL_ReadIO(file, _points, _pointCount * 4);
-
-		SDL_CloseIO(file);
 	}
 
 	float Sample(float x) const {

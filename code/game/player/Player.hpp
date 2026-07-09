@@ -137,15 +137,16 @@ class Player : public IPlayer {
 	Vector2 velocity{0.0, 0.0};
 	Vector2 position{0.0, 0.0};
 
-	Player(SDL_Storage* storage, const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
+	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
 		: _input(input),
-		  _jizz(storage, "skins/classic", renderer),
+		  _jizz(ModManager::GetSkinStorage(), "skins/classic", renderer),
 		  _room(room),
 		  _scarf(room.GetColliders()),
 		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS,
 				  BODY_CENTER),
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0},
-						 IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
+						 ResourceManager::LoadTexture(renderer, ResourceManager::gameData,
+													  "content/textures/particles/feather.png")),
 		  _upgradeBits(upgrades) {
 		if (!HasUpgrade(UPGRADE_DASH)) HideScarf();
 		_timers[TIMER_TWERK] = TWERK_TIMER_MIN;

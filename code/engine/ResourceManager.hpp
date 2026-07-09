@@ -11,6 +11,10 @@
 
 namespace ResourceManager {
 
+SDL_Storage* gameData;
+
+void Init() { gameData = SDL_OpenTitleStorage(nullptr, 0); }
+
 char* LoadText(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
 	Uint64 size;
 	SDL_GetStorageFileSize(storage, path.c_str(), &size);

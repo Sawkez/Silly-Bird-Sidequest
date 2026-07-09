@@ -6,6 +6,7 @@
 #include <string>
 
 #include "engine/Math.hpp"
+#include "engine/ResourceManager.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
 #include "yyjson.h"
@@ -45,8 +46,9 @@ class Animation {
 					yyjson_get_num(yyjson_obj_get(animJson, "fps")),
 					yyjson_get_bool(yyjson_obj_get(animJson, "looping"))) {}
 
-	Animation(SDL_Renderer* renderer, std::string path, int frameCount, float fps, bool looping = true)
-		: Animation(IMG_LoadTexture(renderer, path.data()), frameCount, fps, looping) {
+	Animation(SDL_Storage* storage, SDL_Renderer* renderer, std::string path, int frameCount, float fps,
+			  bool looping = true)
+		: Animation(ResourceManager::LoadTexture(renderer, storage, path), frameCount, fps, looping) {
 		if (_texture == NULL) {
 			dc::err << "ERROR: couldn't load texture " << path << ": " << SDL_GetError() << dc::endl;
 		}

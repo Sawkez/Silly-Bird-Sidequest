@@ -37,11 +37,12 @@ class Level : IProcessable, IDrawable {
 	Level(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager,
 		  SDL_Window* window, int roomIndex, Uint8 playerUpgrades)
 		: _storage(storage),
-		  _spikeAtlas(IMG_Load("content/sidequest-hidden/tiles/special/spikes.png")),
+		  _spikeAtlas(ResourceManager::LoadSurface(ResourceManager::gameData,
+												   "content/sidequest-hidden/tiles/special/spikes.png")),
 		  _path(path),
 		  _currentRoom(storage, GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
-		  _player(storage, inputManager, renderer, _currentRoom, playerUpgrades),
+		  _player(inputManager, renderer, _currentRoom, playerUpgrades),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {}
 
