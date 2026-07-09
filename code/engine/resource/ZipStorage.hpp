@@ -3,17 +3,33 @@
 #include <SDL3/SDL.h>
 
 #include <cstring>
+#include <iostream>
 #include <string>
 
+#include "engine/devconsole/DevConsole.hpp"
 #include "zip.h"
 
 namespace ZipStorage {
 
+inline SDL_StorageInterface interface;
+
 SDL_Storage* Open(const std::string& path) {
 	zip_t* zip = zip_open(path.c_str(), 0, 'r');
 	if (zip == nullptr) {
+		// dc::err << "ERROR opening zip " << path << ": " << zip_strerror(error) << dc::endl;
 		return nullptr;
 	}
+
+	int count = zip_entries_total(zip);
+
+	dc::msg << "Contents of " << path << ":" << dc::endl;
+
+	for (int i = 0; i < count; i++) {
+		zip_entry_openbyindex(zip, i);
+		dc::msg << zip_entry_name(zip) << dc::endl;
+		zip_entry_close(zip);
+	}
+
 	return SDL_OpenStorage(&interface, zip);
 }
 
@@ -68,6 +84,8 @@ bool Enumerate(void* userData, const char* directory, SDL_EnumerateDirectoryCall
 
 		zip_entry_close(zip);
 	}
+
+	return true;
 }
 
 bool Info(void* userData, const char* path, SDL_PathInfo* info) {
@@ -80,6 +98,8 @@ bool Info(void* userData, const char* path, SDL_PathInfo* info) {
 	// i don't think we need, or can get, the accessed / created / modified times
 
 	zip_entry_close(zip);
+
+	return true;
 }
 
 bool ReadFile(void* userData, const char* path, void* destination, Uint64 length) {
@@ -89,9 +109,9 @@ bool ReadFile(void* userData, const char* path, void* destination, Uint64 length
 	zip_entry_noallocread(zip, destination, length);
 
 	zip_entry_close(zip);
-}
 
-SDL_StorageInterface interface;
+	return true;
+}
 
 void Init() {
 	SDL_INIT_INTERFACE(&interface);

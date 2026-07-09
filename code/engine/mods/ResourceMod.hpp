@@ -30,7 +30,7 @@ class ResourceMod : public Mod {
 	ResourceMod(const std::string& path, SDL_Storage* storage)
 		: ResourceMod(path, storage, ResourceManager::LoadJson(storage, "mod.json")) {}
 
-	ResourceMod(const std::string& path) : ResourceMod(path, SDL_OpenTitleStorage(path.c_str(), 0)) {}
+	ResourceMod(const std::string& path) : ResourceMod(path, GetStorageFromPath(path)) {}
 
 	std::string GetTileSourcePath(uint8_t sourceID) const { return "tiles/fg/" + _tileSources[sourceID]; }
 };

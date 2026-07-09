@@ -40,7 +40,7 @@ class DevConsoleOutputStream {
 
 	DevConsoleOutputStream& operator<<(const DevConsoleNewline& newline) {
 		SDL_LogMessage(_category, _priority, "%s", _text.data());
-		_menu->PrintLine(_text, _color);
+		if (_menu != nullptr) _menu->PrintLine(_text, _color);
 		_text.clear();
 		return *this;
 	}

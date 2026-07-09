@@ -15,7 +15,7 @@ class ModManager {
 	// TODO add skin mods
 
    public:
-	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden"); }
+	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden.sbsq"); }
 
 	static void LoadLevelMod(const std::string& path) { _level = std::make_unique<LevelMod>(path); }
 

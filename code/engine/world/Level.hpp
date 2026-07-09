@@ -37,8 +37,7 @@ class Level : IProcessable, IDrawable {
 	Level(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager,
 		  SDL_Window* window, int roomIndex, Uint8 playerUpgrades)
 		: _storage(storage),
-		  _spikeAtlas(ResourceManager::LoadSurface(ResourceManager::gameData,
-												   "content/sidequest-hidden/tiles/special/spikes.png")),
+		  _spikeAtlas(ResourceManager::LoadSurface(ModManager::GetBuiltinStorage(), "tiles/special/spikes.png")),
 		  _path(path),
 		  _currentRoom(storage, GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
