@@ -6,6 +6,7 @@
 
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/InputManager.hpp"
+#include "engine/resource/ResourceManager.hpp"
 
 class TouchButton {
    private:
@@ -21,13 +22,15 @@ class TouchButton {
 	bool _down = false;
 
    public:
-	TouchButton(SDL_FPoint positionNormalized, SDL_FPoint sizeNormalized, InputManager& inputManager, std::vector<int> actions)
+	TouchButton(SDL_FPoint positionNormalized, SDL_FPoint sizeNormalized, InputManager& inputManager,
+				std::vector<int> actions)
 		: _logicRect{positionNormalized.x, positionNormalized.y, sizeNormalized.x, sizeNormalized.y},
 		  _inputManager(inputManager),
 		  _actions(std::move(actions)) {}
 
 	void UpdateDrawRect(float windowWidth, float windowHeight) {
-		_drawRect = {_logicRect.x * windowWidth, _logicRect.y * windowHeight, _logicRect.w * windowWidth, _logicRect.h * windowHeight};
+		_drawRect = {_logicRect.x * windowWidth, _logicRect.y * windowHeight, _logicRect.w * windowWidth,
+					 _logicRect.h * windowHeight};
 	}
 
 	void LoadIcons(SDL_Renderer* renderer, int id) {
@@ -35,8 +38,8 @@ class TouchButton {
 		std::string upPath = "content/textures/icons/touch/up/" + std::to_string(id) + ".png";
 
 		std::cout << "Loading touch icon " << id << ": " << downPath << ", " << upPath << std::endl;
-		_downTexture = IMG_LoadTexture(renderer, downPath.c_str());
-		_upTexture = IMG_LoadTexture(renderer, upPath.c_str());
+		_downTexture = ResourceManager::LoadTexture(renderer, ResourceManager::gameData, downPath.c_str());
+		_upTexture = ResourceManager::LoadTexture(renderer, ResourceManager::gameData, upPath.c_str());
 
 		SDL_SetTextureAlphaMod(_downTexture, 128);
 		SDL_SetTextureAlphaMod(_upTexture, 128);
@@ -69,8 +72,8 @@ class TouchButton {
 		}
 	}
 
-	// When shifting from one button to another, activate only the actions that weren't already active from the other button
-	// and deactivate only the actions that won't be active from this button.
+	// When shifting from one button to another, activate only the actions that weren't already active from the other
+	// button and deactivate only the actions that won't be active from this button.
 	void Shift(TouchButton& other) {
 		other._down = false;
 		_down = true;

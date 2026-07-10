@@ -139,13 +139,14 @@ class Player : public IPlayer {
 
 	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
 		: _input(input),
-		  _jizz("content/sidequest/skins/classic", renderer),
+		  _jizz(ModManager::GetSkinStorage(), "skins/classic", renderer),
 		  _room(room),
 		  _scarf(room.GetColliders()),
-		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,
-				  FEET_POS, BODY_CENTER),
+		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS,
+				  BODY_CENTER),
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0},
-						 IMG_LoadTexture(renderer, "content/textures/particles/feather.png")),
+						 ResourceManager::LoadTexture(renderer, ResourceManager::gameData,
+													  "content/textures/particles/feather.png")),
 		  _upgradeBits(upgrades) {
 		if (!HasUpgrade(UPGRADE_DASH)) HideScarf();
 		_timers[TIMER_TWERK] = TWERK_TIMER_MIN;

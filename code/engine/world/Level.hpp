@@ -24,6 +24,7 @@ using namespace std;
 
 class Level : IProcessable, IDrawable {
    private:
+	SDL_Storage* _storage;
 	SDL_Surface* _spikeAtlas;
 	string _path;
 	SDL_Renderer* _renderer;
@@ -33,16 +34,18 @@ class Level : IProcessable, IDrawable {
 	vector<RenderChunk> _renderChunks;
 
    public:
-	Level(const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager, SDL_Window* window, int roomIndex, Uint8 playerUpgrades)
-		: _spikeAtlas(IMG_Load("content/sidequest-hidden/tiles/special/spikes.png")),
+	Level(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager,
+		  SDL_Window* window, int roomIndex, Uint8 playerUpgrades)
+		: _storage(storage),
+		  _spikeAtlas(ResourceManager::LoadSurface(ModManager::GetBuiltinStorage(), "tiles/special/spikes.png")),
 		  _path(path),
-		  _currentRoom(GetRoomPath(roomIndex), renderer, _spikeAtlas),
+		  _currentRoom(storage, GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
 		  _player(inputManager, renderer, _currentRoom, playerUpgrades),
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {}
 
-	std::string GetRoomPath(int index) { return _path + "/rooms/" + to_string(index); }
+	std::string GetRoomPath(int index) { return _path + "rooms/" + to_string(index); }
 
 	void Process(float delta) override {
 		_player.Process(delta);
@@ -92,7 +95,7 @@ class Level : IProcessable, IDrawable {
 	void SetCurrentRoom(int room) {
 		dc::msg << "Entered room " << room << dc::endl;
 		GameState::Pause();
-		_currentRoom = Room(GetRoomPath(room), _renderer, _spikeAtlas);
+		_currentRoom = Room(_storage, GetRoomPath(room), _renderer, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
 		_roomCamera.SetRoom(_currentRoom);

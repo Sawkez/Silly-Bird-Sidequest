@@ -13,6 +13,8 @@
 #include "engine/input/InputManager.hpp"
 #include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/resource/ResourceManager.hpp"
+#include "engine/resource/ZipStorage.hpp"
 #include "engine/save/SaveManager.hpp"
 #include "engine/ui/UIManager.hpp"
 #include "engine/world/Level.hpp"
@@ -27,9 +29,11 @@ using namespace std;
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
+	ZipStorage::Init();
+	ResourceManager::Init();
 	GameState::Init();
 	ModManager::Init();
-	ModManager::LoadLevelMod("content/sidequest");
+	ModManager::LoadLevelMod("content/sidequest.sbsq");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 	DevConsole::Init(&Menus::console);
 	Random::Init();
@@ -37,12 +41,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	DevConsoleCommandRegister::Init();
 
 	if (argc < 2) {
-		WorldManager::LoadLevel("content/sidequest-hidden/levels/title-screen-bg");
+		WorldManager::LoadLevel(0);
 		UIManager::Push(UIManager::MENU_TITLE);
 	}
 
 	else {
-		WorldManager::LoadLevel(argv[1]);
+		WorldManager::LoadLevel(stoi(argv[1]));
 	}
 
 	GameState::Unpause();

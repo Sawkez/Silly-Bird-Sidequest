@@ -32,7 +32,7 @@ class TitleScreenMenu : public MenuTransparentBG {
 	}
 
 	static void Loaded() {
-		WorldManager::LoadLevel(SaveManager::instance->saveData);
+		// WorldManager::LoadLevel(SaveManager::instance->saveData);
 		UIManager::ClearStack();
 	}
 

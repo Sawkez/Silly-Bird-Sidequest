@@ -23,7 +23,7 @@ android {
     }
 
     sourceSets.main {
-        assets.srcDirs = ['../../include-files']
+        assets.srcDirs = ['../../build/build-files/include-files']
     }
 
     externalNativeBuild {
@@ -45,4 +45,13 @@ android {
     buildFeatures {
         prefab = true
     }
+}
+
+tasks.register('prepareResources', Exec) {
+    workingDir "$projectDir/../.."
+    commandLine 'bash', 'build/prepare-resources.sh'
+}
+
+tasks.named('preBuild') {
+    dependsOn tasks.named('prepareResources')
 }

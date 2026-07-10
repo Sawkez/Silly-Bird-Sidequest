@@ -39,9 +39,17 @@ set(SDL3IMAGE_XCF OFF CACHE BOOL "" FORCE)
 set(SDL3IMAGE_XPM OFF CACHE BOOL "" FORCE)
 set(SDL3IMAGE_XV OFF CACHE BOOL "" FORCE)
 
+set(MINIZ_NO_STDIO ON CACHE BOOL "" FORCE)
+set(ZIP_ENABLE_DEFLATE OFF CACHE BOOL "" FORCE)
+set(ZIP_HAVE_SYMLINK OFF CACHE BOOL "" FORCE)
+
 include_directories(${CMAKE_SOURCE_DIR}/code)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/lvgl)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/yyjson)
+add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/zip)
+
+set_target_properties(zip PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+target_compile_options(zip PRIVATE -Wno-error=type-limits)
 
 if(ANDROID)
 	set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
@@ -73,6 +81,7 @@ if(ANDROID)
         lvgl
         SDL3::SDL3
         SDL3_image::SDL3_image
+        zip
     )
 else()
     add_executable(sbsidequest code/engine/main.cpp ${FONT_SOURCES})
@@ -81,6 +90,7 @@ else()
         lvgl
         SDL3::SDL3
         SDL3_image::SDL3_image
+        zip
     )
 endif()
 

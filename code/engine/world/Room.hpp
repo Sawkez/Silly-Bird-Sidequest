@@ -4,9 +4,10 @@
 #include <vector>
 
 #include "engine/IProcessable.hpp"
-#include "engine/ResourceManager.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/resource/ResourceManager.hpp"
+#include "engine/resource/StorageIO.hpp"
 #include "engine/world/IRoomObject.hpp"
 #include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
@@ -34,18 +35,22 @@ class Room {
 	vector<IRoomObject*> _roomObjects;
 
    public:
-	Room(const string& folderPath, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
-		: Room(folderPath, ResourceManager::LoadJson(folderPath + "/room.json"), renderer, spikeAtlas) {}
+	Room(SDL_Storage* storage, const string& folderPath, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+		: Room(storage, folderPath, ResourceManager::LoadJson(storage, folderPath + "/room.json"), renderer,
+			   spikeAtlas) {}
 
-	Room(const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
-		: Room(folderPath, yyjson_doc_get_root(jsonDoc), renderer, spikeAtlas) {
+	Room(SDL_Storage* storage, const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer,
+		 SDL_Surface* spikeAtlas)
+		: Room(storage, folderPath, yyjson_doc_get_root(jsonDoc), renderer, spikeAtlas) {
 		yyjson_doc_free(jsonDoc);
 	}
 
-	Room(const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+	Room(SDL_Storage* storage, const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer,
+		 SDL_Surface* spikeAtlas)
 		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
-		  _spikeColliders(LoadSpikeColliders(folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
-		  _chunks(LoadChunks(folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, spikeAtlas)),
+		  _spikeColliders(
+			  LoadSpikeColliders(storage, folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
+		  _chunks(LoadChunks(storage, folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, spikeAtlas)),
 		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
 		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
 		  _height(yyjson_get_num(yyjson_obj_get(roomJson, "height"))),
@@ -75,27 +80,25 @@ class Room {
 		return colliders;
 	}
 
-	vector<SpikeCollider> LoadSpikeColliders(const string& folderPath, int spikeCount) const {
+	vector<SpikeCollider> LoadSpikeColliders(SDL_Storage* storage, const string& folderPath, int spikeCount) const {
 		dc::msg << SDL_GetTicks() << ": loading spike colliders" << dc::endl;
-		dc::msg << "Spike count now " << spikeCount << dc::endl;
 		vector<SpikeCollider> spikes;
 
-		SDL_IOStream* file = SDL_IOFromFile((folderPath + "/spikes.ow").c_str(), "rb");
+		StorageIO file(storage, folderPath + "/spikes.ow");
 
-		if (file == NULL) {
+		if (file.stream == NULL) {
 			dc::msg << "ERROR: could not open spikes.ow: " << SDL_GetError() << dc::endl;
 		}
 
 		for (int i = 0; i < spikeCount; i++) {
-			spikes.emplace_back(file);
+			spikes.emplace_back(file.stream);
 		}
-
-		SDL_CloseIO(file);
 
 		return spikes;
 	}
 
-	vector<RoomChunk> LoadChunks(const string& folderPath, yyjson_val* chunksJson, SDL_Renderer* renderer, SDL_Surface* spikeAtlas) const {
+	vector<RoomChunk> LoadChunks(SDL_Storage* storage, const string& folderPath, yyjson_val* chunksJson,
+								 SDL_Renderer* renderer, SDL_Surface* spikeAtlas) const {
 		vector<RoomChunk> chunks;
 
 		size_t idx, max;
@@ -103,7 +106,7 @@ class Room {
 
 		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
 			dc::msg << SDL_GetTicks() << ": loading chunk " << idx << dc::endl;
-			chunks.emplace_back(folderPath + "/" + to_string(idx), chunk, renderer, spikeAtlas);
+			chunks.emplace_back(storage, folderPath + "/" + to_string(idx), chunk, renderer, spikeAtlas);
 		}
 
 		return chunks;
@@ -152,7 +155,9 @@ class Room {
 		size_t idx, max;
 		yyjson_val* object;
 
-		yyjson_arr_foreach(objectsJson, idx, max, object) { objects.push_back(RoomObjectFactory::MakeRoomObject(object)); }
+		yyjson_arr_foreach(objectsJson, idx, max, object) {
+			objects.push_back(RoomObjectFactory::MakeRoomObject(object));
+		}
 
 		return objects;
 	}
@@ -174,7 +179,9 @@ class Room {
 
 	int GetHeight() const { return _height; }
 
-	SDL_FRect GetFRect() const { return SDL_FRect{float(_xPosition), float(_yPosition), float(_width), float(_height)}; }
+	SDL_FRect GetFRect() const {
+		return SDL_FRect{float(_xPosition), float(_yPosition), float(_width), float(_height)};
+	}
 
 	Vector2 GetTargetSize() const { return Vector2{float(_targetWidth), float(_targetHeight)}; }
 
@@ -204,7 +211,9 @@ class Room {
 		return _checkpoints[index];
 	}
 
-	Vector2 GetNearestCheckpointPosition(const Vector2& position) { return GetCheckpoint(GetNearestCheckpoint(position)); }
+	Vector2 GetNearestCheckpointPosition(const Vector2& position) {
+		return GetCheckpoint(GetNearestCheckpoint(position));
+	}
 
 	const vector<IRoomObject*>& GetRoomObjects() const { return _roomObjects; }
 

@@ -6,6 +6,7 @@
 #include "engine/Random.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IParticle.hpp"
+#include "engine/resource/ResourceManager.hpp"
 
 class DiveParticle : public IParticle {
    private:
@@ -23,7 +24,8 @@ class DiveParticle : public IParticle {
 	Curve _scaleCurve;
 
    public:
-	DiveParticle(SDL_Texture* texture) : IParticle(texture), _scaleCurve("content/curves/particles/dive_scale.curve") {}
+	DiveParticle(SDL_Texture* texture)
+		: IParticle(texture), _scaleCurve(ResourceManager::gameData, "content/curves/particles/dive_scale.curve") {}
 
 	void Start(Vector2 position) override {
 		_position = position;
@@ -46,7 +48,8 @@ class DiveParticle : public IParticle {
 
 		Vector2 center(TEXTURE_SIZE - TEXTURE_SIZE / 2.0, TEXTURE_SIZE - TEXTURE_SIZE / 2.0);
 
-		SDL_FRect destination{_position.x + drawOffset.x - center.x, _position.y - center.y + drawOffset.y, TEXTURE_SIZE, TEXTURE_SIZE};
+		SDL_FRect destination{_position.x + drawOffset.x - center.x, _position.y - center.y + drawOffset.y,
+							  TEXTURE_SIZE, TEXTURE_SIZE};
 		destination = Math::ScaleRect(destination, center, scale);
 
 		SDL_RenderTextureRotated(renderer, _texture, NULL, &destination, _angle, NULL, SDL_FLIP_NONE);

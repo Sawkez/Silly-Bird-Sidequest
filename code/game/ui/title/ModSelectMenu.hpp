@@ -18,8 +18,7 @@ class ModSelectMenu : public MenuTransparentBG {
 
 	static void ModSelectedCallback(lv_event_t* event) {
 		int index = *(int*)lv_event_get_user_data(event);
-		std::string path = ModManager::GetLevelPath(index);
-		WorldManager::LoadLevel(path);
+		WorldManager::LoadLevel(index);
 		UIManager::ClearStack();
 	}
 

@@ -15,7 +15,7 @@ class ModManager {
 	// TODO add skin mods
 
    public:
-	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden"); }
+	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden.sbsq"); }
 
 	static void LoadLevelMod(const std::string& path) { _level = std::make_unique<LevelMod>(path); }
 
@@ -33,6 +33,19 @@ class ModManager {
 	static int GetLevelCount() { return _level->GetLevelCount(); }
 
 	static std::string GetLevelPath(int index) { return _level->GetLevelPath(index); }
+
+	static SDL_Storage* GetBuiltinStorage() { return _builtin->GetStorage(); }
+	static SDL_Storage* GetLevelStorage() { return _level->GetStorage(); }
+	static SDL_Storage* GetSkinStorage() { return _level->GetStorage(); }
+
+	static SDL_Surface* LoadTileSource(uint8_t sourceID) {
+		if (sourceID & BUILTIN_TILE_BIT) {
+			return ResourceManager::LoadSurface(GetBuiltinStorage(),
+												_builtin->GetTileSourcePath(sourceID & ~BUILTIN_TILE_BIT));
+		} else {
+			return ResourceManager::LoadSurface(GetLevelStorage(), _level->GetTileSourcePath(sourceID));
+		}
+	}
 
 	static std::string GetTileSourcePath(uint8_t sourceID) {
 		if (sourceID & BUILTIN_TILE_BIT) {

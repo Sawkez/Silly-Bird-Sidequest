@@ -18,11 +18,16 @@ class DirectoryListMenu : public MenuTransparentBG {
 
    protected:
 	lv_obj_t* _panel;
-	std::vector<DirectorySelectButton> _buttons;
-	char** _paths;
+	std::vector<std::unique_ptr<DirectorySelectButton>> _buttons;
+	static inline std::vector<std::string> _paths;
 
 	virtual lv_event_cb_t GetSelectedCallback() const = 0;
-	virtual std::string GetDirectoryToList() const = 0;
+	virtual void UpdatePaths() = 0;
+	virtual std::string GetLabel(int index) const { return _paths[index]; }
+
+	void AddButton(const std::string& label, int index) {
+		_buttons.push_back(std::make_unique<DirectorySelectButton>(_panel, label, index, GetSelectedCallback()));
+	}
 
    public:
 	void Init() override {
@@ -38,24 +43,22 @@ class DirectoryListMenu : public MenuTransparentBG {
 
 		lv_group_add_obj(UIManager::GetMainGroup(), _panel);
 
-		int modCount;
-
-		_paths = SDL_GlobDirectory(GetDirectoryToList().c_str(), "*", 0, &modCount);
-		if (_paths == nullptr) {
-			dc::err << "Failed to list directory " << GetDirectoryToList() << ": " << SDL_GetError() << dc::endl;
-		}
-
-		_buttons.reserve(modCount);
-
-		for (int i = 0; i < modCount; i++) {
-			_buttons.emplace_back(_panel, GetDirectoryToList() + "/" + _paths[i], _paths[i], GetSelectedCallback());
-		}
-
 		lv_obj_add_event_cb(_panel, KeyPressedCallback, LV_EVENT_KEY, nullptr);
 	}
 
 	void Activate() override {
 		Menu::Activate();
+		UpdatePaths();
+
+		for (int i = 0; i < _paths.size(); i++) {
+			AddButton(GetLabel(i), i);
+		}
+
 		lv_group_focus_obj(_panel);
+	}
+
+	void Deactivate() override {
+		_paths.clear();
+		_buttons.clear();
 	}
 };

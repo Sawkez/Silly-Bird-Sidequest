@@ -9,6 +9,7 @@
 
 #include "engine/Math.hpp"
 #include "engine/mods/ModManager.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/world/TileBase.hpp"
 #include "engine/world/WorldConstants.hpp"
 
@@ -30,9 +31,9 @@ struct ForegroundTile : public TileBase {
 		TileBase::Draw(targetSurface, atlases.at(sourceID), xOffset, yOffset);
 	}
 
-	void EnsureAtlasLoaded(std::map<uint8_t, SDL_Surface*>& atlases) const {
+	void EnsureAtlasLoaded(SDL_Storage* storage, std::map<uint8_t, SDL_Surface*>& atlases) const {
 		if (atlases.find(sourceID) != atlases.end()) return;
 
-		atlases[sourceID] = SDL_LoadSurface(ModManager::GetTileSourcePath(sourceID).c_str());
+		atlases[sourceID] = ModManager::LoadTileSource(sourceID);
 	}
 };

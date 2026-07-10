@@ -5,6 +5,7 @@
 
 #include <string>
 
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/world/PlayerDetector.hpp"
 #include "game/player/IPlayer.hpp"
 
@@ -16,7 +17,8 @@ class UpgradePickup : public PlayerDetector {
 	SDL_Texture* _texture;
 	int _upgrade;
 
-	static inline const std::string UPGRADE_NAMES[IPlayer::_UPGRADE_COUNT]{"dive", "dash", "slide", "diveboost", "rejuvenator", "wallrun"};
+	static inline const std::string UPGRADE_NAMES[IPlayer::_UPGRADE_COUNT]{"dive",		"dash",		   "slide",
+																		   "diveboost", "rejuvenator", "wallrun"};
 
 	SDL_FRect MakeRect(const Vector2& positionCentered) {
 		Vector2 topLeft = positionCentered - TEXTURE_SIZE * 0.5f;
@@ -25,7 +27,7 @@ class UpgradePickup : public PlayerDetector {
 
 	SDL_Texture* LoadTexture(SDL_Renderer* renderer, int upgrade) {
 		std::string path = "content/textures/upgrades/" + UPGRADE_NAMES[upgrade] + ".png";
-		return IMG_LoadTexture(renderer, path.data());
+		return ResourceManager::LoadTexture(renderer, ResourceManager::gameData, path);
 	}
 
    protected:
@@ -45,7 +47,9 @@ class UpgradePickup : public PlayerDetector {
 
    public:
 	UpgradePickup(SDL_Renderer* renderer, const Vector2& positionCentered, int upgrade)
-		: PlayerDetector(MakeRect(positionCentered), false), _upgrade(upgrade), _texture(LoadTexture(renderer, upgrade)) {}
+		: PlayerDetector(MakeRect(positionCentered), false),
+		  _upgrade(upgrade),
+		  _texture(LoadTexture(renderer, upgrade)) {}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		if (!_active) return false;

@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "engine/ResourceManager.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/graphics/Animation.hpp"
 #include "engine/graphics/PlaybackPosition.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 class Jizz {
@@ -19,21 +19,24 @@ class Jizz {
 	static const vector<std::string> PLAYER_ANIMATIONS;
 
    private:
-	yyjson_doc* _json;
+	SDL_Storage* _storage;
 	std::string _stylePath;
+	yyjson_doc* _json;
 	SDL_Palette* _palette;
 	SDL_Renderer* _renderer;
 	vector<vector<Vector2>> _scarfPositions;
 
    public:
-	Jizz(const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
-		: _json(styleJson),
+	Jizz(SDL_Storage* storage, const std::string& stylePath, yyjson_doc* styleJson, SDL_Renderer* renderer)
+		: _storage(storage),
+		  _json(styleJson),
 		  _stylePath(stylePath),
 		  _renderer(renderer),
 		  _palette(LoadPalette(yyjson_obj_get(yyjson_doc_get_root(styleJson), "colors"))),
 		  _scarfPositions(LoadScarfPositions(yyjson_obj_get(yyjson_doc_get_root(styleJson), "scarf_positions"))) {}
 
-	Jizz(const std::string& stylePath, SDL_Renderer* renderer) : Jizz(stylePath, ResourceManager::LoadJson(stylePath + "/skin.json"), renderer) {}
+	Jizz(SDL_Storage* storage, const std::string& stylePath, SDL_Renderer* renderer)
+		: Jizz(storage, stylePath, ResourceManager::LoadJson(storage, stylePath + "/skin.json"), renderer) {}
 
 	SDL_Palette* LoadPalette(yyjson_val* json) const {
 		SDL_Palette* palette = SDL_CreatePalette(PALETTE_SIZE + 1);
@@ -65,7 +68,8 @@ class Jizz {
 			int frameIdx, frameMax;
 			yyjson_val* frame;
 			yyjson_arr_foreach(anim, frameIdx, frameMax, frame) {
-				frames.push_back({float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
+				frames.push_back(
+					{float(yyjson_get_num(yyjson_arr_get(frame, 0))), float(yyjson_get_num(yyjson_arr_get(frame, 1)))});
 			}
 
 			anims.push_back(frames);
@@ -76,54 +80,50 @@ class Jizz {
 
 	std::vector<Animation> GetAnimations() const {
 		yyjson_val* animations = yyjson_obj_get(yyjson_doc_get_root(_json), "animations");
-		return {Animation(LoadTexture("duck"), yyjson_arr_get(animations, 0)),
-				Animation(LoadTexture("fly"), yyjson_arr_get(animations, 1)),
-				Animation(LoadTexture("idle"), yyjson_arr_get(animations, 2)),
-				Animation(LoadTexture("jump"), yyjson_arr_get(animations, 3)),
-				Animation(LoadTexture("ledge_flip"), yyjson_arr_get(animations, 4)),
-				Animation(LoadTexture("ledge_unflip"), yyjson_arr_get(animations, 5)),
-				Animation(LoadTexture("run"), yyjson_arr_get(animations, 6)),
-				Animation(LoadTexture("slow_run"), yyjson_arr_get(animations, 7)),
-				Animation(LoadTexture("slide"), yyjson_arr_get(animations, 8)),
-				Animation(LoadTexture("twerk_down"), yyjson_arr_get(animations, 9)),
-				Animation(LoadTexture("twerk_up"), yyjson_arr_get(animations, 10)),
-				Animation(LoadTexture("wallrun"), yyjson_arr_get(animations, 11))};
+		return {Animation(LoadPaletteTexture("duck"), yyjson_arr_get(animations, 0)),
+				Animation(LoadPaletteTexture("fly"), yyjson_arr_get(animations, 1)),
+				Animation(LoadPaletteTexture("idle"), yyjson_arr_get(animations, 2)),
+				Animation(LoadPaletteTexture("jump"), yyjson_arr_get(animations, 3)),
+				Animation(LoadPaletteTexture("ledge_flip"), yyjson_arr_get(animations, 4)),
+				Animation(LoadPaletteTexture("ledge_unflip"), yyjson_arr_get(animations, 5)),
+				Animation(LoadPaletteTexture("run"), yyjson_arr_get(animations, 6)),
+				Animation(LoadPaletteTexture("slow_run"), yyjson_arr_get(animations, 7)),
+				Animation(LoadPaletteTexture("slide"), yyjson_arr_get(animations, 8)),
+				Animation(LoadPaletteTexture("twerk_down"), yyjson_arr_get(animations, 9)),
+				Animation(LoadPaletteTexture("twerk_up"), yyjson_arr_get(animations, 10)),
+				Animation(LoadPaletteTexture("wallrun"), yyjson_arr_get(animations, 11))};
 	}
 
-	std::vector<SDL_Texture*> GetOverlayTextures(SDL_Renderer* renderer) const {
-		return {IMG_LoadTexture(renderer, (_stylePath + "/scarf/duck.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/fly.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/idle.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/jump.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/ledge_flip.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/ledge_unflip.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/run.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/slow_run.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/slide.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_down.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/twerk_up.png").data()),
-				IMG_LoadTexture(renderer, (_stylePath + "/scarf/wallrun.png").data())};
+	std::vector<SDL_Texture*> GetOverlayTextures() const {
+		return {LoadTexture("scarf/duck"),		 LoadTexture("scarf/fly"),		  LoadTexture("scarf/idle"),
+				LoadTexture("scarf/jump"),		 LoadTexture("scarf/ledge_flip"), LoadTexture("scarf/ledge_unflip"),
+				LoadTexture("scarf/run"),		 LoadTexture("scarf/slow_run"),	  LoadTexture("scarf/slide"),
+				LoadTexture("scarf/twerk_down"), LoadTexture("scarf/twerk_up"),	  LoadTexture("scarf/wallrun")};
 	}
 
-	Vector2 GetScarfPosition(PlaybackPosition playback) const { return _scarfPositions.at(playback.animation).at(playback.frame); }
+	Vector2 GetScarfPosition(PlaybackPosition playback) const {
+		return _scarfPositions.at(playback.animation).at(playback.frame);
+	}
 
 	SDL_Texture* LoadTexture(const std::string& textureName) const {
-		SDL_Surface* surface = IMG_Load((_stylePath + "/" + textureName + ".png").data());
-		dc::msg << "Loading " << _stylePath + "/" + textureName + ".png" << dc::endl;
+		return ResourceManager::LoadTexture(_renderer, _storage, _stylePath + "/" + textureName + ".png");
+	}
 
-		if (surface == NULL) {
-			dc::err << "ERROR loading character texture " << textureName << ": " << SDL_GetError() << dc::endl;
+	SDL_Texture* LoadPaletteTexture(const std::string& textureName) const {
+		SDL_Surface* surface = ResourceManager::LoadSurface(_storage, _stylePath + "/" + textureName + ".png");
+		if (surface == nullptr) {
+			dc::err << "ERROR: " << SDL_GetError() << dc::endl;
 		}
 
-		SDL_SetSurfacePalette(surface, _palette);
+		if (!SDL_SetSurfacePalette(surface, _palette)) {
+			dc::err << "ERROR setting palette for " << textureName << ": " << SDL_GetError() << dc::endl;
+		}
 
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
-
-		if (texture == NULL) {
-			dc::err << "ERROR converting character texture " << textureName << " to surface: " << SDL_GetError() << dc::endl;
+		if (texture == nullptr) {
+			dc::err << "ERROR: " << SDL_GetError() << dc::endl;
 		}
 
-		SDL_DestroySurface(surface);
 		return texture;
 	}
 };
