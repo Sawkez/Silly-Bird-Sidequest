@@ -15,9 +15,15 @@ class ModManager {
 	// TODO add skin mods
 
    public:
-	static void Init() { _builtin = std::make_unique<ResourceMod>("content/sidequest-hidden.sbsq"); }
+	static void Init() {
+		SDL_Storage* modStorage = ZipStorage::Open(ResourceManager::gameData, "content/sidequest-hidden.sbsq");
+		_builtin = std::make_unique<ResourceMod>(modStorage, "content/sidequest-hidden.sbsq");
+	}
 
-	static void LoadLevelMod(const std::string& path) { _level = std::make_unique<LevelMod>(path); }
+	static void LoadLevelMod(SDL_Storage* modFolderStorage, const std::string& modPath) {
+		SDL_Storage* modStorage = ZipStorage::Open(modFolderStorage, modPath);
+		_level = std::make_unique<LevelMod>(modStorage, modPath);
+	}
 
 	static std::vector<std::string> GetLevelNames() {
 		std::vector<std::string> names;

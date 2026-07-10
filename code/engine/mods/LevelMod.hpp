@@ -13,7 +13,8 @@ class LevelMod : public ResourceMod {
 	int _levelCount;
 
    public:
-	LevelMod(const std::string& path, SDL_Storage* storage, yyjson_val* json) : ResourceMod(path, storage, json) {
+	LevelMod(SDL_Storage* modStorage, const std::string& modPath, yyjson_val* json)
+		: ResourceMod(modStorage, modPath, json) {
 		yyjson_val* levelsJson = yyjson_obj_get(json, "levels");
 
 		_levelCount = yyjson_arr_size(levelsJson);
@@ -24,15 +25,13 @@ class LevelMod : public ResourceMod {
 		yyjson_arr_foreach(levelsJson, idx, _levelCount, level) { _levels.emplace_back(level); }
 	}
 
-	LevelMod(const std::string& path, SDL_Storage* storage, yyjson_doc* doc)
-		: LevelMod(path, storage, yyjson_doc_get_root(doc)) {
-		yyjson_doc_free(doc);
+	LevelMod(SDL_Storage* modStorage, const std::string& modPath, yyjson_doc* jsonDoc)
+		: LevelMod(modStorage, modPath, yyjson_doc_get_root(jsonDoc)) {
+		yyjson_doc_free(jsonDoc);
 	}
 
-	LevelMod(const std::string& path, SDL_Storage* storage)
-		: LevelMod(path, storage, ResourceManager::LoadJson(storage, "mod.json")) {}
-
-	LevelMod(const std::string& path) : LevelMod(path, GetStorageFromPath(path)) {}
+	LevelMod(SDL_Storage* modStorage, const std::string& modPath)
+		: LevelMod(modStorage, modPath, ResourceManager::LoadJson(modStorage, "mod.json")) {}
 
 	std::string GetLevelPath(int index) { return "levels/" + _levels[index].GetPath() + "/"; }
 	int GetLevelCount() const { return _levelCount; }

@@ -6,14 +6,14 @@
 #include "game/ui/Styles.hpp"
 #include "lvgl/lvgl.h"
 
-class ModSelectButton {
+class LevelSelectButton {
    private:
 	lv_obj_t* _button;
 	lv_obj_t* _label;
 	int _index;
 
    public:
-	ModSelectButton(lv_obj_t* parent, int index, const std::string& label, lv_event_cb_t callback)
+	LevelSelectButton(lv_obj_t* parent, int index, const std::string& label, lv_event_cb_t callback)
 		: _button(lv_button_create(parent)), _label(lv_label_create(_button)), _index(index) {
 		lv_label_set_text(_label, label.data());
 		lv_group_remove_obj(_button);

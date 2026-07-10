@@ -9,8 +9,10 @@
 namespace ConsoleCommandsMod {
 
 void loadModLevelIndex(const std::vector<std::string>& args) {
-	ModManager::LoadLevelMod(args[0]);
+	// FIXME make work again !
+	dc::msg << "Sorry, this command is temporarily disabled" << dc::endl;
+	/*ModManager::LoadLevelMod(args[0]);
 	int index = std::stoi(args[1]);
-	WorldManager::LoadLevel(index);
+	WorldManager::LoadLevel(index);*/
 }
 }  // namespace ConsoleCommandsMod

@@ -17,38 +17,17 @@ class Mod {
 	static inline const int MOD_EXTENSION_LENGTH = 6;
 	static inline const char MOD_EXTENSION[MOD_EXTENSION_LENGTH] = ".sbsq";
 
-   protected:
-	SDL_Storage* GetStorageFromPath(const std::string& path) {
-		int length = path.length();
-
-		if (length < MOD_EXTENSION_LENGTH) {
-			dc::msg << "Loading mod " << path << " as folder!" << dc::endl;
-			return SDL_OpenTitleStorage(path.c_str(), 0);
-		}
-
-		for (int i = 1; i < MOD_EXTENSION_LENGTH; i++) {
-			if (path[length - i] != MOD_EXTENSION[MOD_EXTENSION_LENGTH - i - 1]) {
-				dc::msg << "Loading mod " << path << " as folder!" << dc::endl;
-				return SDL_OpenTitleStorage(path.c_str(), 0);
-			}
-		}
-
-		dc::msg << "Loading mod " << path << " as archive!" << dc::endl;
-		return ZipStorage::Open(path);
-	}
-
    public:
-	Mod(const std::string& path, SDL_Storage* storage, yyjson_val* json)
-		: _path(path), _name(yyjson_get_str(yyjson_obj_get(json, "name"))), _storage(storage) {}
+	Mod(SDL_Storage* modStorage, const std::string& modPath, yyjson_val* json)
+		: _name(yyjson_get_str(yyjson_obj_get(json, "name"))), _storage(modStorage) {}
 
-	Mod(const std::string& path, SDL_Storage* storage, yyjson_doc* doc) : Mod(path, storage, yyjson_doc_get_root(doc)) {
+	Mod(SDL_Storage* modStorage, const std::string& modPath, yyjson_doc* doc)
+		: Mod(modStorage, modPath, yyjson_doc_get_root(doc)) {
 		yyjson_doc_free(doc);
 	}
 
-	Mod(const std::string& path, SDL_Storage* storage)
-		: Mod(path, storage, ResourceManager::LoadJson(storage, "mod.json")) {}
-
-	Mod(const std::string& path) : Mod(path, GetStorageFromPath(path)) {}
+	Mod(SDL_Storage* modStorage, const std::string& modPath)
+		: Mod(modStorage, modPath, ResourceManager::LoadJson(modStorage, "mod.json")) {}
 
 	~Mod() { SDL_CloseStorage(_storage); }
 

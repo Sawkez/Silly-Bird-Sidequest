@@ -5,6 +5,7 @@
 
 #include "engine/mods/Mod.hpp"
 #include "engine/resource/ResourceManager.hpp"
+#include "engine/resource/ZipStorage.hpp"
 #include "yyjson.h"
 
 class ResourceMod : public Mod {
@@ -12,7 +13,8 @@ class ResourceMod : public Mod {
 	std::vector<std::string> _tileSources;
 
    public:
-	ResourceMod(const std::string& path, SDL_Storage* storage, yyjson_val* json) : Mod(path, storage, json) {
+	ResourceMod(SDL_Storage* modStorage, const std::string& modPath, yyjson_val* json)
+		: Mod(modStorage, modPath, json) {
 		int idx, max;
 		yyjson_val* sources = yyjson_obj_get(json, "tilesheet_sources");
 		yyjson_val* source;
@@ -22,15 +24,13 @@ class ResourceMod : public Mod {
 		yyjson_arr_foreach(sources, idx, max, source) { _tileSources.emplace_back(yyjson_get_str(source)); }
 	}
 
-	ResourceMod(const std::string& path, SDL_Storage* storage, yyjson_doc* doc)
-		: ResourceMod(path, storage, yyjson_doc_get_root(doc)) {
-		yyjson_doc_free(doc);
+	ResourceMod(SDL_Storage* modStorage, const std::string& modPath, yyjson_doc* jsonDoc)
+		: ResourceMod(modStorage, modPath, yyjson_doc_get_root(jsonDoc)) {
+		yyjson_doc_free(jsonDoc);
 	}
 
-	ResourceMod(const std::string& path, SDL_Storage* storage)
-		: ResourceMod(path, storage, ResourceManager::LoadJson(storage, "mod.json")) {}
-
-	ResourceMod(const std::string& path) : ResourceMod(path, GetStorageFromPath(path)) {}
+	ResourceMod(SDL_Storage* modStorage, const std::string& modPath)
+		: ResourceMod(modStorage, modPath, ResourceManager::LoadJson(modStorage, "mod.json")) {}
 
 	std::string GetTileSourcePath(uint8_t sourceID) const { return "tiles/fg/" + _tileSources[sourceID]; }
 };
