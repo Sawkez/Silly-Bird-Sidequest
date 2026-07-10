@@ -60,6 +60,8 @@ case "$PLATFORM" in
     ;;
 esac
 
+$SCRIPT_DIR/prepare-resources.sh
+
 BUILD_DIR=$SCRIPT_DIR/build-files/$BUILD_NAME
 EXPORT_DIR=$SCRIPT_DIR/export/$BUILD_NAME
 
@@ -70,7 +72,7 @@ ninja -C $BUILD_DIR || exit 1
 mkdir -p $EXPORT_DIR || exit 1
 rm -rf $EXPORT_DIR/* || exit 1
 cp $BUILD_DIR/$EXE_IN $EXPORT_DIR/$EXE_OUT || exit 1
-cp -r $SRC_DIR/include-files/* $EXPORT_DIR/ || exit 1
+cp -r $SCRIPT_DIR/build-files/include-files/* $EXPORT_DIR/ || exit 1
 cp -r $SRC_DIR/licenses $EXPORT_DIR/licenses || exit 1
 
 if [ "$BUILD_NAME" = "psp-prx" ]; then
