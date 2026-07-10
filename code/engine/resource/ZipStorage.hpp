@@ -14,6 +14,16 @@
 namespace ZipStorage {
 inline SDL_StorageInterface interface;
 
+SDL_Storage* Open(const std::string& path) {
+	auto* zip = new ZipStream(path);
+
+	if (zip->stream == nullptr) {
+		return nullptr;
+	}
+
+	return SDL_OpenStorage(&interface, zip);
+}
+
 SDL_Storage* Open(SDL_Storage* parentStorage, const std::string& path) {
 	auto* zip = new ZipStream(parentStorage, path);
 

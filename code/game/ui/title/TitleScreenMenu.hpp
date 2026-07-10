@@ -14,6 +14,13 @@ class TitleScreenMenu : public MenuTransparentBG {
 	static inline const char* _buttonMap[] = {"Play campaign", "\n", "Play mod", "\n", "Load game", "\n",
 											  "Settings",	   "\n", "Quit",	 ""};
 
+	static void ModSelectedCallback(void* userData, const char* const* files, int filter) {
+		if (files == nullptr) return;
+
+		ModManager::LoadLevelModFromFile(*files);
+		UIManager::Push(UIManager::MENU_LEVELS);
+	}
+
 	static void ButtonPressedCallback(lv_event_t* event) {
 		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
 		if (screen != lv_screen_active()) return;
@@ -23,13 +30,17 @@ class TitleScreenMenu : public MenuTransparentBG {
 
 		switch (button) {
 			case PLAY_CAMPAIGN:
-				ModManager::LoadLevelMod(ResourceManager::gameData, "content/sidequest.sbsq");
+				ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
 				UIManager::Push(UIManager::MENU_LEVELS);
 				break;
 
 			case PLAY_MOD:
+#if SDL_PLATFORM_ANDROID
+				SDL_ShowOpenFileDialog(ModSelectedCallback, nullptr, GameState::GetMainWindow(), nullptr, 0, nullptr,
+									   false);
+#else
 				UIManager::Push(UIManager::MENU_MODS);
-				// SDL_ShowOpenFolderDialog(ModSelectedCallback, nullptr, GameState::GetMainWindow(), nullptr, false);
+#endif
 				break;
 
 			case LOAD_GAME:

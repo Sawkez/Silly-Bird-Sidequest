@@ -33,7 +33,7 @@ class ModSelectMenu : public DirectoryListMenu {
 				break;
 
 			default:
-				ModManager::LoadLevelMod(ResourceManager::mods, _paths[index]);
+				ModManager::LoadLevelModFromFolder(ResourceManager::mods, _paths[index]);
 				UIManager::Push(UIManager::MENU_LEVELS);
 				break;
 		}
@@ -60,6 +60,9 @@ class ModSelectMenu : public DirectoryListMenu {
 
 	void UpdatePaths() override {
 		if (ResourceManager::mods == nullptr) return;
-		SDL_EnumerateStorageDirectory(ResourceManager::mods, nullptr, AddPath, &_paths);
+		if (!SDL_EnumerateStorageDirectory(ResourceManager::mods, nullptr, AddPath, &_paths)) {
+			dc::err << "ERROR enumerating path " << ResourceManager::modFolderPath << ": " << SDL_GetError()
+					<< dc::endl;
+		}
 	}
 };

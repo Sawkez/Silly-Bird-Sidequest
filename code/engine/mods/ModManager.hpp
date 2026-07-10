@@ -20,9 +20,18 @@ class ModManager {
 		_builtin = std::make_unique<ResourceMod>(modStorage, "content/sidequest-hidden.sbsq");
 	}
 
-	static void LoadLevelMod(SDL_Storage* modFolderStorage, const std::string& modPath) {
-		SDL_Storage* modStorage = ZipStorage::Open(modFolderStorage, modPath);
+	static void LoadLevelModFromFile(const std::string& modPath) {
+		SDL_Storage* modStorage = ZipStorage::Open(modPath);
+		LoadLevelModFromStorage(modStorage, modPath);
+	}
+
+	static void LoadLevelModFromStorage(SDL_Storage* modStorage, const std::string& modPath) {
 		_level = std::make_unique<LevelMod>(modStorage, modPath);
+	}
+
+	static void LoadLevelModFromFolder(SDL_Storage* modFolderStorage, const std::string& modPath) {
+		SDL_Storage* modStorage = ZipStorage::Open(modFolderStorage, modPath);
+		LoadLevelModFromStorage(modStorage, modPath);
 	}
 
 	static std::vector<std::string> GetLevelNames() {

@@ -78,7 +78,7 @@ void OpenModFolder(const char* const* path) {
 	modFolderPath = path[0];
 	mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
 	if (mods == nullptr) {
-		dc::err << "ERROR openning mod directory " << path[0] << ": " << SDL_GetError() << dc::endl;
+		dc::err << "ERROR opening mod directory " << path[0] << ": " << SDL_GetError() << dc::endl;
 	}
 
 	while (!SDL_StorageReady(mods)) {
