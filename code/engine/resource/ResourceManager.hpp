@@ -27,7 +27,7 @@ void Init() {
 #if SDL_PLATFORM_PSP
 	modFolderPath = "mods";
 	mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
-#elif SDL_PLATFORM_WINDOWS || SDL_PLATFORM_LINUX
+#else
 	modFolderPath = SDL_GetPrefPath(ORGANIZATION, APPLICATION) + std::string("/mods");
 	mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
 #endif
