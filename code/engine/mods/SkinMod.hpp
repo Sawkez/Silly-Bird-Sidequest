@@ -34,6 +34,7 @@ class SkinMod : public Mod {
 		: SkinMod(modStorage, modPath, ResourceManager::LoadJson(modStorage, "mod.json")) {}
 
 	std::string GetSkinPath(int index) { return "skins/" + _skins[index].GetPath(); }
+	const std::string& GetShallowPath(int index) { return _skins[index].GetPath(); }
 	int GetSkinCount() const { return _skinCount; }
 	const std::vector<SubmodInfo>& GetSkins() const { return _skins; }
 };

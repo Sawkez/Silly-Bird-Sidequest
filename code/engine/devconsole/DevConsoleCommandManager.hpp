@@ -8,10 +8,25 @@
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/devconsole/DevConsoleCommand.hpp"
 
+enum ConsoleCommand {
+	CMD_MISC_HELP,
+	CMD_MISC_CLEAR,
+
+	CMD_MOD_LEVEL_CURRENT,
+	CMD_MOD_LEVEL,
+	CMD_MOD_LEVEL_BUILTIN,
+	CMD_MOD_SKIN_CURRENT,
+	CMD_MOD_SKIN,
+	CMD_MOD_SKIN_BUILTIN,
+
+	CMD_PLAYER_GIVE_UPGRADES,
+
+	_CMD_COUNT
+};
+
 class DevConsoleCommandManager {
    private:
-	static inline const int COMMAND_COUNT = 4;
-	static inline DevConsoleCommand _commands[COMMAND_COUNT];
+	static inline DevConsoleCommand _commands[_CMD_COUNT];
 
 #ifdef PLATFORM_HAS_STRING_COMMANDS
 	static inline std::unordered_map<std::string, const DevConsoleCommand&> _commandsByName;
@@ -20,7 +35,7 @@ class DevConsoleCommandManager {
    public:
 	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&),
 								unsigned char flags, int index, const std::string& description) {
-		if (index >= COMMAND_COUNT)
+		if (index >= _CMD_COUNT)
 			std::cerr << "ERROR REGISTERING COMMAND: INDEX " << index << "OUT OF RANGE" << std::endl;
 		_commands[index] = DevConsoleCommand(function, flags, description);
 

@@ -33,6 +33,7 @@ class LevelMod : public ResourceMod {
 	LevelMod(SDL_Storage* modStorage, const std::string& modPath)
 		: LevelMod(modStorage, modPath, ResourceManager::LoadJson(modStorage, "mod.json")) {}
 
+	const std::string& GetShallowPath(int index) { return _levels[index].GetPath(); }
 	std::string GetLevelPath(int index) { return "levels/" + _levels[index].GetPath() + "/"; }
 	int GetLevelCount() const { return _levelCount; }
 	const std::vector<SubmodInfo>& GetLevels() const { return _levels; }

@@ -94,4 +94,24 @@ class ModManager {
 	}
 
 	static const Jizz& GetJizz() { return *_jizz; }
+
+	static int GetLevelIndexFromPath(const std::string& path) {
+		for (int i = 0; i < GetLevelCount(); i++) {
+			if (_level->GetShallowPath(i) == path) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	static int GetSkinIndexFromPath(const std::string& path) {
+		for (int i = 0; i < GetLevelCount(); i++) {
+			if (_skin->GetShallowPath(i) == path) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 };
