@@ -122,3 +122,13 @@ if(PSP)
         VERSION 01.00
     )
 endif()
+
+if(EMSCRIPTEN)
+    set_target_properties(sbsidequest PROPERTIES SUFFIX ".html")
+    target_link_options(sbsidequest PRIVATE
+        "-sALLOW_MEMORY_GROWTH=1"
+        "-sSTACK_SIZE=1MB"
+        "--preload-file=${CMAKE_SOURCE_DIR}/build/build-files/include-files/content@/content"
+        "-sEXPORTED_RUNTIME_METHODS=[\"FS\"]"
+    )
+endif()

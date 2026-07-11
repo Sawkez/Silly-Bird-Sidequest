@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: \$0 <platform> <build_type>"
-    echo 'Platforms: linux, windows, win32, psp'
+    echo 'Platforms: linux, windows, win32, psp, web'
     echo 'Build types: Debug, MinSizeRel (default)'
     exit 1
 fi
@@ -15,6 +15,12 @@ SRC_DIR=$SCRIPT_DIR/..
 CMAKE_COMMAND=(cmake)
 
 case "$PLATFORM" in
+    web)
+        CMAKE_COMMAND=(emcmake cmake)
+        EXE_IN="sbsidequest.html"
+        EXE_OUT="index.html"
+    ;;
+
     psp)
         if [ "$BUILD_TYPE" = "Debug" ]; then
             BUILD_NAME="psp-prx"
@@ -30,7 +36,6 @@ case "$PLATFORM" in
 
         CMAKE_COMMAND=(psp-cmake)
     ;;
-
 
     linux)
         CMAKE_COMMAND="cmake"
@@ -77,4 +82,8 @@ cp -r $SRC_DIR/licenses $EXPORT_DIR/licenses || exit 1
 
 if [ "$BUILD_NAME" = "psp-prx" ]; then
     cp $BUILD_DIR/sbsidequest $EXPORT_DIR/sbsidequest || exit 1
+fi
+
+if [ "$BUILD_NAME" = "web" ]; then
+    cp $BUILD_DIR/sbsidequest.js $BUILD_DIR/sbsidequest.wasm $BUILD_DIR/sbsidequest.data $EXPORT_DIR/ 2>/dev/null
 fi
