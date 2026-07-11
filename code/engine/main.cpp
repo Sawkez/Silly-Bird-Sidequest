@@ -39,7 +39,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	Random::Init();
 	SaveManager::Init();
 	DevConsoleCommandRegister::Init();
-	ModManager::LoadSkinMod("content/sidequest");
+	ModManager::LoadSkinModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
 	ModManager::LoadSkin(GameState::GetMainRenderer(), 0);
 
 	if (argc < 2) {

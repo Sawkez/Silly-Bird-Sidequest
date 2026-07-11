@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "engine/ResourceManager.hpp"
 #include "engine/mods/Mod.hpp"
 #include "engine/mods/SubmodInfo.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "yyjson.h"
 
 class SkinMod : public Mod {
@@ -14,7 +14,7 @@ class SkinMod : public Mod {
 	int _skinCount;
 
    public:
-	SkinMod(const std::string& path, yyjson_val* json) : Mod(path, json) {
+	SkinMod(SDL_Storage* modStorage, const std::string& modPath, yyjson_val* json) : Mod(modStorage, modPath, json) {
 		yyjson_val* skinsJson = yyjson_obj_get(json, "skins");
 
 		_skinCount = yyjson_arr_size(skinsJson);
@@ -25,12 +25,15 @@ class SkinMod : public Mod {
 		yyjson_arr_foreach(skinsJson, idx, _skinCount, skin) { _skins.emplace_back(skin); }
 	}
 
-	SkinMod(const std::string& path, yyjson_doc* doc) : SkinMod(path, yyjson_doc_get_root(doc)) {
-		yyjson_doc_free(doc);
+	SkinMod(SDL_Storage* modStorage, const std::string& modPath, yyjson_doc* jsonDoc)
+		: SkinMod(modStorage, modPath, yyjson_doc_get_root(jsonDoc)) {
+		yyjson_doc_free(jsonDoc);
 	}
-	SkinMod(const std::string& path) : SkinMod(path, ResourceManager::LoadJson(path + "/mod.json")) {}
 
-	std::string GetSkinPath(int index) { return GetPath() + "/skins/" + _skins[index].GetPath(); }
+	SkinMod(SDL_Storage* modStorage, const std::string& modPath)
+		: SkinMod(modStorage, modPath, ResourceManager::LoadJson(modStorage, "mod.json")) {}
+
+	std::string GetSkinPath(int index) { return "skins/" + _skins[index].GetPath(); }
 	int GetSkinCount() const { return _skinCount; }
 	const std::vector<SubmodInfo>& GetSkins() const { return _skins; }
 };

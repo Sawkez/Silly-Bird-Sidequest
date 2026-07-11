@@ -25,13 +25,13 @@ class ModManager {
 		_builtin = std::make_unique<ResourceMod>(modStorage, "content/sidequest-hidden.sbsq");
 	}
 
+	static void LoadLevelModFromStorage(SDL_Storage* modStorage, const std::string& modPath) {
+		_level = std::make_unique<LevelMod>(modStorage, modPath);
+	}
+
 	static void LoadLevelModFromFile(const std::string& modPath) {
 		SDL_Storage* modStorage = ZipStorage::Open(modPath);
 		LoadLevelModFromStorage(modStorage, modPath);
-	}
-
-	static void LoadLevelModFromStorage(SDL_Storage* modStorage, const std::string& modPath) {
-		_level = std::make_unique<LevelMod>(modStorage, modPath);
 	}
 
 	static void LoadLevelModFromFolder(SDL_Storage* modFolderStorage, const std::string& modPath) {
@@ -39,10 +39,22 @@ class ModManager {
 		LoadLevelModFromStorage(modStorage, modPath);
 	}
 
-	static void LoadSkinMod(const std::string& path) { _skin = std::make_unique<SkinMod>(path); }
+	static void LoadSkinModFromStorage(SDL_Storage* modStorage, const std::string& modPath) {
+		_skin = std::make_unique<SkinMod>(modStorage, modPath);
+	}
+
+	static void LoadSkinModFromFile(const std::string& modPath) {
+		SDL_Storage* modStorage = ZipStorage::Open(modPath);
+		LoadSkinModFromStorage(modStorage, modPath);
+	}
+
+	static void LoadSkinModFromFolder(SDL_Storage* modFolderStorage, const std::string& modPath) {
+		SDL_Storage* modStorage = ZipStorage::Open(modFolderStorage, modPath);
+		LoadSkinModFromStorage(modStorage, modPath);
+	}
 
 	static void LoadSkin(SDL_Renderer* renderer, int index) {
-		_jizz = std::make_unique<Jizz>(_skin->GetSkinPath(index), renderer);
+		_jizz = std::make_unique<Jizz>(_skin->GetStorage(), _skin->GetSkinPath(index), renderer);
 	}
 
 	static std::vector<std::string> GetLevelNames() {
