@@ -19,11 +19,15 @@ struct CollisionRect : public SDL_FRect, public IDrawableRect {
 	bool oneWay = false;
 	Vector2 oneWayNormal{0.0, 0.0};
 
-	CollisionRect(float xPosition, float yPosition, float width, float height, bool active_ = true, bool oneWay_ = false,
-				  Vector2 oneWayNormal_ = Vector2{0.0, 0.0})
-		: SDL_FRect{xPosition, yPosition, width, height}, active(active_), oneWay(oneWay_), oneWayNormal(oneWayNormal_) {}
+	CollisionRect(float xPosition, float yPosition, float width, float height, bool active_ = true,
+				  bool oneWay_ = false, Vector2 oneWayNormal_ = Vector2{0.0, 0.0})
+		: SDL_FRect{xPosition, yPosition, width, height},
+		  active(active_),
+		  oneWay(oneWay_),
+		  oneWayNormal(oneWayNormal_) {}
 
-	CollisionRect(const CollisionRect& other) : CollisionRect(other.x, other.y, other.w, other.h, other.active, other.oneWay, other.oneWayNormal) {}
+	CollisionRect(const CollisionRect& other)
+		: CollisionRect(other.x, other.y, other.w, other.h, other.active, other.oneWay, other.oneWayNormal) {}
 
 	CollisionRect() : CollisionRect(0.0, 0.0, 0.0, 0.0) {}
 
@@ -53,6 +57,28 @@ struct CollisionRect : public SDL_FRect, public IDrawableRect {
 		SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
 		SDL_RenderRect(renderer, &destination);
 		return true;
+	}
+
+	bool OverlapsCircle(const Vector2& position, const float radius) const {
+		float xDist, yDist;
+
+		if (position.x < x) {
+			xDist = x - position.x;
+		} else if (position.x > x + w) {
+			xDist = position.x - (x + w);
+		} else {
+			xDist = 0;
+		}
+
+		if (position.y < y) {
+			yDist = y - position.y;
+		} else if (position.y > y + h) {
+			yDist = position.y - (y + h);
+		} else {
+			yDist = 0;
+		}
+
+		return xDist * xDist + yDist * yDist <= radius * radius;
 	}
 
 	CollisionResult SweptAABBCollision(const CollisionRect& movingRect, const Vector2& velocity) const {

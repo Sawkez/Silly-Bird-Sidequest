@@ -8,10 +8,11 @@
 #include "lvgl/lvgl.h"
 
 class TitleScreenMenu : public MenuTransparentBG {
-	enum ButtonID { PLAY_CAMPAIGN, LOAD_GAME, SETTINGS, QUIT };
+	enum ButtonID { PLAY_CAMPAIGN, PLAY_MOD, LOAD_GAME, SETTINGS, QUIT };
 
 	lv_obj_t* _buttons = NULL;
-	static inline const char* _buttonMap[] = {"Play campaign", "\n", "Load game", "\n", "Settings", "\n", "Quit", ""};
+	static inline const char* _buttonMap[] = {"Play campaign", "\n", "Play mod", "\n", "Load game", "\n",
+											  "Settings",	   "\n", "Quit",	 ""};
 
 	static void ButtonPressedCallback(lv_event_t* event) {
 		auto* screen = (lv_obj_t*)lv_event_get_user_data(event);
@@ -22,6 +23,11 @@ class TitleScreenMenu : public MenuTransparentBG {
 
 		switch (button) {
 			case PLAY_CAMPAIGN:
+				ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
+				UIManager::Push(UIManager::MENU_LEVELS);
+				break;
+
+			case PLAY_MOD:
 				UIManager::Push(UIManager::MENU_MODS);
 				break;
 

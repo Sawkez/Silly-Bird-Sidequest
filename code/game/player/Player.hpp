@@ -9,6 +9,7 @@
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/graphics/ParticleSpawner.hpp"
 #include "engine/input/InputManager.hpp"
+#include "engine/mods/ModManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/CollisionResult.hpp"
 #include "engine/save/SaveManager.hpp"
@@ -93,7 +94,7 @@ class Player : public IPlayer {
 
 	// objects
 	const InputManager& _input;
-	Jizz _jizz;
+	const Jizz& _jizz;
 	CollisionRect _collision = CollisionRect(FULL_COLLISION);
 	CollisionRect _ceilingCheck{0.0, 0.0, 7.0, 6.0};
 	CollisionRect _floorCheck{0.0, 0.0, 7.0, 12.0};
@@ -139,11 +140,11 @@ class Player : public IPlayer {
 
 	Player(const InputManager& input, SDL_Renderer* renderer, Room& room, Uint8 upgrades)
 		: _input(input),
-		  _jizz(ModManager::GetSkinStorage(), "skins/classic", renderer),
+		  _jizz(ModManager::GetJizz()),
 		  _room(room),
-		  _scarf(room.GetColliders()),
-		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(), 255, 0, 0, BODY_CENTER - FEET_POS, FEET_POS,
-				  BODY_CENTER),
+		  _scarf(room.GetColliders(), _jizz),
+		  _sprite(_jizz.GetAnimations(), _jizz.GetOverlayTextures(renderer), 255, 0, 0, BODY_CENTER - FEET_POS,
+				  FEET_POS, BODY_CENTER),
 		  _diveParticles({-2500.0, -2500.0, 5000.0, 5000.0},
 						 ResourceManager::LoadTexture(renderer, ResourceManager::gameData,
 													  "content/textures/particles/feather.png")),
@@ -402,10 +403,8 @@ class Player : public IPlayer {
 		_diveParticles.position.y -= BODY_CENTER.y;
 		_diveParticles.Process(delta);
 
-		// TODO figure out why the offset
-		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition());	// + Vector2(-10.0, -32.0);
-		scarfPosition += Vector2(-6.0, -24.0);
-		_scarf.Pin(position - _sprite.TransformPoint(scarfPosition));
+		Vector2 scarfPosition = _jizz.GetScarfPosition(_sprite.GetPlaybackPosition());
+		_scarf.Pin(_sprite.TextureToWorld(scarfPosition));
 		_scarf.Process(delta);
 
 		_sprite.SetOverlayColor(_scarf.GetColor());

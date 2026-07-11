@@ -11,13 +11,26 @@
 
 namespace ResourceManager {
 
+inline const char ORGANIZATION[] = "noentertainment";
+inline const char APPLICATION[] = "sbsidequest";
+
 SDL_Storage* gameData;
+SDL_Storage* mods = nullptr;
+std::string modFolderPath = "";
 
 void Init() {
 	gameData = SDL_OpenTitleStorage(nullptr, 0);
 	while (gameData != nullptr && !SDL_StorageReady(gameData)) {
 		SDL_Delay(1);
 	}
+
+#if SDL_PLATFORM_PSP
+	modFolderPath = "mods";
+	mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
+#else
+	modFolderPath = SDL_GetPrefPath(ORGANIZATION, APPLICATION) + std::string("/mods");
+	mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
+#endif
 }
 
 char* LoadFile(SDL_Storage* storage, const std::string& path, Uint64* outSize) {
@@ -58,4 +71,19 @@ SDL_Texture* LoadTexture(SDL_Renderer* renderer, SDL_Storage* storage, const std
 	if (texture == nullptr) dc::err << "ERROR loading texture " << path << ": " << SDL_GetError() << dc::endl;
 	return texture;
 }
+
+void OpenModFolder(const char* const* path) {
+	if (mods != nullptr) SDL_CloseStorage(mods);
+
+	modFolderPath = path[0];
+	mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
+	if (mods == nullptr) {
+		dc::err << "ERROR opening mod directory " << path[0] << ": " << SDL_GetError() << dc::endl;
+	}
+
+	while (!SDL_StorageReady(mods)) {
+		SDL_Delay(1);
+	}
+}
+
 }  // namespace ResourceManager

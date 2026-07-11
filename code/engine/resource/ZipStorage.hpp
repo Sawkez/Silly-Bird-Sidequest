@@ -21,14 +21,14 @@ SDL_Storage* Open(const std::string& path) {
 		return nullptr;
 	}
 
-	int count = zip_entries_total(zip->zip);
+	return SDL_OpenStorage(&interface, zip);
+}
 
-	dc::msg << "Contents of " << path << ":" << dc::endl;
+SDL_Storage* Open(SDL_Storage* parentStorage, const std::string& path) {
+	auto* zip = new ZipStream(parentStorage, path);
 
-	for (int i = 0; i < count; i++) {
-		zip_entry_openbyindex(zip->zip, i);
-		dc::msg << zip_entry_name(zip->zip) << dc::endl;
-		zip_entry_close(zip->zip);
+	if (zip->stream == nullptr) {
+		return nullptr;
 	}
 
 	return SDL_OpenStorage(&interface, zip);
@@ -44,6 +44,11 @@ bool Ready(void* userData) { return true; }
 bool Enumerate(void* userData, const char* directory, SDL_EnumerateDirectoryCallback callback, void* callbackUserdata) {
 	auto* zip = ((ZipStream*)userData)->zip;
 	int count = zip_entries_total(zip);
+
+	if (count < 0) {
+		dc::err << "ERROR getting zip entry count: " << zip_strerror(count) << dc::endl;
+		return false;
+	}
 
 	for (int i = 0; i < count; i++) {
 		zip_entry_openbyindex(zip, i);	// FIXME would this even give directories???
@@ -91,7 +96,11 @@ bool Enumerate(void* userData, const char* directory, SDL_EnumerateDirectoryCall
 
 bool Info(void* userData, const char* path, SDL_PathInfo* info) {
 	auto* zip = ((ZipStream*)userData)->zip;
-	if (zip_entry_open(zip, path) < 0) return false;
+	int error = zip_entry_open(zip, path);
+	if (error < 0) {
+		dc::err << "ERROR getting info for zip entry " << path << ": " << zip_strerror(error) << dc::endl;
+		return false;
+	}
 
 	info->type = zip_entry_isdir(zip) ? SDL_PATHTYPE_DIRECTORY : SDL_PATHTYPE_FILE;
 	info->size = zip_entry_uncomp_size(zip);
@@ -105,7 +114,11 @@ bool Info(void* userData, const char* path, SDL_PathInfo* info) {
 
 bool ReadFile(void* userData, const char* path, void* destination, Uint64 length) {
 	auto* zip = ((ZipStream*)userData)->zip;
-	if (zip_entry_open(zip, path) < 0) return false;
+	int error = zip_entry_open(zip, path);
+	if (error < 0) {
+		dc::err << "ERROR opening zip entry " << path << ": " << zip_strerror(error) << dc::endl;
+		return false;
+	}
 
 	zip_entry_noallocread(zip, destination, length);
 

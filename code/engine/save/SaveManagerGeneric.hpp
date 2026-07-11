@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/save/ISaveManagerGeneric.hpp"
 #include "engine/save/SaveManagerBase.hpp"
 #include "engine/ui/UIManager.hpp"
@@ -16,12 +17,9 @@ class SaveManagerGeneric : public SaveManagerBase, public ISaveManagerGeneric {
 	ListSaveMenu _saveMenu;
 	ListLoadMenu _loadMenu;
 
-	static inline const char ORGANIZATION[] = "noentertainment";
-	static inline const char APPLICATION[] = "sbsidequest";
-
    public:
 	SDL_Storage* OpenUserDir() const override {
-		SDL_Storage* userDir = SDL_OpenUserStorage(ORGANIZATION, APPLICATION, 0);
+		SDL_Storage* userDir = SDL_OpenUserStorage(ResourceManager::ORGANIZATION, ResourceManager::APPLICATION, 0);
 		while (!SDL_StorageReady(userDir));
 		return userDir;
 	}
