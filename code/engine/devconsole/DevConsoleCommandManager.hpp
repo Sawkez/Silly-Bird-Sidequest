@@ -48,6 +48,7 @@ class DevConsoleCommandManager {
 		_commands[command].Run(args, fromUser);
 	}
 
+#ifdef PLATFORM_HAS_STRING_COMMANDS
 	static void RunCommand(const std::string& command, bool fromUser) {
 		// Stripping leading spaces
 		int commandNameStart = 0;
@@ -93,10 +94,13 @@ class DevConsoleCommandManager {
 
 		commandFunction->second.Run(args, fromUser);
 	}
+#endif
 
 	static void ListCommands() {
+#ifdef PLATFORM_HAS_STRING_COMMANDS
 		for (const auto& pair : _commandsByName) {
 			dc::msg << pair.first << ": " << pair.second.GetDescription() << dc::endl;
 		}
+#endif
 	}
 };

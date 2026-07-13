@@ -5,7 +5,9 @@
 
 #include "3rdparty/lvgl/lvgl.h"
 #include "engine/PlatformDefines.hpp"
+#ifdef PLATFORM_HAS_STRING_COMMANDS
 #include "engine/devconsole/DevConsoleInput.hpp"
+#endif
 #include "engine/devconsole/DevConsoleMessage.hpp"
 #include "engine/ui/IDevConsoleMenu.hpp"
 #include "engine/ui/MenuTransparentBG.hpp"
