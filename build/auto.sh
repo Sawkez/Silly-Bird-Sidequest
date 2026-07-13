@@ -21,6 +21,9 @@ case "$PLATFORM" in
         EXE_IN="sbsidequest.html"
         EXE_OUT="index.html"
         COPY_RESOURCES=false
+        if [ "$BUILD_TYPE" = "MinSizeRel" ]; then
+            BUILD_TYPE="Release"
+        fi
     ;;
 
     psp)
