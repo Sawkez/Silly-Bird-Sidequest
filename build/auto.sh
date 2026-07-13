@@ -81,7 +81,7 @@ case "$PLATFORM" in
     ;;
 esac
 
-$SCRIPT_DIR/prepare-resources.sh
+$SCRIPT_DIR/prepare-resources.sh || exit 1
 
 BUILD_DIR=$SCRIPT_DIR/build-files/$BUILD_NAME
 EXPORT_DIR=$SCRIPT_DIR/export/$BUILD_NAME
