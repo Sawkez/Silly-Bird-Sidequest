@@ -5,6 +5,7 @@
 
 #include "engine/PlatformDefines.hpp"
 #include "engine/resource/ResourceManager.hpp"
+#include "engine/resource/ZipStorage.hpp"
 #include "engine/ui/DirectoryListMenu.hpp"
 #include "lvgl/lvgl.h"
 
@@ -21,10 +22,10 @@ class ModSelectMenu : public DirectoryListMenu {
 		UIManager::Pop();
 	}
 
-	static void ModSelectedCallback(void* userData, const char* const* files, int filter) {
-		if (files == nullptr) return;
+	static void ModSelectedCallback(char* data, Sint64 size) {
+		SDL_Storage* zip = ZipStorage::Open(data, size);
 
-		ModManager::LoadLevelModFromFile(*files);
+		ModManager::LoadLevelModFromStorage(zip, "");
 		UIManager::Push(UIManager::MENU_LEVELS);
 	}
 
@@ -41,8 +42,7 @@ class ModSelectMenu : public DirectoryListMenu {
 				break;
 
 			case SPECIAL_INDEX_SELECT_FILE:
-				SDL_ShowOpenFileDialog(ModSelectedCallback, nullptr, GameState::GetMainWindow(), nullptr, 0, nullptr,
-									   false);
+				ResourceManager::OpenFilePicker(ModSelectedCallback, GameState::GetMainWindow());
 				break;
 
 			default:

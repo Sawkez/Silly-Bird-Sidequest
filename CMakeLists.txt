@@ -126,9 +126,12 @@ endif()
 if(EMSCRIPTEN)
     set_target_properties(sbsidequest PROPERTIES SUFFIX ".html")
     target_link_options(sbsidequest PRIVATE
+        "--shell-file=${CMAKE_SOURCE_DIR}/code/web/shell.html"
+        "--pre-js=${CMAKE_SOURCE_DIR}/code/web/file-picker.js"
         "-sALLOW_MEMORY_GROWTH=1"
         "-sSTACK_SIZE=1MB"
         "--preload-file=${CMAKE_SOURCE_DIR}/build/build-files/include-files/content@/content"
-        "-sEXPORTED_RUNTIME_METHODS=[\"FS\"]"
+        "-sEXPORTED_FUNCTIONS=_on_file_picked,_main"
+        "-sEXPORTED_RUNTIME_METHODS=ccall"
     )
 endif()
