@@ -1,5 +1,5 @@
 # Silly Bird Sidequest
-Silly Bird Sidequest is a fast-paced precision 2D platformer for PC, Android and the PSP, with custom level support.
+Silly Bird Sidequest is a fast-paced precision 2D platformer for PC, Web, Android and the PSP, with mod support.
 
 ## Controls
 - WASD / D-Pad / Left joystick - Move;
@@ -13,6 +13,7 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC, Android and
 - Wallrunning;
 - Save system;
 - Touch controls;
+- Custom skin support;
 
 ## WIP
 - GUI;
@@ -27,7 +28,6 @@ Silly Bird Sidequest is a fast-paced precision 2D platformer for PC, Android and
 - Official campaigns;
 
 ### Modding
-- Custom skin support;
 - Customizeable UI themes;
 - Backgrounds;
 
@@ -54,6 +54,17 @@ The executable can be found in build/export/linux.
 3. Compile: ```build/auto.sh windows```  
 
 The executable can be found in build/export/windows.
+
+### For Web
+1. Install dependencies:
+    - Fedora: ```sudo dnf install cmake ninja-build```
+    - Ubuntu: ```sudo apt install cmake ninja-build git```
+
+2. Install [Emscripten](https://emscripten.org)
+3. Clone the repo: ```git clone https://github.com/Sawkez/Silly-Bird-Sidequest.git --recurse-submodules && cd Silly-Bird-Sidequest```
+4. Compile: ```build/auto.sh web```
+
+The output can be found in build/export/web.
 
 ### For PSP
 1. Install dependencies:
