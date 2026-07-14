@@ -16,21 +16,22 @@ struct ZipStream {
 	}
 
    public:
-	zip_t* zip;
 	char* stream;
 	Uint64 size;
+	zip_t* zip;
 
-	ZipStream(char* zipStream) {
+	ZipStream(char* zipStream, Uint64 size) : size(size) {
 		stream = zipStream;
 		int error;
-		zip = zip_stream_openwitherror(zipStream, size, 0, 'r', &error);
+		zip = zip_stream_openwitherror(stream, size, 0, 'r', &error);
 		if (error < 0) dc::err << "ERROR: " << zip_strerror(error) << dc::endl;
 	}
 
-	ZipStream(SDL_Storage* storage, const std::string& path)
-		: ZipStream(ResourceManager::LoadFile(storage, path, &size)) {}
-
-	ZipStream(const std::string& path) : ZipStream(ReadIO(SDL_IOFromFile(path.c_str(), "r"))) {}
+	ZipStream(SDL_Storage* storage, const std::string& path) : stream(ResourceManager::LoadFile(storage, path, &size)) {
+		int error;
+		zip = zip_stream_openwitherror(stream, size, 0, 'r', &error);
+		if (error < 0) dc::err << "ERROR: " << zip_strerror(error) << dc::endl;
+	}
 
 	~ZipStream() {
 		delete[] stream;

@@ -19,21 +19,23 @@ class DevConsoleCommand {
 	static inline const unsigned char FLAG_UNSAFE = 1 << 1;
 
 	DevConsoleCommand() {}
-	DevConsoleCommand(void (*function)(const std::vector<std::string>& args), unsigned char flags, const std::string& description)
-		: _flags(flags),
-		  _function(function),
 #ifdef PLATFORM_HAS_STRING_COMMANDS
-		  _description(description)
+	DevConsoleCommand(void (*function)(const std::vector<std::string>& args), unsigned char flags,
+					  const std::string& description)
+		: _flags(flags), _function(function), _description(description) {}
+#else
+	DevConsoleCommand(void (*function)(const std::vector<std::string>& args), unsigned char flags,
+					  const std::string& description)
+		: _flags(flags), _function(function) {}
 #endif
-	{
-	}
 
 	void Run(const std::vector<std::string>& args, bool fromUser) const { _function(args); }
+
 	const std::string& GetDescription() const {
 #ifdef PLATFORM_HAS_STRING_COMMANDS
 		return _description;
 #else
-		return ""
+		return "";
 #endif
 	}
 };

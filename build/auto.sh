@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: \$0 <platform> <build_type>"
-    echo 'Platforms: linux, windows, win32, psp'
+    echo 'Platforms: linux, windows, win32, psp, web, android'
     echo 'Build types: Debug, MinSizeRel (default)'
     exit 1
 fi
@@ -13,24 +13,34 @@ BUILD_TYPE=${2:-MinSizeRel}
 BUILD_NAME=$PLATFORM
 SRC_DIR=$SCRIPT_DIR/..
 CMAKE_COMMAND=(cmake)
+COPY_RESOURCES=true
 
 case "$PLATFORM" in
+    web)
+        CMAKE_COMMAND=(emcmake cmake)
+        EXE_IN="sbsidequest.html"
+        EXE_OUT="index.html"
+        COPY_RESOURCES=false
+        if [ "$BUILD_TYPE" = "MinSizeRel" ]; then
+            BUILD_TYPE="Release"
+        fi
+    ;;
+
     psp)
         if [ "$BUILD_TYPE" = "Debug" ]; then
             BUILD_NAME="psp-prx"
             EXE_IN="sbsidequest.prx"
             EXE_OUT="sbsidequest.prx"
-            
 
         else
             BUILD_NAME="psp-pbp"
             EXE_IN="EBOOT.PBP"
             EXE_OUT="EBOOT.PBP"
+            BUILD_TYPE="Release"
         fi
 
         CMAKE_COMMAND=(psp-cmake)
     ;;
-
 
     linux)
         CMAKE_COMMAND="cmake"
@@ -54,13 +64,24 @@ case "$PLATFORM" in
         EXE_OUT="sbsidequest.exe"
     ;;
 
+    android)
+        cd $SRC_DIR/android-project
+        if [ "$BUILD_TYPE" = "Debug" ]; then
+            ./gradlew assembleDebug || exit 1
+        else
+            ./gradlew assembleRelease || exit 1
+        fi
+
+        exit 0
+    ;;
+
     *)
         echo "🧟 Whatever platform that is, either you spelled it wrong or i don't support it (yet)"
         exit 1
     ;;
 esac
 
-$SCRIPT_DIR/prepare-resources.sh
+$SCRIPT_DIR/prepare-resources.sh || exit 1
 
 BUILD_DIR=$SCRIPT_DIR/build-files/$BUILD_NAME
 EXPORT_DIR=$SCRIPT_DIR/export/$BUILD_NAME
@@ -72,9 +93,16 @@ ninja -C $BUILD_DIR || exit 1
 mkdir -p $EXPORT_DIR || exit 1
 rm -rf $EXPORT_DIR/* || exit 1
 cp $BUILD_DIR/$EXE_IN $EXPORT_DIR/$EXE_OUT || exit 1
-cp -r $SCRIPT_DIR/build-files/include-files/* $EXPORT_DIR/ || exit 1
-cp -r $SRC_DIR/licenses $EXPORT_DIR/licenses || exit 1
+
+if [ "$COPY_RESOURCES" = true ]; then
+    cp -r $SCRIPT_DIR/build-files/include-files/* $EXPORT_DIR/ || exit 1
+    cp -r $SRC_DIR/licenses $EXPORT_DIR/licenses || exit 1
+fi
 
 if [ "$BUILD_NAME" = "psp-prx" ]; then
     cp $BUILD_DIR/sbsidequest $EXPORT_DIR/sbsidequest || exit 1
+fi
+
+if [ "$BUILD_NAME" = "web" ]; then
+    cp $BUILD_DIR/sbsidequest.js $BUILD_DIR/sbsidequest.wasm $BUILD_DIR/sbsidequest.data $EXPORT_DIR/ || exit 1
 fi
