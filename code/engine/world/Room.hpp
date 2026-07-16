@@ -6,6 +6,7 @@
 #include "engine/IProcessable.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/IRoomObject.hpp"
@@ -20,147 +21,116 @@ using namespace std;
 
 class Room {
    private:
+	BinaryReader _binary;
+	Sint64 _xPosition;
+	Sint64 _yPosition;
+	Uint16 _width;
+	Uint16 _height;
+	Uint16 _targetWidth;
+	Uint16 _targetHeight;
+	vector<RoomChunk> _chunks;
 	vector<CollisionRect> _colliders;
 	vector<SpikeCollider> _spikeColliders;
 	vector<SDL_Point> _ledges;
-	int _width;
-	int _height;
-	int _targetWidth;
-	int _targetHeight;
-	int _xPosition;
-	int _yPosition;
-	vector<RoomChunk> _chunks;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
 	vector<IRoomObject*> _roomObjects;
 
    public:
-	Room(SDL_Storage* storage, const string& folderPath, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
-		: Room(storage, folderPath, ResourceManager::LoadJson(storage, folderPath + "/room.json"), renderer,
-			   spikeAtlas) {}
+	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+		: _binary(storage, path) {
+		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
+		_binary.FindSection("PROP");
+		_binary.Read(8, &_xPosition);
+		_binary.Read(8, &_yPosition);
+		_binary.Read(2, &_width);
+		_binary.Read(2, &_height);
+		_binary.Read(2, &_targetWidth);
+		_binary.Read(2, &_targetHeight);
 
-	Room(SDL_Storage* storage, const string& folderPath, yyjson_doc* jsonDoc, SDL_Renderer* renderer,
-		 SDL_Surface* spikeAtlas)
-		: Room(storage, folderPath, yyjson_doc_get_root(jsonDoc), renderer, spikeAtlas) {
-		yyjson_doc_free(jsonDoc);
-	}
+		Uint8 chunkCount;
+		_binary.Read(1, &chunkCount);
+		Uint32 colliderCount;
+		_binary.Read(4, &colliderCount);
+		Uint32 spikeColliderCount;
+		_binary.Read(4, &spikeColliderCount);
+		Uint8 checkpointCount;
+		_binary.Read(1, &checkpointCount);
+		Uint8 neighborCount;
+		_binary.Read(1, &neighborCount);
+		Uint32 ledgeCount;
+		_binary.Read(4, &ledgeCount);
+		Uint16 objectCount;
+		_binary.Read(2, &objectCount);
 
-	Room(SDL_Storage* storage, const string& folderPath, yyjson_val* roomJson, SDL_Renderer* renderer,
-		 SDL_Surface* spikeAtlas)
-		: _colliders(LoadColliders(yyjson_obj_get(roomJson, "collisions"))),
-		  _spikeColliders(
-			  LoadSpikeColliders(storage, folderPath, yyjson_get_int(yyjson_obj_get(roomJson, "spike_count")))),
-		  _chunks(LoadChunks(storage, folderPath, yyjson_obj_get(roomJson, "chunks"), renderer, spikeAtlas)),
-		  _ledges(LoadLedges(yyjson_obj_get(roomJson, "ledges"))),
-		  _width(yyjson_get_num(yyjson_obj_get(roomJson, "width"))),
-		  _height(yyjson_get_num(yyjson_obj_get(roomJson, "height"))),
-		  _targetWidth(yyjson_get_num(yyjson_obj_get(roomJson, "target_width"))),
-		  _targetHeight(yyjson_get_num(yyjson_obj_get(roomJson, "target_height"))),
-		  _xPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_x"))),
-		  _yPosition(yyjson_get_num(yyjson_obj_get(roomJson, "position_y"))),
-		  _neighbors(LoadNeighbors(yyjson_obj_get(roomJson, "neighbors"))),
-		  _checkpoints(LoadCheckpoints(yyjson_obj_get(roomJson, "checkpoints"))),
-		  _roomObjects(LoadRoomObjects(yyjson_obj_get(roomJson, "room_objects"))) {
-		dc::msg << SDL_GetTicks() << ": finished room load" << dc::endl;
+		dc::msg << SDL_GetTicks() << ": Room size is " << _width << "x" << _height << dc::endl;
+
+		std::unordered_map<Uint8, SDL_Surface*> atlases;
+		for (int i = 0; i < chunkCount; i++) {
+			dc::msg << SDL_GetTicks() << ": Loading chunk " << i << dc::endl;
+			_chunks.emplace_back(storage, _binary, renderer, atlases, spikeAtlas);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading " << colliderCount << " tile colliders" << dc::endl;
+		_binary.FindSection("TLCL");
+		_colliders.reserve(colliderCount);
+		for (int i = 0; i < colliderCount; i++) {
+			CollisionRect collider;
+			_binary.Read(4, &collider.x);
+			_binary.Read(4, &collider.y);
+			_binary.Read(4, &collider.w);
+			_binary.Read(4, &collider.h);
+			_colliders.push_back(collider);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading " << spikeColliderCount << " spike colliders" << dc::endl;
+		_binary.FindSection("SKCL");
+		_spikeColliders.reserve(spikeColliderCount);
+		for (int i = 0; i < spikeColliderCount; i++) {
+			_spikeColliders.emplace_back(_binary);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading " << checkpointCount << " checkpoints" << dc::endl;
+		_binary.FindSection("CKPT");
+		_checkpoints.reserve(checkpointCount);
+		for (int i = 0; i < checkpointCount; i++) {
+			Vector2 checkpoint;
+			_binary.Read(4, &checkpoint.x);
+			_binary.Read(4, &checkpoint.y);
+			_checkpoints.push_back(checkpoint);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading " << neighborCount << " neighbors" << dc::endl;
+		_binary.FindSection("NGBR");
+		_neighbors.reserve(neighborCount);
+		for (int i = 0; i < neighborCount; i++) {
+			_neighbors.emplace_back(_binary);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading " << ledgeCount << " ledges" << dc::endl;
+		_binary.FindSection("LEGE");
+		_ledges.reserve(ledgeCount);
+		for (int i = 0; i < ledgeCount; i++) {
+			SDL_Point ledge;
+			_binary.Read(8, &ledge.x);
+			_binary.Read(8, &ledge.y);
+			_ledges.push_back(ledge);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading " << objectCount << " room objects" << dc::endl;
+		_roomObjects.reserve(objectCount);
+		for (int i = 0; i < objectCount; i++) {
+			_binary.FindNextSection("OBJT");
+			_roomObjects.push_back(RoomObjectFactory::MakeRoomObject(_binary));
+		}
+
+		dc::msg << SDL_GetTicks() << ": Room load done!" << dc::endl;
 	}
 
 	Room(const Room&) = delete;
 	Room& operator=(const Room&) = delete;
 
 	Room& operator=(Room&& other) noexcept = default;
-
-	vector<CollisionRect> LoadColliders(yyjson_val* collidersJson) const {
-		dc::msg << SDL_GetTicks() << ": loading colliders" << dc::endl;
-		vector<CollisionRect> colliders;
-
-		size_t idx, max;
-		yyjson_val* collider;
-		yyjson_arr_foreach(collidersJson, idx, max, collider) { colliders.emplace_back(collider); }
-
-		return colliders;
-	}
-
-	vector<SpikeCollider> LoadSpikeColliders(SDL_Storage* storage, const string& folderPath, int spikeCount) const {
-		dc::msg << SDL_GetTicks() << ": loading spike colliders" << dc::endl;
-		vector<SpikeCollider> spikes;
-
-		StorageIO file(storage, folderPath + "/spikes.ow");
-
-		if (file.stream == NULL) {
-			dc::msg << "ERROR: could not open spikes.ow: " << SDL_GetError() << dc::endl;
-		}
-
-		for (int i = 0; i < spikeCount; i++) {
-			spikes.emplace_back(file.stream);
-		}
-
-		return spikes;
-	}
-
-	vector<RoomChunk> LoadChunks(SDL_Storage* storage, const string& folderPath, yyjson_val* chunksJson,
-								 SDL_Renderer* renderer, SDL_Surface* spikeAtlas) const {
-		vector<RoomChunk> chunks;
-
-		size_t idx, max;
-		yyjson_val* chunk;
-
-		yyjson_arr_foreach(chunksJson, idx, max, chunk) {
-			dc::msg << SDL_GetTicks() << ": loading chunk " << idx << dc::endl;
-			chunks.emplace_back(storage, folderPath + "/" + to_string(idx), chunk, renderer, spikeAtlas);
-		}
-
-		return chunks;
-	}
-
-	vector<SDL_Point> LoadLedges(yyjson_val* ledgesJson) const {
-		dc::msg << SDL_GetTicks() << ": loading ledges" << dc::endl;
-		vector<SDL_Point> ledges;
-
-		size_t idx, max;
-		yyjson_val* ledge;
-
-		yyjson_arr_foreach(ledgesJson, idx, max, ledge) {
-			ledges.push_back({yyjson_get_int(yyjson_obj_get(ledge, "x")), yyjson_get_int(yyjson_obj_get(ledge, "y"))});
-		}
-		return ledges;
-	}
-
-	vector<RoomNeighbor> LoadNeighbors(yyjson_val* neighborsJson) const {
-		dc::msg << SDL_GetTicks() << ": loading neighbors" << dc::endl;
-		vector<RoomNeighbor> neighbors;
-
-		size_t idx, max;
-		yyjson_val* neighbor;
-
-		yyjson_arr_foreach(neighborsJson, idx, max, neighbor) { neighbors.emplace_back(neighbor); }
-		return neighbors;
-	}
-
-	vector<Vector2> LoadCheckpoints(yyjson_val* checkpointsJson) const {
-		dc::msg << SDL_GetTicks() << ": loading checkpoints" << dc::endl;
-		vector<Vector2> checkpoints;
-
-		size_t idx, max;
-		yyjson_val* checkpoint;
-
-		yyjson_arr_foreach(checkpointsJson, idx, max, checkpoint) { checkpoints.emplace_back(checkpoint); }
-
-		return checkpoints;
-	}
-
-	vector<IRoomObject*> LoadRoomObjects(yyjson_val* objectsJson) const {
-		dc::msg << SDL_GetTicks() << ": loading room objects" << dc::endl;
-		vector<IRoomObject*> objects;
-
-		size_t idx, max;
-		yyjson_val* object;
-
-		yyjson_arr_foreach(objectsJson, idx, max, object) {
-			objects.push_back(RoomObjectFactory::MakeRoomObject(object));
-		}
-
-		return objects;
-	}
 
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
 	const vector<SpikeCollider>& GetSpikeColliders() const { return _spikeColliders; }

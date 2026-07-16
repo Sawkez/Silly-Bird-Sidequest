@@ -45,7 +45,7 @@ class Level : IProcessable, IDrawable {
 		  _roomCamera(_player, _currentRoom, window),
 		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {}
 
-	std::string GetRoomPath(int index) { return _path + "rooms/" + to_string(index); }
+	std::string GetRoomPath(int index) { return _path + "rooms/" + to_string(index) + ".room"; }
 
 	void Process(float delta) override {
 		_player.Process(delta);
@@ -93,7 +93,6 @@ class Level : IProcessable, IDrawable {
 	}
 
 	void SetCurrentRoom(int room) {
-		dc::msg << "Entered room " << room << dc::endl;
 		GameState::Pause();
 		_currentRoom = Room(_storage, GetRoomPath(room), _renderer, _spikeAtlas);
 

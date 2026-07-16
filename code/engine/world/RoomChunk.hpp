@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 
+#include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
 #include "engine/world/SpikeTile.hpp"
@@ -23,17 +24,47 @@ class RoomChunk {
    public:
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
 
-	RoomChunk(SDL_Storage* storage, const std::string& chunkFilePath, yyjson_val* chunkJson, SDL_Renderer* renderer,
-			  SDL_Surface* spikeAtlas)
-		: _rect{
-			  yyjson_get_int(yyjson_obj_get(chunkJson, "x")),
-			  yyjson_get_int(yyjson_obj_get(chunkJson, "y")),
-			  yyjson_get_int(yyjson_obj_get(chunkJson, "width")),
-			  yyjson_get_int(yyjson_obj_get(chunkJson, "height")),
-		  },
-		  _cache(CacheTiles(storage, renderer, spikeAtlas, chunkFilePath,
-							yyjson_get_int(yyjson_obj_get(chunkJson, "tile_count")),
-							yyjson_get_int(yyjson_obj_get(chunkJson, "spike_count")))) {}
+	RoomChunk(SDL_Storage* storage, BinaryReader& binary, SDL_Renderer* renderer,
+			  std::unordered_map<Uint8, SDL_Surface*>& atlases, SDL_Surface* spikeAtlas) {
+		binary.FindSection("CHNK");
+
+		Uint16 num;
+		binary.Read(2, &num);
+		_rect.x = num;
+		binary.Read(2, &num);
+		_rect.y = num;
+		binary.Read(2, &num);
+		_rect.w = num;
+		binary.Read(2, &num);
+		_rect.h = num;
+
+		Uint32 tileCount;
+		binary.Read(4, &tileCount);
+		Uint32 spikeCount;
+		binary.Read(4, &spikeCount);
+
+		dc::msg << SDL_GetTicks() << ": Creating cache surface" << dc::endl;
+		auto* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_ARGB1555);
+		SDL_ClearSurface(cacheSurface, 1.0, 0.0, 0.0, 0.0);
+
+		dc::msg << SDL_GetTicks() << ": Loading and caching " << tileCount << " tiles" << dc::endl;
+		binary.FindSection("TLFG");
+		for (int i = 0; i < tileCount; i++) {
+			ForegroundTile tile(binary);
+			tile.EnsureAtlasLoaded(storage, atlases);
+			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Loading and caching " << spikeCount << " spikes" << dc::endl;
+		binary.FindSection("SPIK");
+		for (int i = 0; i < spikeCount; i++) {
+			SpikeTile spike(binary);
+			spike.Draw(cacheSurface, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+		}
+
+		dc::msg << SDL_GetTicks() << ": Converting cache surface to texture" << dc::endl;
+		_cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
+	}
 
 	RoomChunk(const RoomChunk&) = delete;
 	RoomChunk& operator=(const RoomChunk&) = delete;
@@ -50,71 +81,6 @@ class RoomChunk {
 			other._cache = NULL;
 		}
 		return *this;
-	}
-
-	std::vector<ForegroundTile> LoadTiles(SDL_Storage* storage, const std::string& chunkFilePath, int tileCount) {
-		StorageIO file(storage, chunkFilePath + ".chunk");
-
-		if (file.stream == NULL) {
-			dc::err << "ERROR: chunk file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << dc::endl;
-		}
-
-		std::vector<ForegroundTile> tiles;
-
-		for (int i = 0; i < tileCount; i++) {
-			tiles.emplace_back(file.stream);
-		}
-
-		return tiles;
-	}
-
-	std::vector<SpikeTile> LoadSpikes(SDL_Storage* storage, const std::string& chunkFilePath, int spikeCount) {
-		StorageIO file(storage, chunkFilePath + ".spikes");
-
-		if (file.stream == NULL) {
-			dc::err << "ERROR: spike file " << chunkFilePath << " is YUCKY: " << SDL_GetError() << dc::endl;
-		}
-
-		std::vector<SpikeTile> spikes;
-
-		for (int i = 0; i < spikeCount; i++) {
-			spikes.emplace_back(file.stream);
-		}
-
-		return spikes;
-	}
-
-	SDL_Texture* CacheTiles(SDL_Storage* storage, SDL_Renderer* renderer, SDL_Surface* spikeAtlas,
-							const std::string& chunkFilePath, int tileCount, int spikeCount) {
-		SDL_Surface* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_RGBA4444);
-
-		if (cacheSurface == NULL) {
-			dc::err << "ERROR when caching chunk: " << SDL_GetError() << dc::endl;
-		}
-
-		std::map<uint8_t, SDL_Surface*> atlases;
-
-		std::vector<ForegroundTile> tiles = LoadTiles(storage, chunkFilePath, tileCount);
-
-		for (auto tile : tiles) {
-			tile.EnsureAtlasLoaded(storage, atlases);
-			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
-		}
-
-		std::vector<SpikeTile> spikes = LoadSpikes(storage, chunkFilePath, spikeCount);
-
-		for (auto spike : spikes) {
-			spike.Draw(cacheSurface, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
-		}
-
-		SDL_Texture* cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
-		SDL_DestroySurface(cacheSurface);
-
-		for (auto pair : atlases) {
-			SDL_DestroySurface(pair.second);
-		}
-
-		return cache;
 	}
 
 	void UncacheTiles() {

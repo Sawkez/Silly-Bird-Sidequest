@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "engine/resource/BinaryReader.hpp"
 #include "yyjson.h"
 
 class Vector2 : public SDL_FPoint {
@@ -18,6 +19,11 @@ class Vector2 : public SDL_FPoint {
 	Vector2(yyjson_val* vectorJson)
 		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))),
 					 float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
+
+	Vector2(BinaryReader& binary) {
+		binary.Read(4, &x);
+		binary.Read(4, &y);
+	}
 
 	float LengthSquared() const { return std::min(x * x + y * y, FLT_MAX); }
 

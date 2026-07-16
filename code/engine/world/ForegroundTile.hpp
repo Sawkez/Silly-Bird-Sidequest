@@ -9,6 +9,7 @@
 
 #include "engine/Math.hpp"
 #include "engine/mods/ModManager.hpp"
+#include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/world/TileBase.hpp"
 #include "engine/world/WorldConstants.hpp"
@@ -19,19 +20,20 @@ struct ForegroundTile : public TileBase {
 	int GetDrawSourceSize() const override { return 14; }
 	int GetDrawDestOffset() const override { return (WorldConstants::TILE_SIZE_F - GetDrawSourceSize()) / 2.0; }
 
-	ForegroundTile(SDL_IOStream* file) {
-		SDL_ReadIO(file, &x, 2);
-		SDL_ReadIO(file, &y, 2);
-		SDL_ReadIO(file, &xAtlas, 2);
-		SDL_ReadIO(file, &yAtlas, 2);
-		SDL_ReadIO(file, &sourceID, 1);
+	ForegroundTile(BinaryReader& binary) {
+		binary.Read(2, &x);
+		binary.Read(2, &y);
+		binary.Read(2, &xAtlas);
+		binary.Read(2, &yAtlas);
+		binary.Read(1, &sourceID);
 	}
 
-	void Draw(SDL_Surface* targetSurface, const std::map<uint8_t, SDL_Surface*>& atlases, int xOffset, int yOffset) {
+	void Draw(SDL_Surface* targetSurface, const std::unordered_map<uint8_t, SDL_Surface*>& atlases, int xOffset,
+			  int yOffset) {
 		TileBase::Draw(targetSurface, atlases.at(sourceID), xOffset, yOffset);
 	}
 
-	void EnsureAtlasLoaded(SDL_Storage* storage, std::map<uint8_t, SDL_Surface*>& atlases) const {
+	void EnsureAtlasLoaded(SDL_Storage* storage, std::unordered_map<uint8_t, SDL_Surface*>& atlases) const {
 		if (atlases.find(sourceID) != atlases.end()) return;
 
 		atlases[sourceID] = ModManager::LoadTileSource(sourceID);
