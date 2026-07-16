@@ -3,11 +3,12 @@
 #include <SDL3/SDL.h>
 
 #include <cstring>
+#include <memory>
 #include <string>
 
 class BinaryReader {
    private:
-	char* _data;
+	std::unique_ptr<char[]> _data;
 	Uint64 _size;
 	char* _sectionData = nullptr;
 	char* _currentPosition = nullptr;
@@ -17,19 +18,20 @@ class BinaryReader {
    public:
 	BinaryReader(SDL_Storage* storage, const std::string& path) {
 		SDL_GetStorageFileSize(storage, path.c_str(), &_size);
-		_data = new char[_size];
-		SDL_ReadStorageFile(storage, path.c_str(), _data, _size);
+		_data = std::make_unique<char[]>(_size);
+		SDL_ReadStorageFile(storage, path.c_str(), _data.get(), _size);
 
-		_sectionName = _data;
-		memcpy(&_sectionLength, _data + 4, 4);
-		_sectionData = _data + 4 + 4;
+		_sectionName = _data.get();
+		memcpy(&_sectionLength, _data.get() + 4, 4);
+		_sectionData = _data.get() + 4 + 4;
 		_currentPosition = _sectionData;
 	}
 
 	BinaryReader(const BinaryReader&) = delete;
 	BinaryReader& operator=(const BinaryReader&) = delete;
 
-	BinaryReader& operator=(BinaryReader&& other) noexcept = default;
+	BinaryReader(BinaryReader&&) noexcept = default;
+	BinaryReader& operator=(BinaryReader&&) noexcept = default;
 
 	void GetNextSection() {
 		_sectionName = _sectionData + _sectionLength;
@@ -56,6 +58,4 @@ class BinaryReader {
 		memcpy(outData, _currentPosition, bytes);
 		_currentPosition += bytes;
 	}
-
-	~BinaryReader() { delete[] _data; }
 };
