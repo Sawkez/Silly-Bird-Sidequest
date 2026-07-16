@@ -26,6 +26,11 @@ class BinaryReader {
 		_currentPosition = _sectionData;
 	}
 
+	BinaryReader(const BinaryReader&) = delete;
+	BinaryReader& operator=(const BinaryReader&) = delete;
+
+	BinaryReader& operator=(BinaryReader&& other) noexcept = default;
+
 	void GetNextSection() {
 		_sectionName = _sectionData + _sectionLength;
 		memcpy(&_sectionLength, _sectionName + 4, 4);

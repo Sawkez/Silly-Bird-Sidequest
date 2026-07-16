@@ -33,7 +33,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	ResourceManager::Init();
 	GameState::Init();
 	ModManager::Init();
-	ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
+	ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest-hidden.sbsq");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 	DevConsole::Init(&Menus::console);
 	Random::Init();
