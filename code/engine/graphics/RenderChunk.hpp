@@ -15,7 +15,9 @@ class RenderChunk {
 	RenderChunk(const RoomChunk&) = delete;
 	RenderChunk& operator=(const RoomChunk&) = delete;
 
-	RenderChunk(RenderChunk&& other) noexcept : _roomChunk(other._roomChunk), _renderTexture(other._renderTexture) { other._renderTexture = NULL; }
+	RenderChunk(RenderChunk&& other) noexcept : _roomChunk(other._roomChunk), _renderTexture(other._renderTexture) {
+		other._renderTexture = NULL;
+	}
 
 	RenderChunk& operator=(RenderChunk&& other) noexcept {
 		if (this != &other) {
@@ -37,15 +39,22 @@ class RenderChunk {
 
 	RenderChunk(const RoomChunk& roomChunk, SDL_Renderer* renderer)
 		: _roomChunk(std::ref(roomChunk)),
-		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET, _roomChunk.get().GetWidth(),
-										   _roomChunk.get().GetHeight())) {
+		  _renderTexture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_TARGET,
+										   _roomChunk.get().GetWidth(), _roomChunk.get().GetHeight())) {
+		if (_renderTexture == nullptr) {
+			dc::err << "ERROR creating render chunk texture: " << SDL_GetError() << dc::endl;
+		}
 		SDL_SetTextureBlendMode(_renderTexture, SDL_BLENDMODE_BLEND);
 	}
 
 	void DrawRoom(SDL_Renderer* renderer) const {
-		SDL_SetRenderTarget(renderer, _renderTexture);
+		if (!SDL_SetRenderTarget(renderer, _renderTexture)) {
+			dc::err << "ERROR setting render chunk as target: " << SDL_GetError() << dc::endl;
+		}
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
-		SDL_RenderClear(renderer);
+		if (!SDL_RenderClear(renderer)) {
+			dc::err << "ERROR clearing render chunk: " << SDL_GetError() << dc::endl;
+		}
 
 		_roomChunk.get().Draw(renderer);
 	}
@@ -65,8 +74,9 @@ class RenderChunk {
 
 		SDL_Rect destination = _roomChunk.get().GetRect();
 
-		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom, (float(destination.y) + drawOffset.y - 8) * zoom,
-							   float(destination.w) * zoom, float(destination.h) * zoom};
+		SDL_FRect FDestination{(float(destination.x) + drawOffset.x - 8) * zoom,
+							   (float(destination.y) + drawOffset.y - 8) * zoom, float(destination.w) * zoom,
+							   float(destination.h) * zoom};
 
 		SDL_RenderTexture(renderer, _renderTexture, NULL, &FDestination);
 	}

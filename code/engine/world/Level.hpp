@@ -71,9 +71,6 @@ class Level : IProcessable, IDrawable {
 	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
 		drawOffset += _roomCamera.GetDrawOffset();
 
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderClear(renderer);
-
 		SDL_Rect camRect = _roomCamera.GetRect();
 		float zoom = _roomCamera.GetZoom();
 
