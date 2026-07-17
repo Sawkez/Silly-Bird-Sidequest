@@ -9,13 +9,12 @@
 #include "engine/GameState.hpp"
 #include "engine/IProcessable.hpp"
 #include "engine/graphics/IDrawable.hpp"
-#include "engine/graphics/RenderChunk.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/save/SaveData.hpp"
 #include "engine/save/SaveManager.hpp"
+#include "engine/world/Camera.hpp"
 #include "engine/world/Room.hpp"
-#include "engine/world/RoomCamera.hpp"
 #include "engine/world/RoomNeighbor.hpp"
 #include "game/player/Player.hpp"
 #include "yyjson.h"
@@ -30,8 +29,7 @@ class Level : IProcessable, IDrawable {
 	SDL_Renderer* _renderer;
 	Room _currentRoom;
 	Player _player;
-	RoomCamera _roomCamera;
-	vector<RenderChunk> _renderChunks;
+	Camera _camera;
 
    public:
 	Level(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager,
@@ -42,15 +40,14 @@ class Level : IProcessable, IDrawable {
 		  _currentRoom(storage, GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
 		  _player(inputManager, renderer, _currentRoom, playerUpgrades),
-		  _roomCamera(_player, _currentRoom, window),
-		  _renderChunks(CreateRenderChunks(_currentRoom, renderer)) {}
+		  _camera(_renderer, _player, _currentRoom) {}
 
 	std::string GetRoomPath(int index) { return _path + "rooms/" + to_string(index) + ".room"; }
 
 	void Process(float delta) override {
 		_player.Process(delta);
 		_currentRoom.Process(delta, _player);
-		_roomCamera.Process(delta);
+		_camera.Process(delta);
 		CheckRoomTransition();
 	}
 
@@ -68,40 +65,19 @@ class Level : IProcessable, IDrawable {
 		}
 	}
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override {
-		drawOffset += _roomCamera.GetDrawOffset();
-
-		SDL_Rect camRect = _roomCamera.GetRect();
-		float zoom = _roomCamera.GetZoom();
-
-		for (const auto& chunk : _renderChunks) {
-			SDL_Rect chunkRect = chunk.GetRect();
-			if (SDL_HasRectIntersection(&camRect, &chunkRect)) {
-				chunk.DrawRoom(renderer);
-				chunk.DrawObject(renderer, _player, _currentRoom.GetPosition());
-
-				for (const auto& object : _currentRoom.GetRoomObjects()) {
-					chunk.DrawObject(renderer, *object, _currentRoom.GetPosition());
-				}
-
-				chunk.Draw(renderer, drawOffset, zoom);
-			}
-		}
-	}
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override { _camera.DrawRoom(_renderer); }
 
 	void SetCurrentRoom(int room) {
 		GameState::Pause();
 		_currentRoom = Room(_storage, GetRoomPath(room), _renderer, _spikeAtlas);
 
 		_player.SetRoom(_currentRoom);
-		_roomCamera.SetRoom(_currentRoom);
+		_camera.SetRoom(_currentRoom);
 
 		UpdateCheckpoint();
 		SaveManager::instance->saveData.room = room;
 		SaveManager::instance->Autosave();
 
-		DestroyRenderChunks();
-		_renderChunks = CreateRenderChunks(_currentRoom, _renderer);
 		GameState::Unpause();
 	}
 
@@ -117,26 +93,9 @@ class Level : IProcessable, IDrawable {
 		SaveManager::instance->saveData.checkpoint = checkpoint;
 	}
 
-	vector<RenderChunk> CreateRenderChunks(const Room& room, SDL_Renderer* renderer) const {
-		vector<RenderChunk> renderChunks;
-		const vector<RoomChunk>& chunks = room.GetChunks();
-		renderChunks.reserve(chunks.size());
-
-		for (const auto& roomChunk : room.GetChunks()) {
-			renderChunks.emplace_back(roomChunk, renderer);
-		}
-
-		return renderChunks;
-	}
-
-	void DestroyRenderChunks() { _renderChunks.clear(); }
-
-	RoomCamera& GetCamera() { return _roomCamera; }
+	Camera& GetCamera() { return _camera; }
 
 	Player& GetPlayer() { return _player; }
 
-	~Level() {
-		DestroyRenderChunks();
-		SDL_DestroySurface(_spikeAtlas);
-	}
+	~Level() { SDL_DestroySurface(_spikeAtlas); }
 };

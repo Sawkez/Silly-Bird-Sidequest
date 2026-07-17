@@ -106,7 +106,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (SaveManager::instance->OverrideDrawing()) return SDL_APP_CONTINUE;
 
-	if (event->type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
+	// if (event->type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
 
 	if (GameState::HandleEvent(*event)) return SDL_APP_CONTINUE;
 

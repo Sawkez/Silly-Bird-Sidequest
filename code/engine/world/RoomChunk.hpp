@@ -8,13 +8,14 @@
 #include <map>
 #include <vector>
 
+#include "engine/graphics/IDrawableRect.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
 #include "engine/world/SpikeTile.hpp"
 #include "yyjson.h"
 
-class RoomChunk {
+class RoomChunk : public IDrawableRect {
 	const int OVERLAP_OFFSET = 8;
 
    private:
@@ -88,6 +89,19 @@ class RoomChunk {
 		_cache = NULL;
 	}
 
+	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
+		SDL_FRect destination{float(_rect.x) + drawOffset.x, float(_rect.y) + drawOffset.y, float(_rect.w),
+							  float(_rect.h)};
+
+		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &destination)) {
+			return false;
+		}
+
+		SDL_RenderTexture(renderer, _cache, nullptr, &destination);
+		return true;
+	}
+
+	/*
 	void Draw(SDL_Renderer* renderer) const {
 		if (_cache == NULL) {
 			dc::err << "ERROR: chunk not cached!" << dc::endl;
@@ -97,6 +111,7 @@ class RoomChunk {
 
 		SDL_RenderTexture(renderer, _cache, NULL, &destination);
 	}
+	*/
 
 	int GetWidth() const { return _rect.w; }
 	int GetHeight() const { return _rect.h; }

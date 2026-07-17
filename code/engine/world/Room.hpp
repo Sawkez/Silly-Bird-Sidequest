@@ -5,6 +5,7 @@
 
 #include "engine/IProcessable.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/graphics/IDrawableRect.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
@@ -19,7 +20,7 @@
 
 using namespace std;
 
-class Room {
+class Room : IDrawableRect {
    private:
 	BinaryReader _binary;
 	Sint64 _xPosition;
@@ -135,12 +136,6 @@ class Room {
 	const vector<CollisionRect>& GetColliders() const { return _colliders; };
 	const vector<SpikeCollider>& GetSpikeColliders() const { return _spikeColliders; }
 
-	void Draw(SDL_Renderer* renderer) const {
-		for (const auto& chunk : _chunks) {
-			chunk.Draw(renderer);
-		}
-	}
-
 	Vector2 GetPosition() const { return Vector2{float(_xPosition), float(_yPosition)}; }
 
 	Vector2 GetSize() const { return Vector2{float(_width), float(_height)}; }
@@ -191,6 +186,28 @@ class Room {
 		for (auto object : _roomObjects) {
 			object->Process(delta, player);
 		}
+	}
+
+	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
+		bool drawn = false;
+
+		Vector2 localOffset = drawOffset + GetPosition();
+
+		int chunkDrawCount = 0;
+		for (const auto& chunk : _chunks) {
+			if (chunk.Draw(renderer, drawTargetRect, localOffset - Vector2(8, 8))) {
+				chunkDrawCount++;
+				drawn = true;
+			}
+		}
+
+		dc::msg << "Drawn " << chunkDrawCount << " chunks" << dc::endl;
+
+		for (const auto* object : _roomObjects) {
+			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);
+		}
+
+		return drawn;
 	}
 
 	~Room() {
