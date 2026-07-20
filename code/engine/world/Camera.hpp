@@ -7,9 +7,10 @@
 
 class Camera {
    private:
-	static inline const float SPEED_DISTANCE_MULT = 1.0 / 15.0 * 60.0;
-	static inline const float PLAYER_RECT_MULT = 0.05;
-	static inline const float SNAP_DIST = 16.0;
+	static inline const float TARGET_SPEED = 100.0f;
+	static inline const float TARGET_DIST = 0.5f;
+	static inline const float FOLLOW_SPEED = 60.0 / 15.0;
+	static inline const float MIN_FOLLOW_SPEED = 30.0;
 
 	const Player& _player;
 	SDL_Point _pixelSize;
@@ -18,6 +19,7 @@ class Camera {
 
 	bool _shouldSnap;
 	Vector2 _position;
+	Vector2 _target;
 
    public:
 	Camera(SDL_Renderer* renderer, const Player& player, const Room& room)
@@ -29,7 +31,24 @@ class Camera {
 	void SetRoom(const Room& room) { _room = std::ref(room); }
 
 	Vector2 GetTopLeft() const {
-		Vector2 topLeft = _position - Vector2(_pixelSize) * 0.5;
+		Vector2 topLeft;
+
+		Vector2 roomStart = _room.get().GetPosition();
+		Vector2 roomEnd = roomStart + _room.get().GetSize();
+
+		roomStart -= _player.position;
+		roomEnd -= _player.position;
+
+		roomStart += Vector2(_pixelSize) * 0.5f;
+		roomEnd -= Vector2(_pixelSize) * 0.5f;
+
+		roomEnd.x = max(roomStart.x, roomEnd.x);
+		roomEnd.y = max(roomStart.y, roomEnd.y);
+
+		topLeft.x = clamp(_position.x, roomStart.x, roomEnd.x);
+		topLeft.y = clamp(_position.y, roomStart.y, roomEnd.y);
+
+		topLeft += _player.position - Vector2(_pixelSize) * 0.5;
 		if (_shouldSnap) {
 			topLeft.x = roundf(topLeft.x);
 			topLeft.y = roundf(topLeft.y);
@@ -39,44 +58,14 @@ class Camera {
 	}
 
 	void Process(float delta) {
-		Vector2 target = _player.position;
+		_target.MoveToward(_player.position, TARGET_SPEED * delta);
+		float targetDist = min(_pixelSize.x, _pixelSize.y) * TARGET_DIST;
+		_shouldSnap = _target.PinLength(_player.position, targetDist);
 
-		Vector2 roomStart = _room.get().GetPosition();
-		Vector2 roomEnd = _room.get().GetSize() + roomStart;
+		Vector2 targetPlayerRelative = _target - _player.position;
 
-		roomStart += Vector2(_pixelSize) * 0.5f;
-		roomEnd -= Vector2(_pixelSize) * 0.5f;
-
-		bool playerIsFast = abs(_player.velocity.x) > 125.0 || _player.velocity.y > 200.0;
-
-		// clamping target to room bounds
-		if (!playerIsFast) {
-			target.x = clamp(target.x, roomStart.x, roomEnd.x);
-			target.y = clamp(target.y, roomStart.y, roomEnd.y);
-		}
-
-		float dist = _position.Distance(target);
-		_shouldSnap = dist > SNAP_DIST;
-
-		_position.MoveToward(target, dist * SPEED_DISTANCE_MULT * delta);
-
-		float playerRectMargin = max(_pixelSize.x * PLAYER_RECT_MULT, _pixelSize.y * PLAYER_RECT_MULT);
-		Vector2 playerRect = Vector2(_pixelSize) * 0.5f - Vector2(playerRectMargin, playerRectMargin);
-
-		// clamping position so player is guaranteed visible and out-of-bounds are guaranteed not
-		if (playerIsFast) {
-			float xMin = clamp(_player.position.x - playerRect.x, roomStart.x, roomEnd.x);
-			float xMax = clamp(_player.position.x + playerRect.x, roomStart.x, roomEnd.x);
-
-			float yMin = clamp(_player.position.y - playerRect.y, roomStart.y, roomEnd.y);
-			float yMax = clamp(_player.position.y + playerRect.y, roomStart.y, roomEnd.y);
-
-			_position.x = clamp(_position.x, xMin, xMax);
-			_position.y = clamp(_position.y, yMin, yMax);
-		} else {
-			_position.x = clamp(_position.x, roomStart.x, roomEnd.x);
-			_position.y = clamp(_position.y, roomStart.y, roomEnd.y);
-		}
+		float dist = _position.Distance(targetPlayerRelative);
+		_position.MoveToward(targetPlayerRelative, max(dist * FOLLOW_SPEED, MIN_FOLLOW_SPEED) * delta);
 	}
 
 	void Draw(SDL_Renderer* renderer) const {
@@ -93,6 +82,9 @@ class Camera {
 		_room.get().Draw(renderer, visibilityRect, -texturePos);
 
 		_player.Draw(renderer, visibilityRect, -texturePos);
+
+		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+		SDL_RenderPoint(renderer, _target.x - texturePos.x, _target.y - texturePos.y);
 
 		SDL_FRect hdRenderSource{topLeft.x - texturePos.x, topLeft.y - texturePos.y, float(_pixelSize.x),
 								 float(_pixelSize.y)};

@@ -45,6 +45,16 @@ class Vector2 : public SDL_FPoint {
 
 	Vector2 DirectionTo(const Vector2& other) const { return (other - *this).Normalized(); }
 
+	// change this vector to limit its distance from pin
+	bool PinLength(const Vector2& pin, float distance) {
+		if (DistanceSquared(pin) > distance * distance) {
+			*this = pin + pin.DirectionTo(*this) * distance;
+			return true;
+		}
+
+		return false;
+	}
+
 	float Angle() const {
 		float angle = atan2(y, x);
 		return angle;
@@ -53,7 +63,10 @@ class Vector2 : public SDL_FPoint {
 	bool IsZeroApprox() const { return abs(x) + abs(y) < ZERO_PRECISION; }
 
 	void MoveToward(const Vector2& target, float moveDistance) {
-		if (DistanceSquared(target) < moveDistance * moveDistance) *this = target;
+		if (DistanceSquared(target) < moveDistance * moveDistance) {
+			*this = target;
+			return;
+		}
 		*this += DirectionTo(target) * moveDistance;
 	}
 
