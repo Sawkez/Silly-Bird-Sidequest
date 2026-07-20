@@ -24,7 +24,7 @@ using namespace std;
 class Level : IProcessable, IDrawable {
    private:
 	SDL_Storage* _storage;
-	SDL_Surface* _spikeAtlas;
+	SDL_Texture* _spikeAtlas;
 	string _path;
 	SDL_Renderer* _renderer;
 	Room _currentRoom;
@@ -35,7 +35,8 @@ class Level : IProcessable, IDrawable {
 	Level(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, const InputManager& inputManager,
 		  SDL_Window* window, int roomIndex, Uint8 playerUpgrades)
 		: _storage(storage),
-		  _spikeAtlas(ResourceManager::LoadSurface(ModManager::GetBuiltinStorage(), "tiles/special/spikes.png")),
+		  _spikeAtlas(
+			  ResourceManager::LoadTexture(renderer, ModManager::GetBuiltinStorage(), "tiles/special/spikes.png")),
 		  _path(path),
 		  _currentRoom(storage, GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
@@ -65,7 +66,7 @@ class Level : IProcessable, IDrawable {
 		}
 	}
 
-	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override { _camera.DrawRoom(_renderer); }
+	void Draw(SDL_Renderer* renderer, Vector2 drawOffset = {}) const override { _camera.Draw(_renderer); }
 
 	void SetCurrentRoom(int room) {
 		GameState::Pause();
@@ -97,5 +98,5 @@ class Level : IProcessable, IDrawable {
 
 	Player& GetPlayer() { return _player; }
 
-	~Level() { SDL_DestroySurface(_spikeAtlas); }
+	~Level() { SDL_DestroyTexture(_spikeAtlas); }
 };

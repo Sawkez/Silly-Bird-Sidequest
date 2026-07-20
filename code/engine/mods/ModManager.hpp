@@ -76,12 +76,12 @@ class ModManager {
 	static SDL_Storage* GetLevelStorage() { return _level->GetStorage(); }
 	static SDL_Storage* GetSkinStorage() { return _level->GetStorage(); }
 
-	static SDL_Surface* LoadTileSource(uint8_t sourceID) {
+	static SDL_Texture* LoadTileSource(SDL_Renderer* renderer, uint8_t sourceID) {
 		if (sourceID & BUILTIN_TILE_BIT) {
-			return ResourceManager::LoadSurface(GetBuiltinStorage(),
+			return ResourceManager::LoadTexture(renderer, GetBuiltinStorage(),
 												_builtin->GetTileSourcePath(sourceID & ~BUILTIN_TILE_BIT));
 		} else {
-			return ResourceManager::LoadSurface(GetLevelStorage(), _level->GetTileSourcePath(sourceID));
+			return ResourceManager::LoadTexture(renderer, GetLevelStorage(), _level->GetTileSourcePath(sourceID));
 		}
 	}
 

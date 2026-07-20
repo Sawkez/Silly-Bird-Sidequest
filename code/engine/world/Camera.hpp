@@ -15,13 +15,18 @@ class Camera {
 		: _player(player), _room(room), _pixelSize{240, 136} {
 		_pixelTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET,
 										  _pixelSize.x + 16, _pixelSize.y + 16);
+
+		// won't clear entire texture on PSP unless I do this
+		SDL_SetRenderTarget(renderer, _pixelTexture);
+		SDL_Rect viewport{0, 0, _pixelSize.x + 16, _pixelSize.y + 16};
+		SDL_SetRenderViewport(renderer, &viewport);
 	}
 
 	void SetRoom(const Room& room) { _room = std::ref(room); }
 
 	void Process(float delta) {}
 
-	void DrawRoom(SDL_Renderer* renderer) const {
+	void Draw(SDL_Renderer* renderer) const {
 		Vector2 cameraPos = _player.position - Vector2(_pixelSize) / 2;
 		Vector2 texturePos{floor(cameraPos.x / 8.0f) * 8.0f, floor(cameraPos.y / 8.0f) * 8.0f};
 

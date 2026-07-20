@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+#include <pspgu.h>
 
 #include <fstream>
 #include <iostream>
@@ -10,6 +11,7 @@
 
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/resource/BinaryReader.hpp"
+#include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
 #include "engine/world/SpikeTile.hpp"
@@ -26,7 +28,7 @@ class RoomChunk : public IDrawableRect {
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
 
 	RoomChunk(SDL_Storage* storage, BinaryReader& binary, SDL_Renderer* renderer,
-			  std::unordered_map<Uint8, SDL_Surface*>& atlases, SDL_Surface* spikeAtlas) {
+			  std::unordered_map<Uint8, SDL_Texture*>& atlases, SDL_Texture* spikeAtlas) {
 		binary.FindSection("CHNK");
 
 		Uint16 num;
@@ -44,27 +46,28 @@ class RoomChunk : public IDrawableRect {
 		Uint32 spikeCount;
 		binary.Read(4, &spikeCount);
 
-		dc::msg << SDL_GetTicks() << ": Creating cache surface" << dc::endl;
-		auto* cacheSurface = SDL_CreateSurface(_rect.w, _rect.h, SDL_PIXELFORMAT_ARGB1555);
-		SDL_ClearSurface(cacheSurface, 1.0, 0.0, 0.0, 0.0);
+		_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET, _rect.w, _rect.h);
+		SDL_SetRenderTarget(renderer, _cache);
+
+		// SDL_RenderClear currently bugged on PSP
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_FRect fill{0.0, 0.0, _rect.w, _rect.h};
+		SDL_RenderFillRect(renderer, &fill);
 
 		dc::msg << SDL_GetTicks() << ": Loading and caching " << tileCount << " tiles" << dc::endl;
 		binary.FindSection("TLFG");
 		for (int i = 0; i < tileCount; i++) {
 			ForegroundTile tile(binary);
-			tile.EnsureAtlasLoaded(storage, atlases);
-			tile.Draw(cacheSurface, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+			tile.EnsureAtlasLoaded(renderer, storage, atlases);
+			tile.Draw(renderer, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
 
 		dc::msg << SDL_GetTicks() << ": Loading and caching " << spikeCount << " spikes" << dc::endl;
 		binary.FindSection("SPIK");
 		for (int i = 0; i < spikeCount; i++) {
 			SpikeTile spike(binary);
-			spike.Draw(cacheSurface, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+			spike.Draw(renderer, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 		}
-
-		dc::msg << SDL_GetTicks() << ": Converting cache surface to texture" << dc::endl;
-		_cache = SDL_CreateTextureFromSurface(renderer, cacheSurface);
 	}
 
 	RoomChunk(const RoomChunk&) = delete;

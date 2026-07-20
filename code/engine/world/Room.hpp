@@ -38,7 +38,7 @@ class Room : IDrawableRect {
 	vector<IRoomObject*> _roomObjects;
 
    public:
-	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Surface* spikeAtlas)
+	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Texture* spikeAtlas)
 		: _binary(storage, path) {
 		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
 		_binary.FindSection("PROP");
@@ -66,7 +66,7 @@ class Room : IDrawableRect {
 
 		dc::msg << SDL_GetTicks() << ": Room size is " << _width << "x" << _height << dc::endl;
 
-		std::unordered_map<Uint8, SDL_Surface*> atlases;
+		std::unordered_map<Uint8, SDL_Texture*> atlases;
 		for (int i = 0; i < chunkCount; i++) {
 			dc::msg << SDL_GetTicks() << ": Loading chunk " << i << dc::endl;
 			_chunks.emplace_back(storage, _binary, renderer, atlases, spikeAtlas);
@@ -125,6 +125,7 @@ class Room : IDrawableRect {
 			_roomObjects.push_back(RoomObjectFactory::MakeRoomObject(_binary));
 		}
 
+		SDL_SetRenderTarget(renderer, nullptr);
 		dc::msg << SDL_GetTicks() << ": Room load done!" << dc::endl;
 	}
 
@@ -193,15 +194,9 @@ class Room : IDrawableRect {
 
 		Vector2 localOffset = drawOffset + GetPosition();
 
-		int chunkDrawCount = 0;
 		for (const auto& chunk : _chunks) {
-			if (chunk.Draw(renderer, drawTargetRect, localOffset - Vector2(8, 8))) {
-				chunkDrawCount++;
-				drawn = true;
-			}
+			drawn |= chunk.Draw(renderer, drawTargetRect, localOffset - Vector2(8, 8));
 		}
-
-		dc::msg << "Drawn " << chunkDrawCount << " chunks" << dc::endl;
 
 		for (const auto* object : _roomObjects) {
 			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);

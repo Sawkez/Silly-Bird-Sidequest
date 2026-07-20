@@ -28,14 +28,15 @@ struct ForegroundTile : public TileBase {
 		binary.Read(1, &sourceID);
 	}
 
-	void Draw(SDL_Surface* targetSurface, const std::unordered_map<uint8_t, SDL_Surface*>& atlases, int xOffset,
+	void Draw(SDL_Renderer* renderer, const std::unordered_map<uint8_t, SDL_Texture*>& atlases, int xOffset,
 			  int yOffset) {
-		TileBase::Draw(targetSurface, atlases.at(sourceID), xOffset, yOffset);
+		TileBase::Draw(renderer, atlases.at(sourceID), xOffset, yOffset);
 	}
 
-	void EnsureAtlasLoaded(SDL_Storage* storage, std::unordered_map<uint8_t, SDL_Surface*>& atlases) const {
+	void EnsureAtlasLoaded(SDL_Renderer* renderer, SDL_Storage* storage,
+						   std::unordered_map<uint8_t, SDL_Texture*>& atlases) const {
 		if (atlases.find(sourceID) != atlases.end()) return;
 
-		atlases[sourceID] = ModManager::LoadTileSource(sourceID);
+		atlases[sourceID] = ModManager::LoadTileSource(renderer, sourceID);
 	}
 };
