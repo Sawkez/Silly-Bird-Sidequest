@@ -2,7 +2,6 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-#include <pspgu.h>
 
 #include <fstream>
 #include <iostream>
