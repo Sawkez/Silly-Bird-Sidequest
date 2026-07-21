@@ -148,7 +148,8 @@ class Camera {
 
 	void Draw(SDL_Renderer* renderer) const {
 		Vector2 center = GetGlobalCenter();
-		Vector2 topLeft = center - Vector2(_pixelSize) * 0.5;
+		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
+		Vector2 topLeft = center - zoomedSize * 0.5f;
 
 		Vector2 texturePos{floor(topLeft.x / 8.0f) * 8.0f, floor(topLeft.y / 8.0f) * 8.0f};
 
@@ -156,16 +157,13 @@ class Camera {
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
 		SDL_RenderClear(renderer);
 
-		SDL_FRect visibilityRect{0.0f, 0.0f, float(_pixelSize.x) + 16.0f, float(_pixelSize.y) + 16.0f};
+		SDL_FRect visibilityRect{0.0f, 0.0f, zoomedSize.x + 16.0f, zoomedSize.y + 16.0f};
 
 		_room.get().Draw(renderer, visibilityRect, -texturePos);
 
 		_player.Draw(renderer, visibilityRect, -texturePos);
 
-		SDL_FRect hdRenderSource{topLeft.x - texturePos.x, topLeft.y - texturePos.y, float(_pixelSize.x),
-								 float(_pixelSize.y)};
-
-		hdRenderSource = Math::ScaleRect(hdRenderSource, center - texturePos, _zoom);
+		SDL_FRect hdRenderSource{topLeft.x - texturePos.x, topLeft.y - texturePos.y, zoomedSize.x, zoomedSize.y};
 
 		if (_shouldSnap) {
 			hdRenderSource.x = roundf(hdRenderSource.x);

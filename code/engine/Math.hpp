@@ -41,8 +41,15 @@ float MoveTowards(float a, float b, float moveSpeed) {
 float Lerp(float a, float b, float ratio) { return a + ratio * (b - a); }
 
 SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, const Vector2& scale) {
-	return {rect.x - scaleOrigin.x * scale.x + scaleOrigin.x, rect.y - scaleOrigin.y * scale.y + scaleOrigin.y,
-			rect.w * scale.x, rect.h * scale.y};
+	// clang-format off
+	return {
+		rect.x - scaleOrigin.x * scale.x + scaleOrigin.x,
+		rect.y - scaleOrigin.y * scale.y + scaleOrigin.y,
+		rect.w * scale.x,
+		rect.h * scale.y
+	};
+
+	// clang-format on
 }
 
 SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, float scale) {
