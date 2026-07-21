@@ -250,6 +250,8 @@ class InputManager {
 
 	void SimulateAction(int action, bool down) { _actions[action].SetDown(down, SDL_GetTicksNS()); }
 
+	void SimulateActionNoTap(int action, bool down) { _actions[action].SetDownNoTap(down); }
+
 	// clang-format off
 	int AddPressedCallback(ActionID action, std::function<void()> callback) { return _actions[action].AddPressedCallback(callback); }
 	int AddReleasedCallback(ActionID action, std::function<void()> callback) { return _actions[action].AddReleasedCallback(callback); }

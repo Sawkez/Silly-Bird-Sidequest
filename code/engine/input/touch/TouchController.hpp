@@ -34,6 +34,8 @@ class TouchController {
 
 	TouchButton _buttons[_BUTTON_COUNT];
 
+	SDL_TouchID _lastTouchDevice = 0;
+
    public:
 	// clang-format off
 	
@@ -101,6 +103,7 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_DOWN: {
+				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton* button;
 				if (!FindButton(event.tfinger.x, event.tfinger.y, button)) return false;
 				button->Press();
@@ -108,6 +111,7 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_MOTION: {
+				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton *oldButton, *newButton;
 				bool newButtonFound = FindButton(event.tfinger.x, event.tfinger.y, newButton);
 				bool oldButtonFound =
@@ -130,6 +134,7 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_UP: {
+				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton* button;
 				if (!FindButton(event.tfinger.x, event.tfinger.y, button)) return false;
 				button->Release();
@@ -144,6 +149,17 @@ class TouchController {
 	void Reset() {
 		for (int i = 0; i < _BUTTON_COUNT; i++) {
 			_buttons[i].Release();
+		}
+	}
+
+	void ResetToState() {
+		int count;
+		SDL_Finger** fingers = SDL_GetTouchFingers(_lastTouchDevice, &count);
+
+		Reset();
+
+		for (int i = 0; i < _BUTTON_COUNT; i++) {
+			_buttons[i].ResetToState(fingers, count);
 		}
 	}
 };

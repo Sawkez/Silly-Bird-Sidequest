@@ -79,7 +79,7 @@ class GameState {
 		_frameStartMs = _frameEndMs - _frameDuration;
 		_input.ResetToState();
 #ifdef PLATFORM_HAS_TOUCH
-		_touch.Reset();
+		_touch.ResetToState();
 #endif
 	}
 
