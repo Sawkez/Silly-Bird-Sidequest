@@ -5,6 +5,8 @@
 #include "engine/input/InputManager.hpp"
 #include "engine/input/touch/TouchButton.hpp"
 
+// TODO figure out better camera controls
+
 class TouchController {
    private:
 	enum TouchButtonID {

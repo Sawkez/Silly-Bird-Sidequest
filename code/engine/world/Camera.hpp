@@ -7,12 +7,13 @@
 
 class Camera {
    private:
-	static inline const float TARGET_SPEED = 100.0f;
-	static inline const float TARGET_DIST = 0.5f;
+	static inline const float TARGET_SPEED = 100.0;
+	static inline const float TARGET_DIST = 0.5;
 	static inline const float FOLLOW_SPEED = 60.0 / 15.0;
 	static inline const float MIN_FOLLOW_SPEED = 10.0;
 	static inline const float ZOOM_SPEED = 8.0;
 	static inline const float ZOOM_SNAP = 0.0001;
+	static inline const float FREE_CAM_SPEED = 200.0;
 
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
@@ -33,19 +34,27 @@ class Camera {
 
 	float _zoom = 1.0;
 
-	void CameraDoubleTapCallback() {
+	unsigned int _pressedCallbackID;
+	void PressedCallback() { GameState::GetInput().BlockInputs(); }
+
+	unsigned int _releasedCallbackID;
+	void ReleasedCallback() { GameState::GetInput().UnblockInputs(); }
+
+	unsigned int _doubleTapCallbackID;
+	void DoubleTapCallback() {
 		_zoomedOut = !_zoomedOut;
 		UpdateZoom(true);
 	}
-
-	unsigned int _callbackID;
 
    public:
 	Camera(SDL_Renderer* renderer, SDL_Window* window, const Player& player, const Room& room)
 		: _renderer(renderer), _window(window), _player(player), _room(room), _pixelSize{240, 136} {
 		UpdateZoom();
-		_callbackID =
-			GameState::GetInput().AddDoubleTapCallback(ACTION_CAMERA, [this]() { CameraDoubleTapCallback(); });
+		InputManager& input = GameState::GetInput();
+
+		_pressedCallbackID = input.AddPressedCallback(ACTION_CAMERA, [this]() { PressedCallback(); });
+		_releasedCallbackID = input.AddReleasedCallback(ACTION_CAMERA, [this]() { ReleasedCallback(); });
+		_doubleTapCallbackID = input.AddDoubleTapCallback(ACTION_CAMERA, [this]() { DoubleTapCallback(); });
 	}
 
 	void SetRoom(const Room& room) {
@@ -132,9 +141,24 @@ class Camera {
 	}
 
 	void Process(float delta) {
-		_target.MoveToward(_player.position, TARGET_SPEED * delta);
-		float targetDist = round(min(_pixelSize.x, _pixelSize.y) * TARGET_DIST);
-		_shouldSnap = (_zoom == 1.0f && _target.PinLength(_player.position, targetDist));
+		if (GameState::GetInput().IsDownNoBlock(ACTION_CAMERA)) {
+			_target += GameState::GetInput().GetDirNoBlock() * FREE_CAM_SPEED * delta;
+
+			Vector2 roomStart = _room.get().GetPosition();
+			Vector2 roomEnd = roomStart + _room.get().GetSize();
+
+			roomStart += Vector2(_pixelSize) * 0.5f * _zoom;
+			roomEnd -= Vector2(_pixelSize) * 0.5f * _zoom;
+
+			_target.x = clamp(_target.x, roomStart.x, roomEnd.x);
+			_target.y = clamp(_target.y, roomStart.y, roomEnd.y);
+		}
+
+		else {
+			_target.MoveToward(_player.position, TARGET_SPEED * delta);
+			float targetDist = round(min(_pixelSize.x, _pixelSize.y) * TARGET_DIST);
+			_shouldSnap = (_zoom == 1.0f && _target.PinLength(_player.position, targetDist));
+		}
 
 		Vector2 targetPlayerRelative = _target - _player.position;
 
@@ -175,7 +199,9 @@ class Camera {
 	}
 
 	~Camera() {
-		GameState::GetInput().RemoveDoubleTapCallback(ACTION_CAMERA, _callbackID);
+		GameState::GetInput().RemovePressedCallback(ACTION_CAMERA, _pressedCallbackID);
+		GameState::GetInput().RemoveReleasedCallback(ACTION_CAMERA, _releasedCallbackID);
+		GameState::GetInput().RemoveDoubleTapCallback(ACTION_CAMERA, _doubleTapCallbackID);
 		if (_pixelTexture != nullptr) SDL_DestroyTexture(_pixelTexture);
 	}
 };

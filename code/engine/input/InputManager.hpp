@@ -53,6 +53,7 @@ class InputManager {
 	SDL_JoystickID _lastUsedJoystick;
 	bool _dirJoystickPriority = false;
 	bool _lastInputWasController = false;
+	bool _blockInputs = false;
 
 	Action _actions[_ACTION_COUNT]{
 		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_INVALID),	 // jump
@@ -201,8 +202,8 @@ class InputManager {
 		}
 
 		else {
-			_dir.x = float(IsDown(ACTION_RIGHT)) - float(IsDown(ACTION_LEFT));
-			_dir.y = float(IsDown(ACTION_DOWN)) - float(IsDown(ACTION_UP));
+			_dir.x = float(IsDownNoBlock(ACTION_RIGHT)) - float(IsDownNoBlock(ACTION_LEFT));
+			_dir.y = float(IsDownNoBlock(ACTION_DOWN)) - float(IsDownNoBlock(ACTION_UP));
 		}
 
 		return;
@@ -242,15 +243,25 @@ class InputManager {
 		}
 	}
 
-	bool IsDown(int id) const { return _actions[id].IsDown(); }
+	bool IsDownNoBlock(int id) const { return _actions[id].IsDown(); }
+	bool IsTappedNoBlock(int id) const { return _actions[id].IsTapped(); }
 
-	bool IsTapped(int id) const { return _actions[id].IsTapped(); }
+	bool IsDown(int id) const { return !_blockInputs && _actions[id].IsDown(); }
+	bool IsTapped(int id) const { return !_blockInputs && _actions[id].IsTapped(); }
 
-	Vector2 GetDir() const { return _dir; }
+	Vector2 GetDirNoBlock() const { return _dir; }
+
+	Vector2 GetDir() const {
+		if (_blockInputs) return Vector2::ZERO;
+		return _dir;
+	}
 
 	void SimulateAction(int action, bool down) { _actions[action].SetDown(down, SDL_GetTicksNS()); }
 
 	void SimulateActionNoTap(int action, bool down) { _actions[action].SetDownNoTap(down); }
+
+	void BlockInputs() { _blockInputs = true; }
+	void UnblockInputs() { _blockInputs = false; }
 
 	// clang-format off
 	int AddPressedCallback(ActionID action, std::function<void()> callback) { return _actions[action].AddPressedCallback(callback); }
