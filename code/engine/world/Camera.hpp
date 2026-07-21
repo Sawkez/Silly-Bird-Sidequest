@@ -10,7 +10,7 @@ class Camera {
 	static inline const float TARGET_SPEED = 100.0f;
 	static inline const float TARGET_DIST = 0.5f;
 	static inline const float FOLLOW_SPEED = 60.0 / 15.0;
-	static inline const float MIN_FOLLOW_SPEED = 30.0;
+	static inline const float MIN_FOLLOW_SPEED = 10.0;
 
 	const Player& _player;
 	SDL_Point _pixelSize;
@@ -83,8 +83,8 @@ class Camera {
 
 		_player.Draw(renderer, visibilityRect, -texturePos);
 
-		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-		SDL_RenderPoint(renderer, _target.x - texturePos.x, _target.y - texturePos.y);
+		// SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+		// SDL_RenderPoint(renderer, _target.x - texturePos.x, _target.y - texturePos.y);
 
 		SDL_FRect hdRenderSource{topLeft.x - texturePos.x, topLeft.y - texturePos.y, float(_pixelSize.x),
 								 float(_pixelSize.y)};
