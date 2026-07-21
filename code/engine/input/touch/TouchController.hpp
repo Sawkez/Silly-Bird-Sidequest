@@ -37,6 +37,11 @@ class TouchController {
 	TouchButton _buttons[_BUTTON_COUNT];
 
 	SDL_TouchID _lastTouchDevice = 0;
+#ifdef PLATFORM_TOUCH_BY_DEFAULT
+	bool _lastInputWasTouch = true;
+#else
+	bool _lastInputWasTouch = false;
+#endif
 
    public:
 	// clang-format off
@@ -76,6 +81,8 @@ class TouchController {
 	}
 
 	void Draw(SDL_Renderer* renderer) {
+		if (!_lastInputWasTouch) return;
+
 		for (int i = 0; i < _BUTTON_COUNT; i++) {
 			_buttons[i].Draw(renderer);
 		}
@@ -106,6 +113,7 @@ class TouchController {
 
 			case SDL_EVENT_FINGER_DOWN: {
 				_lastTouchDevice = event.tfinger.touchID;
+				_lastInputWasTouch = true;
 				TouchButton* button;
 				if (!FindButton(event.tfinger.x, event.tfinger.y, button)) return false;
 				button->Press();
@@ -114,6 +122,7 @@ class TouchController {
 
 			case SDL_EVENT_FINGER_MOTION: {
 				_lastTouchDevice = event.tfinger.touchID;
+				_lastInputWasTouch = true;
 				TouchButton *oldButton, *newButton;
 				bool newButtonFound = FindButton(event.tfinger.x, event.tfinger.y, newButton);
 				bool oldButtonFound =
@@ -136,12 +145,21 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_UP: {
+				_lastInputWasTouch = true;
 				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton* button;
 				if (!FindButton(event.tfinger.x, event.tfinger.y, button)) return false;
 				button->Release();
 				return true;
 			}
+
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_MOUSE_MOTION:
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_WHEEL:
+				_lastInputWasTouch = false;
 
 			default:
 				return false;
@@ -155,6 +173,8 @@ class TouchController {
 	}
 
 	void ResetToState() {
+		if (!_lastInputWasTouch) return;
+
 		int count;
 		SDL_Finger** fingers = SDL_GetTouchFingers(_lastTouchDevice, &count);
 
