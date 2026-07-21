@@ -12,23 +12,79 @@ class Camera {
 	static inline const float FOLLOW_SPEED = 60.0 / 15.0;
 	static inline const float MIN_FOLLOW_SPEED = 10.0;
 
+	SDL_Window* _window;
+	SDL_Renderer* _renderer;
+
 	const Player& _player;
 	SDL_Point _pixelSize;
 	std::reference_wrapper<const Room> _room;
-	SDL_Texture* _pixelTexture;
+	SDL_Texture* _pixelTexture = nullptr;
+	SDL_Point _pixelTextureSize{0, 0};
+
+	Vector2 _roomStart;
+	Vector2 _roomEnd;
 
 	bool _shouldSnap;
 	Vector2 _position;
 	Vector2 _target;
 
    public:
-	Camera(SDL_Renderer* renderer, const Player& player, const Room& room)
-		: _player(player), _room(room), _pixelSize{240, 136} {
-		_pixelTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET,
-										  _pixelSize.x + 16, _pixelSize.y + 16);
+	Camera(SDL_Renderer* renderer, SDL_Window* window, const Player& player, const Room& room)
+		: _renderer(renderer), _window(window), _player(player), _room(room), _pixelSize{240, 136} {
+		UpdateZoom(false);
 	}
 
-	void SetRoom(const Room& room) { _room = std::ref(room); }
+	void SetRoom(const Room& room) {
+		_room = std::ref(room);
+		UpdateZoom(false);
+	}
+
+	void UpdateZoom(bool zoomedOut = false) {
+		int windowWidth, windowHeight;
+		SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
+
+		float aspect = float(windowWidth) / float(windowHeight);
+
+		Vector2 targetRes = zoomedOut ? _room.get().GetSize() : _room.get().GetTargetSize();
+		float targetAspect = targetRes.x / targetRes.y;
+
+		Vector2 roomRes = _room.get().GetSize();
+
+		if (aspect > targetAspect) {
+			targetRes.x = targetRes.y * aspect;				  // grow target to match window aspect
+			targetRes *= min(1.0f, roomRes.x / targetRes.x);  // shrink target to fit in room
+		}
+
+		else {
+			targetRes.y = targetRes.x / aspect;				  // grow target to match window aspect
+			targetRes *= min(1.0f, roomRes.y / targetRes.y);  // shrink target to fit in room
+		}
+
+		Vector2 maxRes = zoomedOut ? Vector2{float(windowWidth), float(windowHeight)}
+								   : Vector2{float(windowWidth) * 0.5f, float(windowHeight) * 0.5f};
+
+		if (maxRes.LengthSquared() < targetRes.LengthSquared()) {
+			_pixelSize.x = int(maxRes.x);
+			_pixelSize.y = int(maxRes.y);
+		}
+
+		else {
+			_pixelSize.x = int(targetRes.x);
+			_pixelSize.y = int(targetRes.y);
+		}
+
+		SDL_Point newTextureRes{Math::CeilPowerOfTwo(_pixelSize.x), Math::CeilPowerOfTwo(_pixelSize.y)};
+
+		if (newTextureRes == _pixelTextureSize) {
+			return;
+		}
+
+		_pixelTextureSize = newTextureRes;
+
+		if (_pixelTexture != nullptr) SDL_DestroyTexture(_pixelTexture);
+		_pixelTexture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET,
+										  _pixelTextureSize.x, _pixelTextureSize.y);
+	}
 
 	Vector2 GetTopLeft() const {
 		Vector2 topLeft;
@@ -82,9 +138,6 @@ class Camera {
 		_room.get().Draw(renderer, visibilityRect, -texturePos);
 
 		_player.Draw(renderer, visibilityRect, -texturePos);
-
-		// SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-		// SDL_RenderPoint(renderer, _target.x - texturePos.x, _target.y - texturePos.y);
 
 		SDL_FRect hdRenderSource{topLeft.x - texturePos.x, topLeft.y - texturePos.y, float(_pixelSize.x),
 								 float(_pixelSize.y)};

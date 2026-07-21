@@ -41,10 +41,25 @@ float MoveTowards(float a, float b, float moveSpeed) {
 float Lerp(float a, float b, float ratio) { return a + ratio * (b - a); }
 
 SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, const Vector2& scale) {
-	return {rect.x - scaleOrigin.x * scale.x + scaleOrigin.x, rect.y - scaleOrigin.y * scale.y + scaleOrigin.y, rect.w * scale.x, rect.h * scale.y};
+	return {rect.x - scaleOrigin.x * scale.x + scaleOrigin.x, rect.y - scaleOrigin.y * scale.y + scaleOrigin.y,
+			rect.w * scale.x, rect.h * scale.y};
 }
 
-SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, float scale) { return ScaleRect(rect, scaleOrigin, Vector2{scale, scale}); }
+SDL_FRect ScaleRect(const SDL_FRect& rect, const Vector2& scaleOrigin, float scale) {
+	return ScaleRect(rect, scaleOrigin, Vector2{scale, scale});
+}
+
+// rounds number up to nearest power of 2
+int CeilPowerOfTwo(int a) {
+	a--;
+	a |= a >> 1;
+	a |= a >> 2;
+	a |= a >> 4;
+	a |= a >> 8;
+	a |= a >> 16;
+	a++;
+	return a;
+}
 
 }  // namespace Math
 

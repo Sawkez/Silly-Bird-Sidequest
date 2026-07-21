@@ -41,7 +41,7 @@ class Level : IProcessable, IDrawable {
 		  _currentRoom(storage, GetRoomPath(roomIndex), renderer, _spikeAtlas),
 		  _renderer(renderer),
 		  _player(inputManager, renderer, _currentRoom, playerUpgrades),
-		  _camera(_renderer, _player, _currentRoom) {}
+		  _camera(_renderer, GameState::GetMainWindow(), _player, _currentRoom) {}
 
 	std::string GetRoomPath(int index) { return _path + "rooms/" + to_string(index) + ".room"; }
 
