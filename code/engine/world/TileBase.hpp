@@ -18,12 +18,12 @@ struct TileBase {
 	virtual int GetDrawDestOffset() const = 0;
 
 	void Draw(SDL_Renderer* renderer, SDL_Texture* atlas, int xOffset, int yOffset) {
-		SDL_FRect source{xAtlas * GetDrawSourceSize(), yAtlas * GetDrawSourceSize(), GetDrawSourceSize(),
-						 GetDrawSourceSize()};
+		SDL_FRect source{float(xAtlas) * GetDrawSourceSize(), float(yAtlas) * GetDrawSourceSize(),
+						 float(GetDrawSourceSize()), float(GetDrawSourceSize())};
 
-		SDL_FRect destination{x * WorldConstants::TILE_SIZE + GetDrawDestOffset() + xOffset,
-							  y * WorldConstants::TILE_SIZE + GetDrawDestOffset() + yOffset, GetDrawSourceSize(),
-							  GetDrawSourceSize()};
+		SDL_FRect destination{float(x * WorldConstants::TILE_SIZE + GetDrawDestOffset() + xOffset),
+							  float(y * WorldConstants::TILE_SIZE + GetDrawDestOffset() + yOffset),
+							  float(GetDrawSourceSize()), float(GetDrawSourceSize())};
 
 		if (!SDL_RenderTexture(renderer, atlas, &source, &destination)) {
 			dc::err << "ERROR when caching tile: " << SDL_GetError() << dc::endl;

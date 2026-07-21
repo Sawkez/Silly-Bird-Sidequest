@@ -50,7 +50,7 @@ class RoomChunk : public IDrawableRect {
 
 		// SDL_RenderClear currently bugged on PSP
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_FRect fill{0.0, 0.0, _rect.w, _rect.h};
+		SDL_FRect fill{0.0, 0.0, float(_rect.w), float(_rect.h)};
 		SDL_RenderFillRect(renderer, &fill);
 
 		dc::msg << SDL_GetTicks() << ": Loading and caching " << tileCount << " tiles" << dc::endl;
