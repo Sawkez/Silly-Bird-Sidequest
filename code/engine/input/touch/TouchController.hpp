@@ -27,6 +27,8 @@ class TouchController {
 		BUTTON_PAUSE,
 		BUTTON_CONSOLE,
 
+		BUTTON_CAMERA,
+
 		_BUTTON_COUNT
 	};
 
@@ -54,6 +56,8 @@ class TouchController {
 
 		TouchButton(SDL_FPoint{0.05, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_PAUSE}),
 		TouchButton(SDL_FPoint{0.10, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_CONSOLE}),
+
+		TouchButton(SDL_FPoint{0.90, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_CAMERA})
 	} {}
 
 	// clang-format on
@@ -106,7 +110,8 @@ class TouchController {
 			case SDL_EVENT_FINGER_MOTION: {
 				TouchButton *oldButton, *newButton;
 				bool newButtonFound = FindButton(event.tfinger.x, event.tfinger.y, newButton);
-				bool oldButtonFound = FindButton(event.tfinger.x - event.tfinger.dx, event.tfinger.y - event.tfinger.dy, oldButton);
+				bool oldButtonFound =
+					FindButton(event.tfinger.x - event.tfinger.dx, event.tfinger.y - event.tfinger.dy, oldButton);
 
 				if (!newButtonFound && !oldButtonFound) {
 					return false;
