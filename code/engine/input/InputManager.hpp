@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <functional>
 #include <iostream>
 
 #include "engine/Math.hpp"
@@ -17,7 +18,7 @@ enum ActionID {
 	ACTION_UP,
 	ACTION_DOWN,
 	ACTION_INTERACT,
-	ACTION_PAN_CAMERA,
+	ACTION_CAMERA,
 	ACTION_PAUSE,
 	ACTION_CONSOLE,
 	_ACTION_COUNT
@@ -38,13 +39,14 @@ class InputManager {
 		bool Has(float angle) const { return angle >= start && angle <= end; }
 	};
 
-	const JoyRemap JOY_REMAPS[JOY_REMAP_COUNT] = {JoyRemap{Math::Radians(-181.0), Math::Radians(-120.0), Vector2::LEFT},
-												  JoyRemap{Math::Radians(-120.0), Math::Radians(-60.0), Vector2::UP},
-												  JoyRemap{Math::Radians(-60.0), Math::Radians(25.0), Vector2::RIGHT},
-												  JoyRemap{Math::Radians(25.0), Math::Radians(75.0), Vector2::RIGHT + Vector2::DOWN},
-												  JoyRemap{Math::Radians(75.0), Math::Radians(105.0), Vector2::DOWN},
-												  JoyRemap{Math::Radians(105.0), Math::Radians(155.0), Vector2::LEFT + Vector2::DOWN},
-												  JoyRemap{Math::Radians(155.0), Math::Radians(181.0), Vector2::LEFT}};
+	const JoyRemap JOY_REMAPS[JOY_REMAP_COUNT] = {
+		JoyRemap{Math::Radians(-181.0), Math::Radians(-120.0), Vector2::LEFT},
+		JoyRemap{Math::Radians(-120.0), Math::Radians(-60.0), Vector2::UP},
+		JoyRemap{Math::Radians(-60.0), Math::Radians(25.0), Vector2::RIGHT},
+		JoyRemap{Math::Radians(25.0), Math::Radians(75.0), Vector2::RIGHT + Vector2::DOWN},
+		JoyRemap{Math::Radians(75.0), Math::Radians(105.0), Vector2::DOWN},
+		JoyRemap{Math::Radians(105.0), Math::Radians(155.0), Vector2::LEFT + Vector2::DOWN},
+		JoyRemap{Math::Radians(155.0), Math::Radians(181.0), Vector2::LEFT}};
 
    private:
 	Vector2 _dir = Vector2(0.0, 0.0);
@@ -53,16 +55,21 @@ class InputManager {
 	bool _lastInputWasController = false;
 
 	Action _actions[_ACTION_COUNT]{
-		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_INVALID),			   // jump
-		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, Action::LEFT_TRIGGER_BUTTON),  // dive
-		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT, SDL_GAMEPAD_BUTTON_INVALID),			   // left
-		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_INVALID),		   // right
-		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_INVALID),			   // up
-		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_INVALID),			   // down
-		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_INVALID),				   // interact
-		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_INVALID),				   // pan camera
-		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_INVALID),		   // pause
-		Action(SDL_SCANCODE_GRAVE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_BACK, SDL_GAMEPAD_BUTTON_INVALID)			   // dev console
+		Action(SDL_SCANCODE_SPACE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_INVALID),	 // jump
+		Action(SDL_SCANCODE_LSHIFT, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,
+			   Action::LEFT_TRIGGER_BUTTON),																	 // dive
+		Action(SDL_SCANCODE_A, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT, SDL_GAMEPAD_BUTTON_INVALID),	 // left
+		Action(SDL_SCANCODE_D, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_RIGHT,
+			   SDL_GAMEPAD_BUTTON_INVALID),																	   // right
+		Action(SDL_SCANCODE_W, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_INVALID),  // up
+		Action(SDL_SCANCODE_S, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_INVALID),	 // down
+		Action(SDL_SCANCODE_E, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_INVALID),	// interact
+		Action(SDL_SCANCODE_Q, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_EAST,
+			   SDL_GAMEPAD_BUTTON_INVALID),	 // pan camera
+		Action(SDL_SCANCODE_ESCAPE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_START,
+			   SDL_GAMEPAD_BUTTON_INVALID),	 // pause
+		Action(SDL_SCANCODE_GRAVE, SDL_SCANCODE_UNKNOWN, SDL_GAMEPAD_BUTTON_BACK,
+			   SDL_GAMEPAD_BUTTON_INVALID)	// dev console
 	};
 
 	bool IsDirectionAction(int id) { return id >= ACTION_LEFT && id <= ACTION_DOWN; }
@@ -114,21 +121,21 @@ class InputManager {
 
 		if (event.down && IsDirectionAction(actionId)) _dirJoystickPriority = false;
 
-		_actions[actionId].SetDown(event.down);
+		_actions[actionId].SetDown(event.down, event.timestamp);
 	}
 
 	void HandleEvent(const SDL_GamepadButtonEvent& event) {
 		_lastInputWasController = true;
 		_lastUsedJoystick = event.which;
 
-		ButtonEvent(event.button, event.down);
+		ButtonEvent(event.button, event.down, event.timestamp);
 	}
 
-	bool ButtonEvent(int button, bool pressed) {  // separated so we can handle triggers as buttons
+	bool ButtonEvent(int button, bool pressed, Uint64 timestamp) {	// separated so we can handle triggers as buttons
 		for (int i = 0; i < _ACTION_COUNT; i++) {
 			if (_actions[i].HasButton(button)) {
 				if (pressed && IsDirectionAction(i)) _dirJoystickPriority = false;
-				_actions[i].SetDown(pressed);
+				_actions[i].SetDown(pressed, timestamp);
 				return true;
 			}
 		}
@@ -154,10 +161,10 @@ class InputManager {
 
 #ifdef PLATFORM_HAS_TRIGGERS
 			case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
-				return ButtonEvent(Action::LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
+				return ButtonEvent(Action::LEFT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE, event.timestamp);
 
 			case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
-				return ButtonEvent(Action::RIGHT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE);
+				return ButtonEvent(Action::RIGHT_TRIGGER_BUTTON, event.value > TRIGGER_DOWN_VALUE, event.timestamp);
 #endif
 		}
 
@@ -187,10 +194,10 @@ class InputManager {
 				_dir = Vector2::ZERO;
 			}
 
-			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0);
-			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0);
-			_actions[ACTION_UP].SetDown(_dir.y < 0.0);
-			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0);
+			_actions[ACTION_LEFT].SetDown(_dir.x < 0.0, SDL_GetTicksNS());
+			_actions[ACTION_RIGHT].SetDown(_dir.x > 0.0, SDL_GetTicksNS());
+			_actions[ACTION_UP].SetDown(_dir.y < 0.0, SDL_GetTicksNS());
+			_actions[ACTION_DOWN].SetDown(_dir.y > 0.0, SDL_GetTicksNS());
 		}
 
 		else {
@@ -209,7 +216,7 @@ class InputManager {
 
 	void Reset() {
 		for (int i = 0; i < _ACTION_COUNT; i++) {
-			_actions[i].SetDown(false);
+			_actions[i].SetDown(false, 0);
 		}
 	}
 
@@ -241,5 +248,14 @@ class InputManager {
 
 	Vector2 GetDir() const { return _dir; }
 
-	void SimulateAction(int action, bool down) { _actions[action].SetDown(down); }
+	void SimulateAction(int action, bool down) { _actions[action].SetDown(down, SDL_GetTicksNS()); }
+
+	// clang-format off
+	int AddPressedCallback(ActionID action, std::function<void()> callback) { return _actions[action].AddPressedCallback(callback); }
+	int AddReleasedCallback(ActionID action, std::function<void()> callback) { return _actions[action].AddReleasedCallback(callback); }
+	int AddDoubleTapCallback(ActionID action, std::function<void()> callback) { return _actions[action].AddDoubleTapCallback(callback); }
+	void RemovePressedCallback(ActionID action, unsigned int id) { _actions[action].RemovePressedCallback(id); }
+	void RemoveReleasedCallback(ActionID action, unsigned int id) { _actions[action].RemoveReleasedCallback(id); }
+	void RemoveDoubleTapCallback(ActionID action, unsigned int id) { _actions[action].RemoveDoubleTapCallback(id); }
+	// clang-format on
 };
