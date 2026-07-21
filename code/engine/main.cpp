@@ -33,7 +33,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	ResourceManager::Init();
 	GameState::Init();
 	ModManager::Init();
-	ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
+	ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest-hidden.sbsq");
 	UIManager::Init(GameState::GetMainRenderer(), GameState::GetMainWindow());
 	DevConsole::Init(&Menus::console);
 	Random::Init();
@@ -80,8 +80,10 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	// render
 	if (!SaveManager::instance->OverrideDrawing()) {
-		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 0, 0, 0);
-		SDL_RenderClear(GameState::GetMainRenderer());
+		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 255, 255, 255, 0);
+		if (!SDL_RenderClear(GameState::GetMainRenderer())) {
+			dc::err << "ERROR clearing screen: " << SDL_GetError() << dc::endl;
+		}
 
 		WorldManager::GetLevel().Draw(GameState::GetMainRenderer());
 

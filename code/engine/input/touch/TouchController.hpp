@@ -5,6 +5,8 @@
 #include "engine/input/InputManager.hpp"
 #include "engine/input/touch/TouchButton.hpp"
 
+// TODO figure out better camera controls
+
 class TouchController {
    private:
 	enum TouchButtonID {
@@ -27,10 +29,14 @@ class TouchController {
 		BUTTON_PAUSE,
 		BUTTON_CONSOLE,
 
+		BUTTON_CAMERA,
+
 		_BUTTON_COUNT
 	};
 
 	TouchButton _buttons[_BUTTON_COUNT];
+
+	SDL_TouchID _lastTouchDevice = 0;
 
    public:
 	// clang-format off
@@ -54,6 +60,8 @@ class TouchController {
 
 		TouchButton(SDL_FPoint{0.05, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_PAUSE}),
 		TouchButton(SDL_FPoint{0.10, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_CONSOLE}),
+
+		TouchButton(SDL_FPoint{0.90, 0.05}, SDL_FPoint{0.05, 0.1}, inputManager, {ACTION_CAMERA})
 	} {}
 
 	// clang-format on
@@ -97,6 +105,7 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_DOWN: {
+				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton* button;
 				if (!FindButton(event.tfinger.x, event.tfinger.y, button)) return false;
 				button->Press();
@@ -104,9 +113,11 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_MOTION: {
+				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton *oldButton, *newButton;
 				bool newButtonFound = FindButton(event.tfinger.x, event.tfinger.y, newButton);
-				bool oldButtonFound = FindButton(event.tfinger.x - event.tfinger.dx, event.tfinger.y - event.tfinger.dy, oldButton);
+				bool oldButtonFound =
+					FindButton(event.tfinger.x - event.tfinger.dx, event.tfinger.y - event.tfinger.dy, oldButton);
 
 				if (!newButtonFound && !oldButtonFound) {
 					return false;
@@ -125,6 +136,7 @@ class TouchController {
 			}
 
 			case SDL_EVENT_FINGER_UP: {
+				_lastTouchDevice = event.tfinger.touchID;
 				TouchButton* button;
 				if (!FindButton(event.tfinger.x, event.tfinger.y, button)) return false;
 				button->Release();
@@ -139,6 +151,17 @@ class TouchController {
 	void Reset() {
 		for (int i = 0; i < _BUTTON_COUNT; i++) {
 			_buttons[i].Release();
+		}
+	}
+
+	void ResetToState() {
+		int count;
+		SDL_Finger** fingers = SDL_GetTouchFingers(_lastTouchDevice, &count);
+
+		Reset();
+
+		for (int i = 0; i < _BUTTON_COUNT; i++) {
+			_buttons[i].ResetToState(fingers, count);
 		}
 	}
 };

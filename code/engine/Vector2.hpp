@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "engine/resource/BinaryReader.hpp"
 #include "yyjson.h"
 
 class Vector2 : public SDL_FPoint {
@@ -18,6 +19,11 @@ class Vector2 : public SDL_FPoint {
 	Vector2(yyjson_val* vectorJson)
 		: SDL_FPoint{float(yyjson_get_num(yyjson_obj_get(vectorJson, "x"))),
 					 float(yyjson_get_num(yyjson_obj_get(vectorJson, "y")))} {}
+
+	Vector2(BinaryReader& binary) {
+		binary.Read(4, &x);
+		binary.Read(4, &y);
+	}
 
 	float LengthSquared() const { return std::min(x * x + y * y, FLT_MAX); }
 
@@ -39,6 +45,16 @@ class Vector2 : public SDL_FPoint {
 
 	Vector2 DirectionTo(const Vector2& other) const { return (other - *this).Normalized(); }
 
+	// change this vector to limit its distance from pin
+	bool PinLength(const Vector2& pin, float distance) {
+		if (DistanceSquared(pin) > distance * distance) {
+			*this = pin + pin.DirectionTo(*this) * distance;
+			return true;
+		}
+
+		return false;
+	}
+
 	float Angle() const {
 		float angle = atan2(y, x);
 		return angle;
@@ -47,7 +63,10 @@ class Vector2 : public SDL_FPoint {
 	bool IsZeroApprox() const { return abs(x) + abs(y) < ZERO_PRECISION; }
 
 	void MoveToward(const Vector2& target, float moveDistance) {
-		if (DistanceSquared(target) < moveDistance * moveDistance) *this = target;
+		if (DistanceSquared(target) < moveDistance * moveDistance) {
+			*this = target;
+			return;
+		}
 		*this += DirectionTo(target) * moveDistance;
 	}
 

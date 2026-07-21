@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/resource/BinaryReader.hpp"
 #include "engine/world/WorldConstants.hpp"
 #include "yyjson.h"
 
@@ -38,13 +39,20 @@ class SpikeCollider : IDrawable {
 		SDL_ReadIO(file, &_bitmask, 1);
 	}
 
+	SpikeCollider(BinaryReader& binary) {
+		binary.Read(2, &_x);
+		binary.Read(2, &_y);
+		binary.Read(1, &_bitmask);
+	}
+
 	bool HasSubSpike(int which) const { return (_bitmask & (1U << which)) != 0; }
 
 	bool HasIntersection(const CollisionRect& rect) const {
 		for (int i = 0; i < _SUB_SPIKE_COUNT; i++) {
 			if (HasSubSpike(i)) {
 				SDL_FRect spikeRect{float(_x) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].x,
-									float(_y) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].y, SPIKE_SIZE, SPIKE_SIZE};
+									float(_y) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].y, SPIKE_SIZE,
+									SPIKE_SIZE};
 
 				if (SDL_HasRectIntersectionFloat(&rect, &spikeRect)) return true;
 			}

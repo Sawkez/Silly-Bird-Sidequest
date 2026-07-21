@@ -72,6 +72,20 @@ class TouchButton {
 		}
 	}
 
+	void ResetToState(SDL_Finger** fingers, int count) {
+		for (int i = 0; i < count; i++) {
+			if (!HasPoint(fingers[i]->x, fingers[i]->y)) continue;
+
+			_down = true;
+
+			for (auto action : _actions) {
+				_inputManager.SimulateActionNoTap(action, true);
+			}
+
+			return;
+		}
+	}
+
 	// When shifting from one button to another, activate only the actions that weren't already active from the other
 	// button and deactivate only the actions that won't be active from this button.
 	void Shift(TouchButton& other) {
