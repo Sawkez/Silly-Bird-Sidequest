@@ -94,8 +94,6 @@ class MovementStateSlide : public IMovementState {
 		if (p.IsFacingLeft()) {
 			p.velocity.x = -p.velocity.x;
 		}
-
-		dc::msg << p.velocity.x << " " << p.velocity.y << dc::endl;
 	}
 
 	void Deinit(Player& p) const override {
