@@ -7,8 +7,9 @@
 class MovementStateSlide : public IMovementState {
 	static inline constexpr float SLIDE_INITIAL_SPEED = 250.0;
 	static inline constexpr float SLIDE_SPEED = 200.0;
-	static inline constexpr float ULTRASLIDE_VELOCITY_MULT = 0.975;	 // i can't figure out why this is different from godot
-	static inline constexpr float SLIDE_GRAVITY = 0.01;
+	static inline constexpr float ULTRASLIDE_VELOCITY_MULT =
+		0.975;	// i can't figure out why this is different from godot
+	static inline constexpr float SLIDE_GRAVITY = 1.0;
 	static inline constexpr float SQUISH_SLIDE = 0.5;
 	static inline constexpr float SLIDE_FRICTION = 300.0;
 	static inline constexpr float SLIDE_JUMP_FORCE = 250.0;
@@ -93,6 +94,8 @@ class MovementStateSlide : public IMovementState {
 		if (p.IsFacingLeft()) {
 			p.velocity.x = -p.velocity.x;
 		}
+
+		dc::msg << p.velocity.x << " " << p.velocity.y << dc::endl;
 	}
 
 	void Deinit(Player& p) const override {

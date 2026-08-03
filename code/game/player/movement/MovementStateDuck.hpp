@@ -8,7 +8,7 @@ class MovementStateDuck : public IMovementState {
 	const float SQUISH_STAND_UP = 1.5;
 	const float SQUISH_TWERK_DOWN = 0.9;
 	const float SQUISH_TWERK_UP = 1.1;
-	const float DUCK_GRAVITY = 0.01;
+	const float DUCK_GRAVITY = 1.0;
 	const float DUCK_JUMP_FORCE = 250.0;
 
 	void Init(Player& p) const override {
