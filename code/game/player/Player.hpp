@@ -300,16 +300,8 @@ class Player : public IPlayer {
 			_collision.x = position.x + collisionOffset.x;
 			_collision.y = position.y + collisionOffset.y;
 
-			CollisionResult firstCollision{};
 			Vector2 frameVelocity = velocity * delta;
-
-			for (const auto& collider : _room.get().GetColliders()) {
-				CollisionResult newCollision = collider.SweptAABBCollision(_collision, frameVelocity);
-
-				if (newCollision.depth < firstCollision.depth) {
-					firstCollision = newCollision;
-				}
-			}
+			CollisionResult firstCollision = _room.get().GetColliders().SweptAABBCollision(_collision, frameVelocity);
 
 			float depth = std::min(firstCollision.depth, timeLeft);
 
@@ -339,19 +331,8 @@ class Player : public IPlayer {
 		_floorCheck.x = position.x + FLOOR_CHECK_OFFSET.x;
 		_floorCheck.y = position.y + FLOOR_CHECK_OFFSET.y;
 
-		for (const auto& collider : _room.get().GetColliders()) {
-			if (SDL_HasRectIntersectionFloat(&_ceilingCheck, &collider)) {
-				SetFlag(Flag::FLAG_CLOSE_TO_CEILING);
-				break;
-			}
-		}
-
-		for (const auto& collider : _room.get().GetColliders()) {
-			if (SDL_HasRectIntersectionFloat(&_floorCheck, &collider)) {
-				SetFlag(Flag::FLAG_CLOSE_TO_FLOOR);
-				break;
-			}
-		}
+		SetFlag(Flag::FLAG_CLOSE_TO_CEILING, _room.get().GetColliders().OverlapsRect(_ceilingCheck));
+		SetFlag(Flag::FLAG_CLOSE_TO_FLOOR, _room.get().GetColliders().OverlapsRect(_floorCheck));
 
 		// rejuvenating
 		if (hVelocityBeforeCollision > REJUVENATOR_THRESHOLD && IsPushingWall() && HasUpgrade(UPGRADE_REJUVENATOR)) {
@@ -515,7 +496,7 @@ class Player : public IPlayer {
 		return std::find(ledges.begin(), ledges.end(), _ledgeTile) != ledges.end();
 	}
 
-	const vector<CollisionRect>& GetStaticColliders() const override { return _room.get().GetColliders(); }
+	const RoomColliderContainer& GetRoomColliders() const override { return _room.get().GetColliders(); }
 	const vector<SpikeCollider>& GetSpikeColliders() const override { return _room.get().GetSpikeColliders(); }
 
 	void Respawn() override {
@@ -525,15 +506,6 @@ class Player : public IPlayer {
 		ReloadDive();
 	}
 	void SetRespawnPosition(Vector2 respawnPosition) override { _respawnPosition = respawnPosition; }
-
-	void PushOutOfColliders() override {
-		Vector2 collisionOffset = GetCollisionOffset();
-
-		for (const auto& collider : GetStaticColliders()) {
-			Vector2 push = collider.PushOut(_collision);
-			position += push;
-		}
-	}
 
 	void ShowScarf() override { _sprite.EnableOverlay(); }
 	void HideScarf() override { _sprite.DisableOverlay(); }

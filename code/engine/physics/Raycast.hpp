@@ -16,58 +16,59 @@ class Raycast {
 	Vector2 _position;
 	Vector2 _localTarget;
 
-	bool CheckAxisCollision(const std::vector<CollisionRect>& colliders) const {
-		for (const auto& rect : colliders) {
-			switch (_axis) {
-				case LEFT:
-				case RIGHT:
-					if (_position.y < rect.y || _position.y > rect.y + rect.h) continue;
-					break;
+	bool CheckAxisCollision(const CollisionRect& rect) const {
+		switch (_axis) {
+			case LEFT:
+			case RIGHT:
+				if (_position.y < rect.y || _position.y > rect.y + rect.h) return false;
+				break;
 
-				case UP:
-				case DOWN:
-					if (_position.x < rect.x || _position.x > rect.x + rect.w) continue;
-					break;
+			case UP:
+			case DOWN:
+				if (_position.x < rect.x || _position.x > rect.x + rect.w) return false;
+				break;
 
-				case NONE:
-					break;
-			}
-
-			float relative;
-
-			switch (_axis) {
-				case LEFT:
-					relative = _position.x - (rect.x + rect.w);
-					break;
-
-				case RIGHT:
-					relative = rect.x - _position.x;
-					break;
-
-				case UP:
-					relative = _position.y - (rect.y + rect.h);
-					break;
-
-				case DOWN:
-					relative = rect.y - _position.y;
-					break;
-
-				case NONE:
-					break;
-			}
-
-			if (relative >= 0.0 && relative <= _length) return true;
+			case NONE:
+				break;
 		}
+
+		float relative;
+
+		switch (_axis) {
+			case LEFT:
+				relative = _position.x - (rect.x + rect.w);
+				break;
+
+			case RIGHT:
+				relative = rect.x - _position.x;
+				break;
+
+			case UP:
+				relative = _position.y - (rect.y + rect.h);
+				break;
+
+			case DOWN:
+				relative = rect.y - _position.y;
+				break;
+
+			case NONE:
+				break;
+		}
+
+		if (relative >= 0.0 && relative <= _length) return true;
 
 		return false;
 	}
 
    public:
-	Raycast(float x, float y, float xTarget, float yTarget) : _position(x, y) { SetLocalTarget(Vector2(xTarget, yTarget)); }
+	Raycast(float x, float y, float xTarget, float yTarget) : _position(x, y) {
+		SetLocalTarget(Vector2(xTarget, yTarget));
+	}
 
 	Raycast(Vector2 position, Vector2 localTarget) : _position(position) { SetLocalTarget(localTarget); }
 
-	Raycast(Vector2 position, Axis axis, float length) : _axis(axis), _position(position), _length(length), _localTarget(Vector2(0.0, 0.0)) {}
+	Raycast(Vector2 position, Axis axis, float length)
+		: _axis(axis), _position(position), _length(length), _localTarget(Vector2(0.0, 0.0)) {}
 
 	void SetPosition(Vector2 position) { _position = position; }
 
@@ -106,9 +107,9 @@ class Raycast {
 
 	void SetGlobalTarget(Vector2 target) { SetLocalTarget(target - _position); }
 
-	bool CheckCollision(const std::vector<CollisionRect>& colliders) const {
+	bool CheckCollision(const CollisionRect& rect) const {
 		if (_axis != NONE) {
-			return CheckAxisCollision(colliders);
+			return CheckAxisCollision(rect);
 		}
 
 		else {
@@ -116,4 +117,7 @@ class Raycast {
 			return false;  // TODO implement
 		}
 	}
+
+	const Vector2& GetGlobalPosition() const { return _position; }
+	Vector2 GetGlobalTarget() const { return _localTarget + _position; }
 };

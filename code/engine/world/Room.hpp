@@ -7,6 +7,7 @@
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/physics/CollisionRect.hpp"
+#include "engine/physics/RoomColliderContainer.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
@@ -30,7 +31,7 @@ class Room : IDrawableRect {
 	Uint16 _targetWidth;
 	Uint16 _targetHeight;
 	vector<RoomChunk> _chunks;
-	vector<CollisionRect> _colliders;
+	RoomColliderContainer _colliders;
 	vector<SpikeCollider> _spikeColliders;
 	vector<SDL_Point> _ledges;
 	vector<RoomNeighbor> _neighbors;
@@ -51,8 +52,6 @@ class Room : IDrawableRect {
 
 		Uint8 chunkCount;
 		_binary.Read(1, &chunkCount);
-		Uint32 colliderCount;
-		_binary.Read(4, &colliderCount);
 		Uint32 spikeColliderCount;
 		_binary.Read(4, &spikeColliderCount);
 		Uint8 checkpointCount;
@@ -72,17 +71,10 @@ class Room : IDrawableRect {
 			_chunks.emplace_back(storage, _binary, renderer, atlases, spikeAtlas);
 		}
 
-		dc::msg << SDL_GetTicks() << ": Loading " << colliderCount << " tile colliders" << dc::endl;
+		dc::msg << SDL_GetTicks() << ": Loading tile colliders" << dc::endl;
 		_binary.FindSection("TLCL");
-		_colliders.reserve(colliderCount);
-		for (int i = 0; i < colliderCount; i++) {
-			CollisionRect collider;
-			_binary.Read(4, &collider.x);
-			_binary.Read(4, &collider.y);
-			_binary.Read(4, &collider.w);
-			_binary.Read(4, &collider.h);
-			_colliders.push_back(collider);
-		}
+		_colliders =
+			RoomColliderContainer(_binary.GetCurrentPosition(), _width / 8, _height / 8, _xPosition, _yPosition);
 
 		dc::msg << SDL_GetTicks() << ": Loading " << spikeColliderCount << " spike colliders" << dc::endl;
 		_binary.FindSection("SKCL");
@@ -134,7 +126,7 @@ class Room : IDrawableRect {
 
 	Room& operator=(Room&& other) noexcept = default;
 
-	const vector<CollisionRect>& GetColliders() const { return _colliders; };
+	const RoomColliderContainer& GetColliders() const { return _colliders; }
 	const vector<SpikeCollider>& GetSpikeColliders() const { return _spikeColliders; }
 
 	Vector2 GetPosition() const { return Vector2{float(_xPosition), float(_yPosition)}; }
@@ -202,11 +194,12 @@ class Room : IDrawableRect {
 			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);
 		}
 
+		// _colliders.Draw(renderer, drawTargetRect, drawOffset);
+
 		return drawn;
 	}
 
 	~Room() {
-		_colliders.clear();
 		_ledges.clear();
 		_chunks.clear();
 		_neighbors.clear();

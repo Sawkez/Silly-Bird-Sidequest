@@ -5,6 +5,7 @@
 #include "engine/IProcessable.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
+#include "engine/physics/RoomColliderContainer.hpp"
 
 class InputManager;
 class CollisionRect;
@@ -162,11 +163,10 @@ class IPlayer : public IDrawableRect, public IProcessable {
 	virtual void ResetLastDownVelocity() = 0;
 	virtual void UpdateLedgeTile() = 0;
 	virtual bool CanGrabLedge() const = 0;
-	virtual const std::vector<CollisionRect>& GetStaticColliders() const = 0;
+	virtual const RoomColliderContainer& GetRoomColliders() const = 0;
 	virtual const std::vector<SpikeCollider>& GetSpikeColliders() const = 0;
 	virtual void Respawn() = 0;
 	virtual void SetRespawnPosition(Vector2 respawnPosition) = 0;
-	virtual void PushOutOfColliders() = 0;
 	virtual void ShowScarf() = 0;
 	virtual void HideScarf() = 0;
 };

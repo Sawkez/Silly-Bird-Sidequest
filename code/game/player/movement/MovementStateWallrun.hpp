@@ -53,8 +53,11 @@ class MovementStateWallrun : public IMovementState {
 		bool shouldLetGoAtTop = !p.GetInput().IsDown(ACTION_DIVE) || p.BufferActive(Player::BUFFER_WALLJUMP);
 		bool isAtTop = p.velocity.y >= 0.0;
 		bool isAtBottom = p.velocity.y > DROP_VELOCITY || p.IsPushingFloor();
-		bool hasWall = Raycast(p.position + Vector2(0, -p.BODY_CENTER.y), p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT, MAX_DIST)
-						   .CheckCollision(p.GetStaticColliders());
+
+		Raycast wallCast(p.position + Vector2(0, -p.BODY_CENTER.y), p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT,
+						 MAX_DIST);
+
+		bool hasWall = p.GetRoomColliders().CheckRaycast(wallCast);
 
 		if (isAtTop && shouldLetGoAtTop || isAtBottom || !hasWall) {
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);

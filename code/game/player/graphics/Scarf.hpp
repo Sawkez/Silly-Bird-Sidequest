@@ -10,7 +10,7 @@
 #include "engine/Math.hpp"
 #include "engine/graphics/FColor.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
-#include "engine/physics/CollisionRect.hpp"
+#include "engine/world/Room.hpp"
 #include "game/player/graphics/Jizz.hpp"
 
 using namespace std;
@@ -62,11 +62,11 @@ class Scarf : IProcessable, IDrawableRect {
 	float _segmentHalfWidths[SEGMENT_COUNT];
 	float _windAngle = M_PI / 4.0;
 	float _time = 0.0;
-	reference_wrapper<const vector<CollisionRect>> _staticColliders;
+	reference_wrapper<const RoomColliderContainer> _colliders;
 
    public:
-	Scarf(const vector<CollisionRect>& colliders, const Jizz& jizz)
-		: _staticColliders(ref(colliders)),
+	Scarf(const RoomColliderContainer& colliders, const Jizz& jizz)
+		: _colliders(ref(colliders)),
 		  _jizz(jizz),
 		  _currentColor(_jizz.GetScarfChargedColor()),
 		  _targetColor(_jizz.GetScarfChargedColor()) {
@@ -108,14 +108,7 @@ class Scarf : IProcessable, IDrawableRect {
 
 			float speed = MOVE_SPEED + max(0.0, LOW_WIND_SPEED * (1.0 - windStrength) * (1.0 - _jizz.GetScarfWeight()));
 
-			bool colliding = false;
-
-			for (const auto& collider : _staticColliders.get()) {
-				if (collider.OverlapsCircle(pos, _segmentHalfWidths[i])) {
-					colliding = true;
-					break;
-				}
-			}
+			bool colliding = _colliders.get().OverlapsCircle(pos, _segmentHalfWidths[i]);
 
 			if (!colliding) {
 				pos.MoveToward(target + wind, speed * delta);
@@ -148,7 +141,7 @@ class Scarf : IProcessable, IDrawableRect {
 		return rect;
 	}
 
-	void SetColliders(const vector<CollisionRect>& colliders) { _staticColliders = ref(colliders); }
+	void SetColliders(const RoomColliderContainer& colliders) { _colliders = ref(colliders); }
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		SDL_FRect rect = GetRect();
