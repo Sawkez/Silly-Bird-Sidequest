@@ -13,13 +13,6 @@
 
 class SpikeCollider : IDrawable {
    private:
-	Sint16 _x;
-	Sint16 _y;
-	Uint8 _bitmask;
-
-	static constexpr float SPIKE_SIZE = 3.0;
-
-   public:
 	enum SubSpike { TOP_LEFT, TOP, TOP_RIGHT, LEFT, RIGHT, BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT, _SUB_SPIKE_COUNT };
 
 	static inline const SDL_FPoint COLLIDER_POSITIONS[_SUB_SPIKE_COUNT]{
@@ -33,26 +26,23 @@ class SpikeCollider : IDrawable {
 		{5.0, 5.0}	   // bottom right
 	};
 
-	SpikeCollider(SDL_IOStream* file) {
-		SDL_ReadIO(file, &_x, 2);
-		SDL_ReadIO(file, &_y, 2);
-		SDL_ReadIO(file, &_bitmask, 1);
-	}
+	float _x;
+	float _y;
+	Uint8 _bitmask;
 
-	SpikeCollider(BinaryReader& binary) {
-		binary.Read(2, &_x);
-		binary.Read(2, &_y);
-		binary.Read(1, &_bitmask);
-	}
+	static constexpr float SPIKE_SIZE = 3.0;
+
+   public:
+	SpikeCollider() {}
+	SpikeCollider(float x, float y, Uint8 bitmask) : _x(x), _y(y), _bitmask(bitmask) {}
 
 	bool HasSubSpike(int which) const { return (_bitmask & (1U << which)) != 0; }
 
 	bool HasIntersection(const CollisionRect& rect) const {
 		for (int i = 0; i < _SUB_SPIKE_COUNT; i++) {
 			if (HasSubSpike(i)) {
-				SDL_FRect spikeRect{float(_x) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].x,
-									float(_y) * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].y, SPIKE_SIZE,
-									SPIKE_SIZE};
+				SDL_FRect spikeRect{_x * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].x,
+									_y * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].y, SPIKE_SIZE, SPIKE_SIZE};
 
 				if (SDL_HasRectIntersectionFloat(&rect, &spikeRect)) return true;
 			}

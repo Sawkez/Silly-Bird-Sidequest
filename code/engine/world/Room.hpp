@@ -8,13 +8,14 @@
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/RoomColliderContainer.hpp"
+#include "engine/physics/SpikeCollider.hpp"
+#include "engine/physics/SpikeColliderContainer.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/IRoomObject.hpp"
 #include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
-#include "game/physics/SpikeCollider.hpp"
 #include "game/player/IPlayer.hpp"
 #include "game/world/objects/RoomObjectFactory.hpp"
 #include "yyjson.h"
@@ -32,7 +33,7 @@ class Room : IDrawableRect {
 	Uint16 _targetHeight;
 	vector<RoomChunk> _chunks;
 	RoomColliderContainer _colliders;
-	vector<SpikeCollider> _spikeColliders;
+	SpikeColliderContainer _spikeColliders;
 	vector<SDL_Point> _ledges;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
@@ -52,8 +53,6 @@ class Room : IDrawableRect {
 
 		Uint8 chunkCount;
 		_binary.Read(1, &chunkCount);
-		Uint32 spikeColliderCount;
-		_binary.Read(4, &spikeColliderCount);
 		Uint8 checkpointCount;
 		_binary.Read(1, &checkpointCount);
 		Uint8 neighborCount;
@@ -71,17 +70,18 @@ class Room : IDrawableRect {
 			_chunks.emplace_back(storage, _binary, renderer, atlases, spikeAtlas);
 		}
 
+		int tileCountX = _width / 8;
+		int tileCountY = _height / 8;
+
 		dc::msg << SDL_GetTicks() << ": Loading tile colliders" << dc::endl;
 		_binary.FindSection("TLCL");
 		_colliders =
-			RoomColliderContainer(_binary.GetCurrentPosition(), _width / 8, _height / 8, _xPosition, _yPosition);
+			RoomColliderContainer(_binary.GetCurrentPosition(), tileCountX, tileCountY, _xPosition, _yPosition);
 
-		dc::msg << SDL_GetTicks() << ": Loading " << spikeColliderCount << " spike colliders" << dc::endl;
+		dc::msg << SDL_GetTicks() << ": Loading spike colliders" << dc::endl;
 		_binary.FindSection("SKCL");
-		_spikeColliders.reserve(spikeColliderCount);
-		for (int i = 0; i < spikeColliderCount; i++) {
-			_spikeColliders.emplace_back(_binary);
-		}
+		_spikeColliders =
+			SpikeColliderContainer(_binary.GetCurrentPosition(), tileCountX, tileCountY, _xPosition, _yPosition);
 
 		dc::msg << SDL_GetTicks() << ": Loading " << checkpointCount << " checkpoints" << dc::endl;
 		_binary.FindSection("CKPT");
@@ -127,7 +127,7 @@ class Room : IDrawableRect {
 	Room& operator=(Room&& other) noexcept = default;
 
 	const RoomColliderContainer& GetColliders() const { return _colliders; }
-	const vector<SpikeCollider>& GetSpikeColliders() const { return _spikeColliders; }
+	const SpikeColliderContainer& GetSpikeColliders() const { return _spikeColliders; }
 
 	Vector2 GetPosition() const { return Vector2{float(_xPosition), float(_yPosition)}; }
 

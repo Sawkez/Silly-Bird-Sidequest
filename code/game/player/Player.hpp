@@ -341,10 +341,9 @@ class Player : public IPlayer {
 		}
 
 		// dying horribly to spikes
-		for (const auto& spike : GetSpikeColliders()) {
-			if (spike.HasIntersection(_collision)) {
-				SetState(MOVEMENT_STATE_DEAD);
-			}
+
+		if (GetSpikeColliders().OverlapsRect(_collision)) {
+			SetState(MOVEMENT_STATE_DEAD);
 		}
 
 		// squish & stretch
@@ -497,7 +496,7 @@ class Player : public IPlayer {
 	}
 
 	const RoomColliderContainer& GetRoomColliders() const override { return _room.get().GetColliders(); }
-	const vector<SpikeCollider>& GetSpikeColliders() const override { return _room.get().GetSpikeColliders(); }
+	const SpikeColliderContainer& GetSpikeColliders() const override { return _room.get().GetSpikeColliders(); }
 
 	void Respawn() override {
 		position = _respawnPosition;
