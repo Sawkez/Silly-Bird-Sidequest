@@ -490,7 +490,7 @@ class Player : public IPlayer {
 		if (CooldownActive(COOLDOWN_LEDGE)) return false;
 		if (GetInput().GetDir().y == 1.0) return false;
 
-		const vector<SDL_Point>& ledges = GetRoom().GetLedges();
+		const unordered_set<SDL_Point>& ledges = GetRoom().GetLedges();
 
 		return std::find(ledges.begin(), ledges.end(), _ledgeTile) != ledges.end();
 	}
