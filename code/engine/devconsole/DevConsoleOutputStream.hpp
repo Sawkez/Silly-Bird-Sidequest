@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <charconv>
 #include <iostream>
 #include <string>
 
@@ -10,6 +11,8 @@
 
 class DevConsoleOutputStream {
    private:
+	static inline const int TEXT_SIZE = 512;
+
 	IDevConsoleMenu* _menu = nullptr;
 	lv_color_t _color;
 	std::string _text = "";
@@ -18,7 +21,9 @@ class DevConsoleOutputStream {
 
    public:
 	DevConsoleOutputStream(lv_color_t color, SDL_LogCategory category, SDL_LogPriority priority)
-		: _color(color), _category(category), _priority(priority) {}
+		: _color(color), _category(category), _priority(priority) {
+		_text.reserve(TEXT_SIZE);
+	}
 
 	void Init(IDevConsoleMenu* menu) { _menu = menu; }
 
@@ -34,7 +39,9 @@ class DevConsoleOutputStream {
 
 	template <typename Type>
 	DevConsoleOutputStream& operator<<(const Type& obj) {
-		_text += std::to_string(obj);
+		char buf[32];
+		auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), obj);
+		_text.append(buf, ptr);
 		return *this;
 	}
 
