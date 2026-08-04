@@ -67,8 +67,24 @@ class Raycast {
 
 	Raycast(Vector2 position, Vector2 localTarget) : _position(position) { SetLocalTarget(localTarget); }
 
-	Raycast(Vector2 position, Axis axis, float length)
-		: _axis(axis), _position(position), _length(length), _localTarget(Vector2(0.0, 0.0)) {}
+	Raycast(Vector2 position, Axis axis, float length) : _axis(axis), _position(position), _length(length) {
+		switch (axis) {
+			case LEFT:
+				_localTarget = Vector2(-length, 0);
+				break;
+			case RIGHT:
+				_localTarget = Vector2(length, 0);
+				break;
+			case UP:
+				_localTarget = Vector2(0, -length);
+				break;
+			case DOWN:
+				_localTarget = Vector2(0, length);
+				break;
+			case NONE:
+				break;
+		}
+	}
 
 	void SetPosition(Vector2 position) { _position = position; }
 
