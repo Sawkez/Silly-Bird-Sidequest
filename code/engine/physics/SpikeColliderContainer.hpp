@@ -36,6 +36,8 @@ class SpikeColliderContainer {
 	}
 
 	bool OverlapsRect(const CollisionRect& rect) const {
+		return false;
+
 		TileRange potentialTiles(rect, _roomX, _roomY);
 
 		for (SDL_Point tile : potentialTiles) {

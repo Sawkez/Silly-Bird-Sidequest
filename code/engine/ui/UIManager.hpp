@@ -7,6 +7,7 @@
 
 #include "3rdparty/lvgl/lvgl.h"
 #include "engine/input/UIInputManager.hpp"
+#include "engine/performance/PerformanceManager.hpp"
 #include "engine/ui/Menu.hpp"
 #include "game/ui/Styles.hpp"
 
@@ -105,14 +106,19 @@ class UIManager {
 		_stack.push_back(menu);
 		_stackTop++;
 		menu->Activate();
+
+		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_UI);
 	}
 
 	static void PopAsync(void* data) {
 		_stack[_stackTop]->Deactivate();
 		_stackTop--;
 
-		if (_stackTop >= 0) _stack[_stackTop]->Activate();
-
+		if (_stackTop >= 0)
+			_stack[_stackTop]->Activate();
+		else {
+			PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_GAMEPLAY);
+		}
 		_stack.pop_back();
 	}
 
@@ -122,6 +128,8 @@ class UIManager {
 			_stack.pop_back();
 			_stackTop--;
 		}
+
+		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_GAMEPLAY);
 	}
 
 	static void ClearStackAndPushAsync(void* data) {

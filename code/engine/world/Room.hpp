@@ -8,6 +8,7 @@
 #include "engine/PointHash.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
+#include "engine/performance/PerformanceManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/RoomColliderContainer.hpp"
 #include "engine/physics/SpikeCollider.hpp"
@@ -44,6 +45,8 @@ class Room : IDrawableRect {
    public:
 	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Texture* spikeAtlas)
 		: _binary(storage, path) {
+		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_LOADING);
+
 		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
 		_binary.FindSection("PROP");
 		_binary.Read(8, &_xPosition);
@@ -121,6 +124,7 @@ class Room : IDrawableRect {
 
 		SDL_SetRenderTarget(renderer, nullptr);
 		dc::msg << SDL_GetTicks() << ": Room load done!" << dc::endl;
+		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_GAMEPLAY);
 	}
 
 	Room(const Room&) = delete;
