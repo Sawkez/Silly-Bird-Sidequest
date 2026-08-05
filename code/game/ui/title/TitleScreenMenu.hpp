@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/GameState.hpp"
 #include "engine/save/SaveManager.hpp"
 #include "engine/ui/MenuTransparentBG.hpp"
 #include "engine/ui/UIManager.hpp"
@@ -33,6 +34,13 @@ class TitleScreenMenu : public MenuTransparentBG {
 
 			case LOAD_GAME:
 				SaveManager::instance->ShowLoadMenu();
+				break;
+
+			case SETTINGS:
+				break;
+
+			case QUIT:
+				GameState::SetRunning(false);
 				break;
 		}
 	}

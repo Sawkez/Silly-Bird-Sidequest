@@ -12,8 +12,6 @@
 
 class RoomColliderContainer : public IDrawableRect {
    private:
-	static inline const int TILE_EDGE_GROW = 32;
-
 	const char* _data = nullptr;
 	int _width = 0;
 	int _height = 0;
@@ -25,13 +23,15 @@ class RoomColliderContainer : public IDrawableRect {
 	RoomColliderContainer(const char* data, int width, int height, Sint64 roomX, Sint64 roomY)
 		: _data(data), _width(width), _height(height), _roomX(roomX), _roomY(roomY) {}
 
-	bool IsTilePresent(const SDL_Point& tile) const {
-		int x = clamp(tile.x, 0, _width - 1);
-		int y = clamp(tile.y, 0, _height - 1);
+	bool IsTilePresent(SDL_Point tile, bool inbounds) const {
+		if (!inbounds) {
+			tile.x = clamp(tile.x, 0, _width - 1);
+			tile.y = clamp(tile.y, 0, _height - 1);
+		}
 
-		int bitIndex = y * _width + x;
-		int byteIndex = bitIndex / 8;
-		int localBit = bitIndex - byteIndex * 8;
+		int bitIndex = tile.y * _width + tile.x;
+		int byteIndex = bitIndex >> 3;	//		/ 8
+		int localBit = bitIndex & 7;	//		% 8
 
 		return (_data[byteIndex] & (1 << localBit)) != 0;
 	}
@@ -43,12 +43,23 @@ class RoomColliderContainer : public IDrawableRect {
 		return rect;
 	}
 
+	bool IsRectInBounds(const SDL_FRect& rect) const {
+		bool left = rect.x >= _roomX;
+		bool top = rect.y >= _roomY;
+		bool right = rect.x + rect.w <= _roomX + _width * WorldConstants::TILE_SIZE_F;
+		bool bottom = rect.y + rect.h <= _roomY + _height * WorldConstants::TILE_SIZE_F;
+
+		return left && top && right && bottom;
+	}
+
 	bool OverlapsCircle(const Vector2& center, float radius) const {
 		SDL_FRect potentialRect{center.x - radius, center.y - radius, radius * 2, radius * 2};
+		bool inbounds = IsRectInBounds(potentialRect);
+
 		TileRange potentialTiles(potentialRect, _roomX, _roomY);
 
 		for (SDL_Point tile : potentialTiles) {
-			if (!IsTilePresent(tile)) continue;
+			if (!IsTilePresent(tile, inbounds)) continue;
 			if (GetCollider(tile).OverlapsCircle(center, radius)) return true;
 		}
 
@@ -56,10 +67,12 @@ class RoomColliderContainer : public IDrawableRect {
 	}
 
 	bool OverlapsRect(const SDL_FRect& rect) const {
+		bool inbounds = IsRectInBounds(rect);
+
 		TileRange potentialTiles(rect, _roomX, _roomY);
 
 		for (SDL_Point tile : potentialTiles) {
-			if (!IsTilePresent(tile)) continue;
+			if (!IsTilePresent(tile, inbounds)) continue;
 
 			CollisionRect collider = GetCollider(tile);
 
@@ -77,9 +90,12 @@ class RoomColliderContainer : public IDrawableRect {
 		SDL_FRect potentialRect;
 		SDL_GetRectEnclosingPointsFloat(points, 2, nullptr, &potentialRect);
 
+		bool inbounds = IsRectInBounds(potentialRect);
+
 		TileRange potentialTiles(potentialRect, _roomX, _roomY);
 
 		for (SDL_Point tile : potentialTiles) {
+			if (!IsTilePresent(tile, inbounds)) continue;
 			if (raycast.CheckCollision(GetCollider(tile))) return true;
 		}
 
@@ -87,18 +103,29 @@ class RoomColliderContainer : public IDrawableRect {
 	}
 
 	CollisionResult SweptAABBCollision(const CollisionRect& movingRect, const Vector2& velocity) const {
-		SDL_FRect potentialRect,
-			movedRect{movingRect.x + velocity.x, movingRect.y + velocity.y, movingRect.w, movingRect.h};
+		if (!movingRect.active) return CollisionResult{};
+
+		SDL_FRect movedRect{movingRect.x + velocity.x, movingRect.y + velocity.y, movingRect.w, movingRect.h};
+
+		SDL_FRect potentialRect;
 		SDL_GetRectUnionFloat(&movingRect, &movedRect, &potentialRect);
+
+		bool inbounds = IsRectInBounds(potentialRect);
 
 		TileRange potentialTiles(potentialRect, _roomX, _roomY);
 
 		CollisionResult firstHit;
 
-		for (SDL_Point tile : potentialTiles) {
-			if (!IsTilePresent(tile)) continue;
+		float xInvVelocity = velocity.x == 0.0 ? INFINITY : 1.0f / velocity.x;
+		float yInvVelocity = velocity.y == 0.0 ? INFINITY : 1.0f / velocity.y;
 
-			CollisionResult newHit = GetCollider(tile).SweptAABBCollision(movingRect, velocity);
+		for (SDL_Point tile : potentialTiles) {
+			if (!IsTilePresent(tile, inbounds)) continue;
+
+			CollisionResult newHit = Physics::SweptAABBCollision(
+				movingRect, float(tile.x) * WorldConstants::TILE_SIZE_F + _roomX,
+				float(tile.y) * WorldConstants::TILE_SIZE_F + _roomY, WorldConstants::TILE_SIZE_F,
+				WorldConstants::TILE_SIZE_F, velocity, xInvVelocity, yInvVelocity);
 			if (newHit.depth < firstHit.depth) firstHit = newHit;
 		}
 
@@ -109,7 +136,7 @@ class RoomColliderContainer : public IDrawableRect {
 		bool drawn = false;
 		for (int x = 0; x < _width; x++) {
 			for (int y = 0; y < _height; y++) {
-				if (!IsTilePresent(SDL_Point{x, y})) continue;
+				if (!IsTilePresent(SDL_Point{x, y}, true)) continue;
 				drawn |= GetCollider(SDL_Point{x, y}).Draw(renderer, drawTargetRect, drawOffset);
 			}
 		}

@@ -1,11 +1,14 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 
 #include "engine/IProcessable.hpp"
+#include "engine/PointHash.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
+#include "engine/performance/PerformanceManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/RoomColliderContainer.hpp"
 #include "engine/physics/SpikeCollider.hpp"
@@ -34,7 +37,7 @@ class Room : IDrawableRect {
 	vector<RoomChunk> _chunks;
 	RoomColliderContainer _colliders;
 	SpikeColliderContainer _spikeColliders;
-	vector<SDL_Point> _ledges;
+	unordered_set<SDL_Point> _ledges;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
 	vector<IRoomObject*> _roomObjects;
@@ -42,6 +45,8 @@ class Room : IDrawableRect {
    public:
 	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Texture* spikeAtlas)
 		: _binary(storage, path) {
+		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_LOADING);
+
 		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
 		_binary.FindSection("PROP");
 		_binary.Read(8, &_xPosition);
@@ -107,7 +112,7 @@ class Room : IDrawableRect {
 			SDL_Point ledge;
 			_binary.Read(8, &ledge.x);
 			_binary.Read(8, &ledge.y);
-			_ledges.push_back(ledge);
+			_ledges.emplace(ledge);
 		}
 
 		dc::msg << SDL_GetTicks() << ": Loading " << objectCount << " room objects" << dc::endl;
@@ -119,6 +124,7 @@ class Room : IDrawableRect {
 
 		SDL_SetRenderTarget(renderer, nullptr);
 		dc::msg << SDL_GetTicks() << ": Room load done!" << dc::endl;
+		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_GAMEPLAY);
 	}
 
 	Room(const Room&) = delete;
@@ -143,7 +149,7 @@ class Room : IDrawableRect {
 
 	Vector2 GetTargetSize() const { return Vector2{float(_targetWidth), float(_targetHeight)}; }
 
-	const vector<SDL_Point>& GetLedges() const { return _ledges; }
+	const unordered_set<SDL_Point>& GetLedges() const { return _ledges; }
 
 	const vector<RoomChunk>& GetChunks() const { return _chunks; }
 

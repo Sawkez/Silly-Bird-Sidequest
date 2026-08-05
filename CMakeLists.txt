@@ -6,6 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(BUILD_PRX 1)
+
+    if(LINUX)
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+    endif()
+    
 endif()
 
 set(LV_BUILD_CONF_PATH "${CMAKE_SOURCE_DIR}/code/3rdparty/lv_conf.h" CACHE PATH "Path to custom lv_conf.h" FORCE)

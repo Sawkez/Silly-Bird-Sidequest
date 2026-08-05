@@ -26,6 +26,14 @@ class SpikeColliderContainer {
 	SpikeColliderContainer(const char* data, int width, int height, Sint64 roomX, Sint64 roomY)
 		: _data(data), _width(width), _height(height), _roomX(roomX), _roomY(roomY) {}
 
+	SDL_FRect GetRect(const SDL_Point& tile) const {
+		return {float(tile.x) * WorldConstants::TILE_SIZE_F + _roomX,
+				float(tile.y) * WorldConstants::TILE_SIZE_F + _roomY, WorldConstants::TILE_SIZE_F,
+				WorldConstants::TILE_SIZE_F};
+	}
+
+	bool IsTilePresent(const SDL_Point& tile) const { return _data[tile.y * _width + tile.x] != 0; }
+
 	SpikeCollider GetCollider(const SDL_Point& tile) const {
 		if (tile.x < 0 || tile.x >= _width || tile.y < 0 || tile.y >= _height) {
 			return SpikeCollider();
@@ -39,6 +47,11 @@ class SpikeColliderContainer {
 		TileRange potentialTiles(rect, _roomX, _roomY);
 
 		for (SDL_Point tile : potentialTiles) {
+			if (!IsTilePresent(tile)) continue;
+
+			SDL_FRect spikeRect = GetRect(tile);
+			if (!SDL_HasRectIntersectionFloat(&spikeRect, &rect)) continue;
+
 			if (GetCollider(tile).HasIntersection(rect)) return true;
 		}
 
