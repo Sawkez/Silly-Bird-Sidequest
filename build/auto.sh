@@ -53,6 +53,7 @@ case "$PLATFORM" in
     		echo "ERROR: cross-compiling for Haiku OS is not supported. Consider using a Haiku OS virtual machine."
     	fi
     	
+    	BUILD_TYPE="Release"
     	EXE_IN="sbsidequest"
     	EXE_OUT="sidequest.sillybird"
 	;;
