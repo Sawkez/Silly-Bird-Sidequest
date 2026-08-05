@@ -7,13 +7,20 @@
 #include "engine/world/WorldConstants.hpp"
 
 struct TileRange {
+   private:
+	static inline int FastFloor(float val) {
+		int i = (int)val;
+		return (val < (float)i) ? i - 1 : i;
+	}
+
+   public:
 	int xMin, xMax, yMin, yMax;
 
 	TileRange(const SDL_FRect& worldRect, Sint64 roomX, Sint64 roomY)
-		: xMin(std::floor((worldRect.x - roomX) / WorldConstants::TILE_SIZE_F)),
-		  xMax(std::ceil((worldRect.x + worldRect.w - roomX) / WorldConstants::TILE_SIZE_F)),
-		  yMin(std::floor((worldRect.y - roomY) / WorldConstants::TILE_SIZE_F)),
-		  yMax(std::ceil((worldRect.y + worldRect.h - roomY) / WorldConstants::TILE_SIZE_F)) {}
+		: xMin(FastFloor((worldRect.x - roomX) / WorldConstants::TILE_SIZE_F)),
+		  xMax(FastFloor((worldRect.x + worldRect.w - roomX) / WorldConstants::TILE_SIZE_F) + 1),
+		  yMin(FastFloor((worldRect.y - roomY) / WorldConstants::TILE_SIZE_F)),
+		  yMax(FastFloor((worldRect.y + worldRect.h - roomY) / WorldConstants::TILE_SIZE_F) + 1) {}
 
 	struct Iterator {
 		int x, y;
