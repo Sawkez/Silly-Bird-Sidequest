@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: \$0 <platform> <build_type>"
-    echo 'Platforms: linux, windows, win32, psp, web, android'
+    echo 'Platforms: linux, windows, win32, psp, web, android, haiku'
     echo 'Build types: Debug, MinSizeRel (default)'
     exit 1
 fi
@@ -47,6 +47,15 @@ case "$PLATFORM" in
         EXE_IN="sbsidequest"
         EXE_OUT="sidequest.sillybird"
     ;;
+    
+    haiku)
+    	if [ "$(uname -s)" != "Haiku" ]; then
+    		echo "ERROR: cross-compiling for Haiku OS is not supported. Consider using a Haiku OS virtual machine."
+    	fi
+    	
+    	EXE_IN="sbsidequest"
+    	EXE_OUT="sidequest.sillybird"
+	;;
 
     windows)
         MINGW_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw
