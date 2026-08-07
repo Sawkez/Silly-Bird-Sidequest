@@ -9,6 +9,6 @@ RUN dnf install -y gcc git-core make cmake \
     libdrm-devel mesa-libgbm-devel libusb1-devel libdecor-devel \
     pipewire-jack-audio-connection-kit-devel libthai-devel \
     liburing-devel zlib-ng-compat-static \
-    clang gcc-c++ ninja-build SDL3-devel zip & dnf clean all
+    clang gcc-c++ ninja-build mingw64-gcc-c++ zip && dnf clean all
 
 WORKDIR /work
