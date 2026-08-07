@@ -13,7 +13,7 @@ USER_BUILD_TYPE=${2:-release}
 
 case "$USER_BUILD_TYPE" in
     release)
-        BUILD_TYPE=MinSizeRel
+        BUILD_TYPE=Release
     ;;
 
     debug)
@@ -36,18 +36,10 @@ fi
 
 case "$PLATFORM" in
     web)
-        if [ "$USER_BUILD_TYPE" = "release" ]; then
-            BUILD_TYPE="Release"
-        fi
-
         CMAKE_COMMAND=(emcmake cmake)
     ;;
 
     psp)
-        if [ "$USER_BUILD_TYPE" = "release" ]; then
-            BUILD_TYPE="Release"
-        fi
-
         CMAKE_COMMAND=(psp-cmake)
     ;;
 
@@ -58,10 +50,6 @@ case "$PLATFORM" in
     	if [ "$(uname -s)" != "Haiku" ]; then
     		echo "ERROR: cross-compiling for Haiku OS is not supported. Consider using a Haiku OS virtual machine."
     	fi
-    	
-        if [ "$USER_BUILD_TYPE" = "release" ]; then
-    	    BUILD_TYPE="Release"
-        fi
 	;;
 
     windows)
