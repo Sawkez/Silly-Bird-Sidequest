@@ -61,7 +61,9 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/lvgl)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/yyjson)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/zip)
 
-set_target_properties(zip PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+if (NOT ANDROID)
+    set_target_properties(zip PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+endif()
 target_compile_options(zip PRIVATE -Wno-error=type-limits)
 
 if(ANDROID)

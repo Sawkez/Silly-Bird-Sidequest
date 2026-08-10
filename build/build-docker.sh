@@ -11,4 +11,13 @@ SCRIPT_DIR=$(dirname "$0")
 PLATFORM=$1
 USER_BUILD_TYPE=${2:-release}
 
-docker run --rm -v "$PWD":"$PWD":Z -w "$PWD" sbsidequest-builder-$PLATFORM bash build/build.sh $PLATFORM $USER_BUILD_TYPE
+DOCKER_ARGS=(--rm -v "$PWD":"$PWD":Z -w "$PWD")
+
+if [ "$PLATFORM" = "android" ]; then
+    DOCKER_ARGS+=(
+        -v "sbsidequest-gradle-cache:/opt/gradle-cache"
+        -v "sbsidequest-android-sdk:/opt/android-sdk"
+    )
+fi
+
+docker run "${DOCKER_ARGS[@]}" sbsidequest-builder-$PLATFORM bash build/build.sh $PLATFORM $USER_BUILD_TYPE
