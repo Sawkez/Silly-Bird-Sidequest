@@ -2,7 +2,7 @@ name: Build Haiku toolchain image
 
 on:
   push:
-    branches: [building]
+    branches: [main]
     paths:
       - 'docker/haiku/**'
       - '.github/workflows/build-haiku-toolchain.yml'
