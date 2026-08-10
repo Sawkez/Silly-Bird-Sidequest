@@ -1,0 +1,43 @@
+name: Build Haiku toolchain image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docker/haiku/**'
+      - '.github/workflows/build-haiku-toolchain.yml'
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: docker/haiku
+          file: docker/haiku/Dockerfile
+          push: true
+          build-args: |
+            BUILDTOOLS_REV=master
+            HAIKU_REV=master
+            ARCHITECTURE=x86_64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/sbsidequest-builder-haiku:latest
+            ghcr.io/${{ github.repository_owner }}/sbsidequest-builder-haiku:${{ github.run_number }}
