@@ -1,15 +1,3 @@
-name: Build Haiku toolchain image
-
-on:
-  push:
-    branches: [building]
-    paths:
-      - 'docker/haiku/**'
-      - '.github/workflows/build-haiku-toolchain.yml'
-  schedule:
-    - cron: '0 6 * * 1'
-  workflow_dispatch: {}
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -20,6 +8,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set lowercase repository owner
+        run: echo "OWNER_LC=${OWNER,,}" >> "$GITHUB_ENV"
+        env:
+          OWNER: ${{ github.repository_owner }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -39,5 +32,5 @@ jobs:
             HAIKU_REV=master
             ARCHITECTURE=x86_64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/sbsidequest-builder-haiku:latest
-            ghcr.io/${{ github.repository_owner }}/sbsidequest-builder-haiku:${{ github.run_number }}
+            ghcr.io/${{ env.OWNER_LC }}/sbsidequest-builder-haiku:latest
+            ghcr.io/${{ env.OWNER_LC }}/sbsidequest-builder-haiku:${{ github.run_number }}
