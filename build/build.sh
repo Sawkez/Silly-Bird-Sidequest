@@ -29,11 +29,6 @@ esac
 SRC_DIR=$SCRIPT_DIR/..
 CMAKE_COMMAND=(cmake)
 
-if [ "$(uname -s)" = "Haiku" ] && [ $PLATFORM != "haiku" ]; then
-	echo "ERROR: Cross-compiling from Haiku OS is not supported."
-	exit 1
-fi
-
 case "$PLATFORM" in
     web)
         CMAKE_COMMAND=(emcmake cmake)
@@ -48,7 +43,7 @@ case "$PLATFORM" in
     
     haiku)
     	if [ "$(uname -s)" != "Haiku" ]; then
-    		echo "ERROR: cross-compiling for Haiku OS is not supported. Consider using a Haiku OS virtual machine."
+    		CMAKE_COMMAND+=( "-DCMAKE_TOOLCHAIN_FILE=$SRC_DIR/haiku-x64.cmake" )
     	fi
 	;;
 
