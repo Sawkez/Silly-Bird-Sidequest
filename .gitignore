@@ -13,3 +13,4 @@ android-project/local.properties
 *.jks
 *.keystore
 *.log
+android-project/keystore.properties

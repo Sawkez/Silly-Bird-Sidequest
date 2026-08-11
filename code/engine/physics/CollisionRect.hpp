@@ -83,7 +83,7 @@ struct CollisionRect : public SDL_FRect, public IDrawableRect {
 									   float yInvVel) const {
 		if (!active || !movingRect.active) return CollisionResult{};
 
-		Physics::SweptAABBCollision(movingRect, x, y, w, h, velocity, xInvVel, yInvVel);
+		return Physics::SweptAABBCollision(movingRect, x, y, w, h, velocity, xInvVel, yInvVel);
 	}
 
 	Vector2 PushOut(const CollisionRect& pushee) const {

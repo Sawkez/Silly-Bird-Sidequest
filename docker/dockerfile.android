@@ -1,0 +1,30 @@
+FROM eclipse-temurin:17-jdk-jammy
+
+ENV ANDROID_SDK_ROOT=/opt/android-sdk \
+    ANDROID_HOME=/opt/android-sdk \
+    GRADLE_USER_HOME=/opt/gradle-cache
+
+ARG ANDROID_CMDLINE_TOOLS_VERSION=11076708
+ENV ANDROID_PLATFORM=android-35 \
+    ANDROID_BUILD_TOOLS=35.0.0 \
+    ANDROID_NDK_VERSION=26.3.11579264 \
+    ANDROID_CMAKE_VERSION=3.22.1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl unzip bash git \
+    && rm -rf /var/lib/apt/lists/*
+
+# install commandline tools
+RUN mkdir -p /opt/android-cmdline-tools \
+    && curl -sSL -o /tmp/cmdline-tools.zip \
+    "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS_VERSION}_latest.zip" \
+    && unzip -q /tmp/cmdline-tools.zip -d /opt/android-cmdline-tools \
+    && mv /opt/android-cmdline-tools/cmdline-tools /opt/android-cmdline-tools/latest \
+    && rm /tmp/cmdline-tools.zip
+
+ENV PATH=/opt/android-cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}
+
+COPY android-docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
