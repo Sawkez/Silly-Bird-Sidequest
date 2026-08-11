@@ -44,7 +44,7 @@ case "$PLATFORM" in
     ;;
 
     android)
-        cp $SRC_DIR/android-project/app/build/outputs/apk/$USER_BUILD_TYPE/app-$USER_BUILD_TYPE.apk $EXPORT_DIR/ || exit 1
+        cp $SRC_DIR/android-project/app/build/outputs/apk/$USER_BUILD_TYPE/*.apk $EXPORT_DIR/ || exit 1
         COPY_RESOURCES=false
     ;;
 

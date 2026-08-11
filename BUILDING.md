@@ -7,4 +7,4 @@ The recommended way to build Silly Bird Sidequest for any platform is with Docke
 5. Build: ```build/full-docker.sh <platform> [release | debug]``` (defaults to release);
 6. Find the exported project in ```build/export/[release | debug]/<platform>```.
 
-Note: android does not currently support release builds.
+Note: to export release for android you will have to provide a keystore.
