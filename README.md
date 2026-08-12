@@ -1,8 +1,8 @@
 # Silly Bird Sidequest
 Silly Bird Sidequest is an official follow-up to [Silly Bird Sequel](https://store.steampowered.com/app/4269360/Silly_Bird_Sequel), built on a custom engine and expanded with mod and platform support.
 
+Interested in modding the game? Check out [Silly Bird Maker](https://github.com/Sawkez/Silly-Bird-Maker)!
 For build instructions, see [Building](./BUILDING.md).  
-Interested in modding the game? Check out [Silly Bird Maker](https://github.com/Sawkez/Silly-Bird-Maker)
 
 ## *Platform support
 ✅ - Working;  
