@@ -44,13 +44,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	ModManager::LoadSkinModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
 	ModManager::LoadSkin(GameState::GetMainRenderer(), 0);
 
-	if (argc < 2) {
-		WorldManager::LoadLevel(0);
-		UIManager::Push(UIManager::MENU_TITLE);
-	}
+	WorldManager::LoadLevel(0);
 
-	else {
-		WorldManager::LoadLevel(stoi(argv[1]));
+	if (!DevConsoleCommandManager::ParseLaunchArguments(argc, argv)) {
+		UIManager::Push(UIManager::MENU_TITLE);
 	}
 
 	GameState::Unpause();

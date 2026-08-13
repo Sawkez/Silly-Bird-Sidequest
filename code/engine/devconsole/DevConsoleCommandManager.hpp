@@ -94,6 +94,29 @@ class DevConsoleCommandManager {
 
 		commandFunction->second.Run(args, fromUser);
 	}
+
+	static bool ParseLaunchArguments(int argc, char* argv[]) {
+		if (argc < 2) return false;
+
+		std::vector<std::string> arguments;
+
+		for (int i = 2; i < argc; i++) {
+			arguments.emplace_back(argv[i]);
+		}
+
+		std::string commandName(argv[1]);
+
+		auto commandFunction = _commandsByName.find(commandName);
+
+		if (commandFunction == _commandsByName.end()) {
+			dc::err << "Command not found: " << commandName << dc::endl;
+			return false;
+		}
+
+		commandFunction->second.Run(arguments, true);
+
+		return true;
+	}
 #endif
 
 	static void ListCommands() {

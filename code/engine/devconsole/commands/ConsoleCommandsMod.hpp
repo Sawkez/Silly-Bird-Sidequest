@@ -22,9 +22,11 @@ void loadModLevel(const std::vector<std::string>& args) {
 	if (args[1] == "index") {
 		ModManager::LoadLevelModFromFile(args[0]);
 		WorldManager::LoadLevel(stoi(args[2]));
+
 	} else if (args[1] == "path") {
 		ModManager::LoadLevelModFromFile(args[0]);
 		WorldManager::LoadLevel(ModManager::GetLevelIndexFromPath(args[2]));
+
 	} else {
 		dc::err << "2nd argument should be \"index\" or \"path\"" << dc::endl;
 	}
