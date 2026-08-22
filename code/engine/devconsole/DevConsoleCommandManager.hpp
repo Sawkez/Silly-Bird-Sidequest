@@ -117,6 +117,10 @@ class DevConsoleCommandManager {
 
 		return true;
 	}
+
+#else
+	// TODO implement
+	static bool ParseLaunchArguments(int argc, char* argv[]) { return false; }
 #endif
 
 	static void ListCommands() {
