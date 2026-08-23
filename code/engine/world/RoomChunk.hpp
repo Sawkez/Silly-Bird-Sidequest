@@ -13,7 +13,6 @@
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
-#include "engine/world/SpikeTile.hpp"
 #include "yyjson.h"
 
 class RoomChunk : public IDrawableRect {
