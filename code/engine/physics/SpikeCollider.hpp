@@ -41,8 +41,7 @@ class SpikeCollider : IDrawable {
 	bool HasIntersection(const CollisionRect& rect) const {
 		for (int i = 0; i < _SUB_SPIKE_COUNT; i++) {
 			if (HasSubSpike(i)) {
-				SDL_FRect spikeRect{_x * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].x,
-									_y * WorldConstants::TILE_SIZE_F + COLLIDER_POSITIONS[i].y, SPIKE_SIZE, SPIKE_SIZE};
+				SDL_FRect spikeRect{_x + COLLIDER_POSITIONS[i].x, _y + COLLIDER_POSITIONS[i].y, SPIKE_SIZE, SPIKE_SIZE};
 
 				if (SDL_HasRectIntersectionFloat(&rect, &spikeRect)) return true;
 			}
