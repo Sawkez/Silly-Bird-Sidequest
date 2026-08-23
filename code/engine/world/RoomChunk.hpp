@@ -23,6 +23,9 @@ class RoomChunk : public IDrawableRect {
 	SDL_Rect _rect;
 	SDL_Texture* _cache = NULL;
 
+	static inline SDL_Vertex SPIKE_VERTICES[4096 * 4];
+	static inline int VERTEX_INDICES[4096 * 6];
+
    public:
 	RoomChunk() : _rect({0, 0, 0, 0}) {}
 
@@ -63,10 +66,57 @@ class RoomChunk : public IDrawableRect {
 
 		dc::msg << SDL_GetTicks() << ": Loading and caching " << spikeCount << " spikes" << dc::endl;
 		binary.FindSection("SPIK");
+
 		for (int i = 0; i < spikeCount; i++) {
-			SpikeTile spike(binary);
-			spike.Draw(renderer, spikeAtlas, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+			Uint16 xSpike, ySpike;
+			binary.Read(2, &xSpike);
+			binary.Read(2, &ySpike);
+
+			float xSpikeChunk = xSpike * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.x;
+			float ySpikeChunk = ySpike * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.y;
+
+			Uint8 spikeMask;
+			binary.Read(1, &spikeMask);
+
+			float xAtlas = (spikeMask & 15) / 16.0f;  //	% 16
+			float yAtlas = (spikeMask >> 4) / 16.0f;  //	/ 16
+
+			// clang-format off
+			SPIKE_VERTICES[i * 4] = SDL_Vertex {
+				SDL_FPoint{xSpikeChunk, ySpikeChunk},
+				SDL_FColor{1.0, 1.0, 1.0, 1.0},
+				SDL_FPoint{xAtlas, yAtlas}
+			};
+
+			SPIKE_VERTICES[i * 4 + 1] = SDL_Vertex {
+				SDL_FPoint{xSpikeChunk + WorldConstants::TILE_SIZE_F, ySpikeChunk},
+				SDL_FColor{1.0, 1.0, 1.0, 1.0},
+				SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas}
+			};
+
+			SPIKE_VERTICES[i * 4 + 2] = SDL_Vertex {
+				SDL_FPoint{xSpikeChunk, ySpikeChunk + WorldConstants::TILE_SIZE_F},
+				SDL_FColor{1.0, 1.0, 1.0, 1.0},
+				SDL_FPoint{xAtlas, yAtlas + 1.0f / 16.0f}
+			};
+
+			SPIKE_VERTICES[i * 4 + 3] = SDL_Vertex {
+				SDL_FPoint{xSpikeChunk + WorldConstants::TILE_SIZE_F, ySpikeChunk + WorldConstants::TILE_SIZE_F},
+				SDL_FColor{1.0, 1.0, 1.0, 1.0},
+				SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas + 1.0f / 16.0f}
+			};
+
+			// clang-format on
+
+			VERTEX_INDICES[i * 6] = i * 4;
+			VERTEX_INDICES[i * 6 + 1] = i * 4 + 1;
+			VERTEX_INDICES[i * 6 + 2] = i * 4 + 2;
+			VERTEX_INDICES[i * 6 + 3] = i * 4 + 1;
+			VERTEX_INDICES[i * 6 + 4] = i * 4 + 2;
+			VERTEX_INDICES[i * 6 + 5] = i * 4 + 3;
 		}
+
+		SDL_RenderGeometry(renderer, spikeAtlas, SPIKE_VERTICES, spikeCount * 4, VERTEX_INDICES, spikeCount * 6);
 	}
 
 	RoomChunk(const RoomChunk&) = delete;
