@@ -1,1 +1,1 @@
-{"player_x":96.0,"player_y":120.0,"room_count":1,"starting_room":0,"tilesheet_sources":["grass.png","template-full.png","template-short.png"]}
+{"player_x":96.0,"player_y":120.0,"room_count":1,"starting_room":0,"starting_upgrades":0,"tilesheet_sources":["brick.png","grass-leaves.png","grass.png","leaves-plain.png","leaves.png","sand-brick.png","sand.png","sewer-brick.png","snow.png","stone.png","template-full.png","template-short.png","tower.png","wood.png"]}
