@@ -40,7 +40,8 @@ class SpikeColliderContainer {
 		}
 
 		int byteIndex = tile.y * _width + tile.x;
-		return SpikeCollider(tile.x + _roomX, tile.y + _roomY, _data[byteIndex]);
+		return SpikeCollider(tile.x * WorldConstants::TILE_SIZE_F + _roomX,
+							 tile.y * WorldConstants::TILE_SIZE_F + _roomY, _data[byteIndex]);
 	}
 
 	bool OverlapsRect(const CollisionRect& rect) const {
