@@ -23,6 +23,7 @@ enum ConsoleCommand {
 	CMD_PLAYER_GIVE_UPGRADES,
 
 	CMD_VAR_SET,
+	CMD_VAR_LIST,
 
 	_CMD_COUNT
 };

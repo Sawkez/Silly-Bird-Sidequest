@@ -134,4 +134,14 @@ class DevConsoleVariableManager {
 		variable->Set(value);
 #endif
 	}
+
+	static void ListVariables() {
+#ifdef PLATFORM_HAS_STRING_COMMANDS
+
+		for (const auto& pair : _variablesByName) {
+			dc::msg << pair.first << ": " << pair.second->GetDescription() << dc::endl;
+		}
+
+#endif
+	}
 };
