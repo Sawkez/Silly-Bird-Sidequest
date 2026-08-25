@@ -11,6 +11,7 @@ namespace PlayerSquish {
     CONVAR(float,   standUp,    STAND_UP,   1.5f,   DC_FLAG_NONE);
     CONVAR(float,   twerkDown,  TWERK_DOWN, 0.9f,   DC_FLAG_NONE);
     CONVAR(float,   twerkUp,    TWERK_UP,   1.1f,   DC_FLAG_NONE);
+    CONVAR(float,   slide,      SLIDE,      0.5f,   DC_FLAG_NONE);
 // clang-format on
 }  // namespace PlayerSquish
 
