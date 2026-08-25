@@ -24,6 +24,13 @@ class DevConsoleInput {
 		}
 	}
 
+	static void InsertFilterCallback(lv_event_t* event) {
+		const char* insert_text = static_cast<const char*>(lv_event_get_param(event));
+		if (insert_text && insert_text[0] != '\0' && static_cast<unsigned char>(insert_text[0]) < 0x20) {
+			lv_textarea_set_insert_replace(_inputField, "");
+		}
+	}
+
 	static void RunButtonPressedCallback(lv_event_t* event) { RunCommand(); }
 
 	static void RunCommand() {
@@ -57,6 +64,7 @@ class DevConsoleInput {
 		lv_obj_add_event_cb(_inputField, InputFieldFocusedCallback, LV_EVENT_FOCUSED, nullptr);
 		lv_obj_add_event_cb(_inputField, InputFieldUnfocusedCallback, LV_EVENT_DEFOCUSED, nullptr);
 		lv_obj_add_event_cb(_inputField, KeyPressedCallback, LV_EVENT_KEY, nullptr);
+		lv_obj_add_event_cb(_inputField, InsertFilterCallback, LV_EVENT_INSERT, nullptr);
 		lv_obj_set_style_text_font(_inputField, Styles::GetMonoFont(), 0);
 
 		_runButton = lv_button_create(stripe);
