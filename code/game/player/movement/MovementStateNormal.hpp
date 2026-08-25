@@ -13,26 +13,23 @@
 #define CONVAR_CATEGORY PLAYER_STATE_NORMAL
 
 struct MovementStateNormal : public IMovementState {
-	static inline constexpr float ACCELERATION = 600.0;
-	static inline constexpr float TOP_SPEED = 125.0;
-	static inline constexpr float FRICTION = 1200.0;
-	static inline constexpr float AIR_FRICTION = 60.0;
+	// clang-format off
+	CONVAR(float,	_acceleration,				ACCELERATION,					900.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_topSpeed,					TOP_SPEED,						125.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_friction,					FRICTION,						1200.0f,	DC_FLAG_CHEAT);
+	CONVAR(float,	_airFriction,				AIR_FRICTION,					60.0f,		DC_FLAG_CHEAT);
 
-	static inline constexpr float WEAK_GRAVITY = 600.0;
+	CONVAR(float,	_weakGravity,				WEAK_GRAVITY,					600.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_gravity,					GRAVITY,						900.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_fastFallGravity,			FAST_FALL_GRAVITY,				1200.0f,	DC_FLAG_CHEAT);
+	
+	CONVAR(float,	_fastFallWindow,			FAST_FALL_WINDOW,				105.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_fallSpeedCap,				FALL_SPEED_CAP,					200.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_jumpForce,					JUMP_FORCE,						250.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_maxDiveBufferYVelocity,	MAX_DIVE_BUFFER_Y_VELOCITY,		250.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_slowRunSpeed,				SLOW_RUN_SPEED,					100.0f,		DC_FLAG_CHEAT);
 
-	CONVAR(float, _gravity, GRAVITY, 900.0f, DC_FLAG_CHEAT);
-
-	static inline constexpr float FAST_FALL_GRAVITY = 1200.0;
-
-	static inline constexpr float FAST_FALL_WINDOW =
-		900.0f * 14.0 / 120.0;	// 10 frames total, 5 frames either direction at 60 fps
-	static inline constexpr float FALL_SPEED_CAP = 200.0;
-
-	static inline constexpr float JUMP_FORCE = 250.0;
-
-	static inline constexpr float MAX_DIVE_BUFFER_Y_VELOCITY = 250.0;
-
-	static inline constexpr float SLOW_RUN_SPEED = 100.0;
+	// clang-format on
 
 	void Init(Player& p) const override {}
 
@@ -50,28 +47,28 @@ struct MovementStateNormal : public IMovementState {
 		// trying to turn around
 		if (p.velocity.x * p.GetInput().GetDir().x <= 0.0) {
 			// make sure we don't overcompensate
-			float activeFrict = fminf(FRICTION * delta, abs(p.velocity.x));
+			float activeFrict = fminf(*_friction * delta, abs(p.velocity.x));
 			p.velocity.x -= Math::CopySignOrZero(activeFrict, p.velocity.x);
 		}
 
 		// still accelerating (do nothing)
-		else if (abs(p.velocity.x) < TOP_SPEED) {
+		else if (abs(p.velocity.x) < *_topSpeed) {
 		}
 
 		// going barely too fast, lock to top speed
-		else if (abs(p.velocity.x) - TOP_SPEED < FRICTION * delta) {
-			p.velocity.x = Math::CopySignOrZero(TOP_SPEED, p.velocity.x);
+		else if (abs(p.velocity.x) - *_topSpeed < *_friction * delta) {
+			p.velocity.x = Math::CopySignOrZero(*_topSpeed, p.velocity.x);
 		}
 
 		// going way too fast
 		else {
-			float activeFrict = p.IsPushingFloor() ? FRICTION : AIR_FRICTION;
+			float activeFrict = p.IsPushingFloor() ? *_friction : *_airFriction;
 			p.velocity.x -= Math::CopySignOrZero(activeFrict * delta, p.velocity.x);
 		}
 
 		// accelerating
-		if (abs(p.velocity.x) < TOP_SPEED) {
-			p.velocity.x += ACCELERATION * p.GetInput().GetDir().x * delta;
+		if (abs(p.velocity.x) < *_topSpeed) {
+			p.velocity.x += *_acceleration * p.GetInput().GetDir().x * delta;
 		}
 
 		// starting a fastfall
@@ -80,7 +77,7 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// fastfalling around peak of jump, maximize downwards velocity
-		else if (!p.IsPushingFloor() && abs(p.velocity.y) < FAST_FALL_WINDOW) {
+		else if (!p.IsPushingFloor() && abs(p.velocity.y) < *_fastFallWindow) {
 			/*
 			float timeFalling = abs(velocity.y) / GRAVITY;
 			float timeFastFalling = sqrtf(GRAVITY * timeFalling * timeFalling / FAST_FALL_GRAVITY);
@@ -88,7 +85,7 @@ struct MovementStateNormal : public IMovementState {
 			velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
 			*/
 
-			p.velocity.y = abs(p.velocity.y) * sqrtf(FAST_FALL_GRAVITY / *_gravity);
+			p.velocity.y = abs(p.velocity.y) * sqrtf(*_fastFallGravity / *_gravity);
 			dc::msg << "setting velocity to " << p.velocity.y << dc::endl;
 		}
 
@@ -98,12 +95,12 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// applying gravity
-		if (p.velocity.y > FALL_SPEED_CAP || p.TimerActive(Player::TIMER_GRAVITY_FREEZE)) {
-			p.velocity.y += WEAK_GRAVITY * delta;
+		if (p.velocity.y > *_fallSpeedCap || p.TimerActive(Player::TIMER_GRAVITY_FREEZE)) {
+			p.velocity.y += *_weakGravity * delta;
 		}
 
 		else if (p.GetInput().IsDown(ACTION_DOWN)) {
-			p.velocity.y += FAST_FALL_GRAVITY * delta;
+			p.velocity.y += *_fastFallGravity * delta;
 		}
 
 		else {
@@ -130,7 +127,7 @@ struct MovementStateNormal : public IMovementState {
 
 		// dive buffer
 		bool wantsToDive = p.velocity.y < *_gravity * delta || !p.IsCloseToFloor();
-		bool wantsToUltraslide = p.velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && p.GetInput().IsDown(ACTION_DOWN);
+		bool wantsToUltraslide = p.velocity.y > *_maxDiveBufferYVelocity && p.GetInput().IsDown(ACTION_DOWN);
 
 		if (!p.GetInput().IsTapped(ACTION_DIVE)) {
 		}
@@ -181,7 +178,7 @@ struct MovementStateNormal : public IMovementState {
 		// jumping
 		if (p.TimerActive(Player::TIMER_COYOTE) && p.UseBuffer(Player::BUFFER_JUMP)) {
 			p.UnsetTimer(Player::TIMER_COYOTE);
-			p.velocity.y = -JUMP_FORCE;
+			p.velocity.y = -*_jumpForce;
 
 			p.SetSquish(Player::X_SQUISH_MIN);
 			// TODO moving platforms
@@ -222,13 +219,13 @@ struct MovementStateNormal : public IMovementState {
 				// TODO bored animations
 			}
 
-			else if (abs(p.velocity.x) <= SLOW_RUN_SPEED) {
-				p.PlayAnimation(Player::ANIM_SLOW_RUN, abs(p.velocity.x) / TOP_SPEED);
+			else if (abs(p.velocity.x) <= *_slowRunSpeed) {
+				p.PlayAnimation(Player::ANIM_SLOW_RUN, abs(p.velocity.x) / *_topSpeed);
 			}
 
 			else {
 				p.SetTimer(Player::TIMER_TWERK, Player::TWERK_TIMER_MIN);
-				p.PlayAnimation(Player::ANIM_RUN, abs(p.velocity.x) / TOP_SPEED, true);
+				p.PlayAnimation(Player::ANIM_RUN, abs(p.velocity.x) / *_topSpeed, true);
 			}
 		}
 
