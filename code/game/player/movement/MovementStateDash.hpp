@@ -18,7 +18,7 @@ class MovementStateDash : public IMovementState {
 		p.UnloadDash();
 		p.Unbuffer(Player::BUFFER_DASH);
 		p.SetTimer(Player::TIMER_DASH);
-		p.SetSquish(Player::X_SQUISH_MAX);
+		p.SetSquish(*PlayerSquish::xMax);
 		p.PlayAnimationFromStart(Player::ANIM_JUMP);
 
 		p.velocity.y = *_yVelocity;

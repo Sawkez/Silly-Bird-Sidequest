@@ -180,7 +180,7 @@ struct MovementStateNormal : public IMovementState {
 			p.UnsetTimer(Player::TIMER_COYOTE);
 			p.velocity.y = -*_jumpForce;
 
-			p.SetSquish(Player::X_SQUISH_MIN);
+			p.SetSquish(*PlayerSquish::xMin);
 			// TODO moving platforms
 		}
 

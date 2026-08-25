@@ -5,6 +5,8 @@
 
 #include "engine/IProcessable.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "engine/graphics/AnimatedSpriteOverlay.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/graphics/ParticleSpawner.hpp"
@@ -18,13 +20,17 @@
 #include "game/player/IPlayer.hpp"
 #include "game/player/graphics/DiveParticle.hpp"
 #include "game/player/graphics/Jizz.hpp"
+#include "game/player/graphics/PlayerSquish.hpp"
 #include "game/player/graphics/Scarf.hpp"
 #include "game/player/movement/IMovementState.hpp"
+
+#define CONVAR_CATEGORY PLAYER
 
 using namespace std;
 
 class Player : public IPlayer {
    private:
+	// TODO convarize
 	static inline constexpr float TIMER_DURATIONS[_TIMER_COUNT] = {
 		10.0 / 60.0,  // coyote
 		30.0 / 60.0,  // platform
@@ -58,22 +64,11 @@ class Player : public IPlayer {
 	static inline const Vector2 BODY_CENTER{8.0, 8.0};
 	static inline const Vector2 FEET_POS{8.0, 16.0};
 
-	static inline constexpr float SQUISH_BASE_X_VELOCITY = 200.0;
-	static inline constexpr float SQUISH_BASE_Y_VELOCITY = 250.0;
-	static inline constexpr float SQUISH_ACCEL = 180.0;
-	static inline constexpr float MAX_SQUISH_VELOCITY = 15.0;
-	static inline constexpr float MIN_SQUISH_VELOCITY = 0.25;
-	static inline constexpr float SQUISH_DAMPENING = 0.000058228f;	// 0.85 ^ 60.0
-	static inline constexpr float X_SQUISH_MIN = 0.25;
-	static inline constexpr float X_SQUISH_MAX = 1.5;
-	static inline constexpr float X_SQUISH_RESET = 0.075;
-	static inline constexpr float Y_SQUISH_MAX = 1.25;
-
 	static inline constexpr float LEDGE_CHECK_OFFSET_LEFT = -1.2;
 	static inline constexpr float LEDGE_CHECK_OFFSET_RIGHT = 0.8;
 	static inline constexpr float LEDGE_CHECK_OFFSET_UP = -1.5;
 
-	static inline constexpr float REJUVENATOR_THRESHOLD = 300.0;
+	CONVAR(float, _rejuvenatorThreshold, REJUVENATOR_THRESHOLD, 300.0f, DC_FLAG_CHEAT);
 
    private:
 	static inline constexpr float V_RESET_GRAVITY = 1800.0;
@@ -90,7 +85,7 @@ class Player : public IPlayer {
 	static inline const Vector2 FLOOR_CHECK_OFFSET{-3.5, 0.0};
 	static inline const Vector2 CEILING_CHECK_OFFSET = COLLISION_OFFSET_FULL + Vector2{0.5, 0.0};
 
-	static inline constexpr float CEILING_DASH_VELOCITY = 200.0;
+	CONVAR(float, _ceilingDashVelocity, CEILING_DASH_VELOCITY, 200.0f, DC_FLAG_CHEAT);
 
 	// objects
 	const InputManager& _input;
@@ -264,7 +259,7 @@ class Player : public IPlayer {
 		}
 
 		if (IsPushingFloor() && !WasPushingFloor()) {
-			_sprite.scale.x = X_SQUISH_MAX;
+			_sprite.scale.x = *PlayerSquish::xMax;
 			ReloadDash();
 			ReloadDive();
 			UnsetFlag(Flag::FLAG_QUICK_CLIMB);
@@ -335,7 +330,7 @@ class Player : public IPlayer {
 		SetFlag(Flag::FLAG_CLOSE_TO_FLOOR, _room.get().GetColliders().OverlapsRect(_floorCheck));
 
 		// rejuvenating
-		if (hVelocityBeforeCollision > REJUVENATOR_THRESHOLD && IsPushingWall() && HasUpgrade(UPGRADE_REJUVENATOR)) {
+		if (hVelocityBeforeCollision > *_rejuvenatorThreshold && IsPushingWall() && HasUpgrade(UPGRADE_REJUVENATOR)) {
 			ReloadDash();
 			ReloadDive();
 		}
@@ -353,27 +348,28 @@ class Player : public IPlayer {
 			float xAbsoluteVelocity = abs(velocity.x);
 			float yAbsoluteVelocity = abs(velocity.y);
 
-			float x = xAbsoluteVelocity / SQUISH_BASE_X_VELOCITY;
-			float y = velocity.y == 0.0 ? 1.0 : SQUISH_BASE_Y_VELOCITY / yAbsoluteVelocity;
+			float x = xAbsoluteVelocity / *PlayerSquish::baseVelocityX;
+			float y = velocity.y == 0.0 ? 1.0 : *PlayerSquish::baseVelocityY / yAbsoluteVelocity;
 
-			if (xAbsoluteVelocity > SQUISH_BASE_X_VELOCITY || yAbsoluteVelocity > SQUISH_BASE_Y_VELOCITY) {
+			if (xAbsoluteVelocity > *PlayerSquish::baseVelocityX || yAbsoluteVelocity > *PlayerSquish::baseVelocityY) {
 				targetSquish = x * y;
 			}
 		}
 
 		float squishDist = targetSquish - _sprite.scale.x;
-		_squishVelocity =
-			clamp(_squishVelocity + SQUISH_ACCEL * squishDist * delta, -MAX_SQUISH_VELOCITY, MAX_SQUISH_VELOCITY);
-		_squishVelocity *= powf(SQUISH_DAMPENING, delta);
+		_squishVelocity = clamp(_squishVelocity + *PlayerSquish::acceleration * squishDist * delta,
+								-*PlayerSquish::maxVelocity, *PlayerSquish::maxVelocity);
+		_squishVelocity *= powf(*PlayerSquish::dampening, delta);
 
-		_sprite.scale.x = clamp(_sprite.scale.x + _squishVelocity * delta, X_SQUISH_MIN, X_SQUISH_MAX);
+		_sprite.scale.x = clamp(_sprite.scale.x + _squishVelocity * delta, *PlayerSquish::xMin, *PlayerSquish::xMax);
 
-		if (abs(targetSquish - _sprite.scale.x) < X_SQUISH_RESET && abs(_squishVelocity) < MIN_SQUISH_VELOCITY) {
+		if (abs(targetSquish - _sprite.scale.x) < *PlayerSquish::xReset &&
+			abs(_squishVelocity) < *PlayerSquish::minVelocity) {
 			_sprite.scale.x = targetSquish;
 			_squishVelocity = 0.0;
 		}
 
-		_sprite.scale.y = min(1.0f / _sprite.scale.x, Y_SQUISH_MAX);
+		_sprite.scale.y = min(1.0f / _sprite.scale.x, *PlayerSquish::yMax);
 
 		// updating children
 		_sprite.position = position;
@@ -401,7 +397,7 @@ class Player : public IPlayer {
 	void FlipSprite(bool left) override {
 		if (HasFlag(Flag::FLAG_FACING_LEFT) == left) return;
 
-		_sprite.scale.x = X_SQUISH_MIN;
+		_sprite.scale.x = *PlayerSquish::xMin;
 		SetFlag(Flag::FLAG_FACING_LEFT, left);
 		_sprite.SetFlip(left ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 	}
@@ -430,7 +426,7 @@ class Player : public IPlayer {
 
 	void CeilingDash() override {
 		UnsetTimer(TIMER_DASH);
-		velocity.x += copysignf(CEILING_DASH_VELOCITY, velocity.x);
+		velocity.x += copysignf(*_ceilingDashVelocity, velocity.x);
 		SetTimer(TIMER_GRAVITY_FREEZE);
 	}
 
@@ -509,3 +505,5 @@ class Player : public IPlayer {
 	void ShowScarf() override { _sprite.EnableOverlay(); }
 	void HideScarf() override { _sprite.DisableOverlay(); }
 };
+
+#undef CONVAR_CATEGORY

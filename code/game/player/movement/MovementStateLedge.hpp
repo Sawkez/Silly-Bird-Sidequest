@@ -37,7 +37,7 @@ class MovementStateLedge : public IMovementState {
 		p.EnableQuickClimb();
 
 		p.PlayAnimationLastFrame(Player::Player::ANIM_LEDGE_UNFLIP, 0.0);
-		p.SetSquish(Player::X_SQUISH_MAX);
+		p.SetSquish(*PlayerSquish::xMax);
 	}
 
 	void Process(Player& p, float delta) const override {
@@ -76,7 +76,7 @@ class MovementStateLedge : public IMovementState {
 		if (p.IsCloseToCeiling()) {
 			p.SetShortCollision(true);
 		}
-		p.SetSquish(Player::X_SQUISH_MIN);
+		p.SetSquish(*PlayerSquish::xMin);
 		p.UnsetTimer(Player::TIMER_COYOTE);
 		p.UnsetCooldown(Player::COOLDOWN_WALLRUN);
 	}

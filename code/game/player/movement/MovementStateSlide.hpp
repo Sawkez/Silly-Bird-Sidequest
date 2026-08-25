@@ -56,7 +56,7 @@ class MovementStateSlide : public IMovementState {
 			p.Unbuffer(Player::BUFFER_JUMP);
 
 			p.velocity.y = -*_jumpForce;
-			p.SetSquish(Player::X_SQUISH_MIN);
+			p.SetSquish(*PlayerSquish::xMin);
 
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 			return;
