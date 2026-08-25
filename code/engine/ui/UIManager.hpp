@@ -197,7 +197,7 @@ class UIManager {
 
 	static void Draw() {
 		if (_stackTop < 0) return;
-		SDL_FRect source{0.0, 0.0, _displayRes.x, _displayRes.y};
+		SDL_FRect source{0.0, 0.0, float(_displayRes.x), float(_displayRes.y)};
 		SDL_RenderTexture(_renderer, _texture, &source, NULL);
 	}
 
