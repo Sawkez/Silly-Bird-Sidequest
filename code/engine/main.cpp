@@ -29,6 +29,16 @@
 using namespace std;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+// falling back to xWayland on gnome because gnome is made by babies
+#if SDL_PLATFORM_LINUX
+	if (SDL_getenv("WAYLAND_DISPLAY") != nullptr) {
+		const char* desktop = SDL_getenv("XDG_CURRENT_DESKTOP");
+		if (desktop != nullptr && strstr(desktop, "GNOME") != nullptr && SDL_getenv("SDL_VIDEODRIVER") == nullptr) {
+			SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+		}
+	}
+#endif
+
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
 	PerformanceManager::Init();
