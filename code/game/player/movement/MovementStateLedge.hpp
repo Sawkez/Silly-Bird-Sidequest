@@ -1,58 +1,65 @@
 #pragma once
 
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
 
-class MovementStateLedge : public IMovementState {
-	static inline constexpr float LEDGE_OFFSET_HEIGHT = 10.0;
-	static inline constexpr float LEDGE_OFFSET_LEFT = 12.0;
-	static inline constexpr float LEDGE_OFFSET_RIGHT = -4.0;
+#define CONVAR_CATEGORY PLAYER_STATE_LEDGE
 
-	static inline const Vector2 LEDGE_SIDE_JUMP_FORCE{200.0, -200.0};
-	static inline constexpr float LEDGE_UP_JUMP_FORCE = 250.0;
-	static inline constexpr float LEDGE_UP_COOLDOWN = 5.0 / 60.0;
-	static inline constexpr float LEDGE_DOWN_COOLDOWN = 10.0 / 60.0;
+class MovementStateLedge : public IMovementState {
+	// clang-format off
+	CONVAR(float,	_offsetHeight,		OFFSET_HEIGHT,		10.0f,			DC_FLAG_CHEAT);
+	CONVAR(float,	_offsetLeft,		OFFSET_LEFT,		12.0f,			DC_FLAG_CHEAT);
+	CONVAR(float,	_offsetRight,		OFFSET_RIGHT,		-4.0f,			DC_FLAG_CHEAT);
+
+	CONVAR(float,	_sideJumpForceX,	SIDE_JUMP_FORCE_X,	200.0f,			DC_FLAG_CHEAT);
+	CONVAR(float,	_sideJumpForceY,	SIDE_JUMP_FORCE_Y,	-200.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_upJumpForce,		UP_JUMP_FORCE,		250.0f,			DC_FLAG_CHEAT);
+	CONVAR(float,	_upCooldown,		UP_COOLDOWN,		5.0f / 60.0f,	DC_FLAG_CHEAT);
+	CONVAR(float,	_downCooldown,		DOWN_COOLDOWN,		10.0f / 60.0f,	DC_FLAG_CHEAT);
+	// clang-format on
 
 	void Init(Player& p) const override {
 		p.position = p.GetLedgeTile();
-		p.position.y += LEDGE_OFFSET_HEIGHT;
+		p.position.y += *_offsetHeight;
 
 		if (p.IsFacingLeft()) {
-			p.position.x += LEDGE_OFFSET_LEFT;
+			p.position.x += *_offsetLeft;
 		}
 
 		else {
-			p.position.x += LEDGE_OFFSET_RIGHT;
+			p.position.x += *_offsetRight;
 		}
 
 		p.velocity = Vector2::ZERO;
 		p.EnableQuickClimb();
 
 		p.PlayAnimationLastFrame(Player::Player::ANIM_LEDGE_UNFLIP, 0.0);
-		p.SetSquish(Player::X_SQUISH_MAX);
+		p.SetSquish(*PlayerSquish::xMax);
 	}
 
 	void Process(Player& p, float delta) const override {
-		if (p.GetInput().IsTapped(ACTION_JUMP) || p.GetInput().IsTapped(ACTION_UP) || p.BufferActive(Player::BUFFER_DASH) ||
-			p.BufferActive(Player::BUFFER_LEDGE_JUMP)) {
+		if (p.GetInput().IsTapped(ACTION_JUMP) || p.GetInput().IsTapped(ACTION_UP) ||
+			p.BufferActive(Player::BUFFER_DASH) || p.BufferActive(Player::BUFFER_LEDGE_JUMP)) {
 			p.Unbuffer(Player::BUFFER_DASH);
 			p.Unbuffer(Player::BUFFER_LEDGE_JUMP);
 
 			if (p.GetInput().GetDir().x != 0.0 && (p.GetInput().GetDir().x < 0.0 != p.IsFacingLeft())) {
-				p.velocity = {LEDGE_SIDE_JUMP_FORCE.x * p.GetInput().GetDir().x, LEDGE_SIDE_JUMP_FORCE.y};
+				p.velocity = {*_sideJumpForceX * p.GetInput().GetDir().x, *_sideJumpForceY};
 			}
 
 			else {
-				p.velocity.y = -LEDGE_UP_JUMP_FORCE;
+				p.velocity.y = -*_upJumpForce;
 			}
 
-			p.SetCooldown(Player::COOLDOWN_LEDGE, LEDGE_UP_COOLDOWN);
+			p.SetCooldown(Player::COOLDOWN_LEDGE, *_upCooldown);
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 		}
 
 		else if (p.GetInput().IsTapped(ACTION_DOWN)) {
-			p.SetCooldown(Player::COOLDOWN_LEDGE, LEDGE_DOWN_COOLDOWN);
+			p.SetCooldown(Player::COOLDOWN_LEDGE, *_downCooldown);
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 		}
 
@@ -69,8 +76,10 @@ class MovementStateLedge : public IMovementState {
 		if (p.IsCloseToCeiling()) {
 			p.SetShortCollision(true);
 		}
-		p.SetSquish(Player::X_SQUISH_MIN);
+		p.SetSquish(*PlayerSquish::xMin);
 		p.UnsetTimer(Player::TIMER_COYOTE);
 		p.UnsetCooldown(Player::COOLDOWN_WALLRUN);
 	}
 };
+
+#undef CONVAR_CATEGORY

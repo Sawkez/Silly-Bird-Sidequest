@@ -1,18 +1,23 @@
 #pragma once
 
 #include "engine/devconsole/DevConsole.hpp"
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "game/player/Player.hpp"
+#include "game/player/graphics/PlayerSquish.hpp"
 #include "game/player/movement/IMovementState.hpp"
 
+#define CONVAR_CATEGORY PLAYER_STATE_SLIDE
+
 class MovementStateSlide : public IMovementState {
-	static inline constexpr float SLIDE_INITIAL_SPEED = 250.0;
-	static inline constexpr float SLIDE_SPEED = 200.0;
-	static inline constexpr float ULTRASLIDE_VELOCITY_MULT =
-		0.975;	// i can't figure out why this is different from godot
-	static inline constexpr float SLIDE_GRAVITY = 1.0;
-	static inline constexpr float SQUISH_SLIDE = 0.5;
-	static inline constexpr float SLIDE_FRICTION = 300.0;
-	static inline constexpr float SLIDE_JUMP_FORCE = 250.0;
+	// clang-format off
+	CONVAR(float,	_initialSpeed,				INITIAL_SPEED,				250.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_speed,						SPEED,						200.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_ultraSlideVelocityMult,	ULTRA_SLIDE_VELOCITY_MULT,	0.975f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_gravity,					GRAVITY,					1.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_friction,					FRICTION,					300.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_jumpForce,					JUMP_FORCE,					250.0f,		DC_FLAG_CHEAT);
+	// clang-format on
 
 	void Init(Player& p) const override {
 		p.Unbuffer(Player::BUFFER_SLIDE);
@@ -25,17 +30,17 @@ class MovementStateSlide : public IMovementState {
 			p.ResetLastDownVelocity();
 		}
 
-		float maxSpeed = max(abs(p.velocity.x), SLIDE_INITIAL_SPEED);
+		float maxSpeed = max(abs(p.velocity.x), *_initialSpeed);
 		if (p.GetInput().GetDir().y == 1.0) {
-			maxSpeed = max(maxSpeed, p.GetLastDownVelocity() * ULTRASLIDE_VELOCITY_MULT);
+			maxSpeed = max(maxSpeed, p.GetLastDownVelocity() * *_ultraSlideVelocityMult);
 		}
 
 		p.velocity.x = copysignf(maxSpeed, p.velocity.x);
 
-		p.SetSquish(SQUISH_SLIDE);
+		p.SetSquish(*PlayerSquish::slide);
 		p.PlayAnimation(Player::ANIM_SLIDE);
 
-		if (abs(p.velocity.x) > SLIDE_INITIAL_SPEED) {
+		if (abs(p.velocity.x) > *_initialSpeed) {
 			dc::msg << "Ultrasliding with " << p.velocity.x << dc::endl;
 		}
 	}
@@ -50,8 +55,8 @@ class MovementStateSlide : public IMovementState {
 		else if (p.BufferActive(Player::BUFFER_JUMP) && !p.IsCloseToCeiling()) {
 			p.Unbuffer(Player::BUFFER_JUMP);
 
-			p.velocity.y = -SLIDE_JUMP_FORCE;
-			p.SetSquish(Player::X_SQUISH_MIN);
+			p.velocity.y = -*_jumpForce;
+			p.SetSquish(*PlayerSquish::xMin);
 
 			p.SetState(Player::MOVEMENT_STATE_NORMAL);
 			return;
@@ -87,10 +92,10 @@ class MovementStateSlide : public IMovementState {
 			return;
 		}
 
-		p.velocity.y = SLIDE_GRAVITY * delta;
+		p.velocity.y = *_gravity * delta;
 
-		p.velocity.x = abs(p.velocity.x) - SLIDE_FRICTION * delta;
-		p.velocity.x = max(p.velocity.x, SLIDE_SPEED);
+		p.velocity.x = abs(p.velocity.x) - *_friction * delta;
+		p.velocity.x = max(p.velocity.x, *_speed);
 		if (p.IsFacingLeft()) {
 			p.velocity.x = -p.velocity.x;
 		}
@@ -106,3 +111,5 @@ class MovementStateSlide : public IMovementState {
 		p.SetCooldown(Player::COOLDOWN_SLIDE);
 	}
 };
+
+#undef CONVAR_CATEGORY

@@ -1,28 +1,29 @@
 #pragma once
 
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "game/player/Player.hpp"
+#include "game/player/graphics/PlayerSquish.hpp"
 #include "game/player/movement/IMovementState.hpp"
 
+#define CONVAR_CATEGORY PLAYER_STATE_DUCK
+
 class MovementStateDuck : public IMovementState {
-	const float SQUISH_DUCK = 0.5;
-	const float SQUISH_STAND_UP = 1.5;
-	const float SQUISH_TWERK_DOWN = 0.9;
-	const float SQUISH_TWERK_UP = 1.1;
-	const float DUCK_GRAVITY = 1.0;
-	const float DUCK_JUMP_FORCE = 250.0;
+	CONVAR(float, _gravity, GRAVITY, 1.0f, DC_FLAG_CHEAT);
+	CONVAR(float, _jumpForce, JUMP_FORCE, 25.0f, DC_FLAG_CHEAT);
 
 	void Init(Player& p) const override {
 		p.Unbuffer(Player::BUFFER_SLIDE);
 
 		p.SetShortCollision(true);
-		p.SetSquish(p.TimerActive(Player::TIMER_TWERK) ? SQUISH_TWERK_DOWN : SQUISH_DUCK);
+		p.SetSquish(p.TimerActive(Player::TIMER_TWERK) ? *PlayerSquish::twerkDown : *PlayerSquish::duck);
 
 		if (p.TimerActive(Player::TIMER_TWERK)) p.PlayAnimation(Player::ANIM_TWERK_DOWN);
 		p.IncrementTwerkTimer();
 	}
 
 	void Process(Player& p, float delta) const override {
-		p.velocity = Vector2{0.0, DUCK_GRAVITY * delta};
+		p.velocity = Vector2{0.0, *_gravity * delta};
 
 		if (!p.TimerActive(Player::TIMER_TWERK)) p.PlayAnimation(Player::ANIM_DUCK);
 
@@ -31,7 +32,7 @@ class MovementStateDuck : public IMovementState {
 			!p.CooldownActive(Player::COOLDOWN_SLIDE)) {
 			// duck double-jump
 			if (!p.IsCloseToCeiling() && p.GetInput().IsTapped(ACTION_JUMP)) {
-				p.velocity.y = -DUCK_JUMP_FORCE;
+				p.velocity.y = -*_jumpForce;
 				p.SetState(Player::MOVEMENT_STATE_NORMAL);
 				return;
 			}
@@ -61,7 +62,9 @@ class MovementStateDuck : public IMovementState {
 
 	void Deinit(Player& p) const override {
 		p.SetTimer(Player::TIMER_COYOTE);
-		p.SetSquish(p.TimerActive(Player::TIMER_TWERK) ? SQUISH_TWERK_UP : SQUISH_STAND_UP);
+		p.SetSquish(p.TimerActive(Player::TIMER_TWERK) ? *PlayerSquish::twerkUp : *PlayerSquish::standUp);
 		p.SetShortCollision(false);
 	}
 };
+
+#undef CONVAR_CATEGORY
