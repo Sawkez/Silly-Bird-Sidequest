@@ -10,6 +10,7 @@
 #include "engine/Random.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/devconsole/DevConsoleCommandRegister.hpp"
+#include "engine/devconsole/variable/DevConsoleVariablesMeta.hpp"
 #include "engine/input/InputManager.hpp"
 #include "engine/mods/ModManager.hpp"
 #include "engine/performance/PerformanceManager.hpp"

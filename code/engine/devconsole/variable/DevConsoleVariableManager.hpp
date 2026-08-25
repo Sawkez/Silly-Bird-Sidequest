@@ -9,7 +9,12 @@
 
 class DevConsoleVariableManager {
    public:
-	enum DevConsoleVariableID { PLAYER_STATE_NORMAL_GRAVITY, PLAYER_STATE_NORMAL_FASTFALL_GRAVITY, _VAR_COUNT };
+	enum DevConsoleVariableID {
+		PLAYER_STATE_NORMAL_GRAVITY,
+		PLAYER_STATE_NORMAL_FASTFALL_GRAVITY,
+		META_ENABLE_CHEATS,
+		_VAR_COUNT
+	};
 
    private:
 	static inline IDevConsoleVariable* _variables[_VAR_COUNT];
@@ -28,13 +33,32 @@ class DevConsoleVariableManager {
 	static void Set(const std::string& name, const std::string& value, bool fromUser) {
 #ifdef PLATFORM_HAS_STRING_COMMANDS
 
-		auto variable = _variablesByName.find(name);
+		auto it = _variablesByName.find(name);
 
-		if (variable == _variablesByName.end()) {
+		if (it == _variablesByName.end()) {
 			dc::err << "Variable not found: " << name << dc::endl;
+			return;
 		}
 
-		variable->second->Set(value);
+		IDevConsoleVariable* variable = it->second;
+
+		if (fromUser && variable->IsCheat()) {
+			auto enableCheats = _variables[META_ENABLE_CHEATS];
+
+			if (enableCheats && enableCheats->GetString() != "1") {
+				dc::err << "Cannot set cheat variables with cheats disabled. Run \"set META_ENABLE_CHEATS 1\" to "
+						   "enable them."
+						<< dc::endl;
+				return;
+			}
+		}
+
+		if (!fromUser && variable->IsUnsafe()) {
+			dc::err << "Only the player may set unsafe variables." << dc::endl;
+			return;
+		}
+
+		variable->Set(value);
 #endif
 	}
 };

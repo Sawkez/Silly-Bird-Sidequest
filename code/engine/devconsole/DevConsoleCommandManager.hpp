@@ -7,6 +7,7 @@
 #include "engine/PlatformDefines.hpp"
 #include "engine/devconsole/DevConsole.hpp"
 #include "engine/devconsole/DevConsoleCommand.hpp"
+#include "engine/devconsole/variable/DevConsoleVariablesMeta.hpp"
 
 enum ConsoleCommand {
 	CMD_MISC_HELP,
@@ -91,6 +92,18 @@ class DevConsoleCommandManager {
 
 		if (commandFunction == _commandsByName.end()) {
 			dc::err << "Command not found: " << commandName << dc::endl;
+			return;
+		}
+
+		if (fromUser && commandFunction->second.IsCheat() && !*DevConsoleVariablesMeta::enableCheats) {
+			dc::err
+				<< "Cannot run cheat commands with cheats disabled. Run \"set META_ENABLE_CHEATS 1\" to enable them."
+				<< dc::endl;
+			return;
+		}
+
+		if (!fromUser && commandFunction->second.IsUnsafe()) {
+			dc::err << "Only the player may run unsafe commands." << dc::endl;
 			return;
 		}
 

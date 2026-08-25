@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "engine/PlatformDefines.hpp"
+#include "engine/devconsole/DevConsoleFlags.hpp"
 
 class DevConsoleCommand {
    private:
@@ -35,4 +36,7 @@ class DevConsoleCommand {
 		return "";
 #endif
 	}
+
+	bool IsCheat() const { return _flags & DC_FLAG_CHEAT; }
+	bool IsUnsafe() const { return _flags & DC_FLAG_UNSAFE; }
 };

@@ -42,6 +42,15 @@ class DevConsoleVariable : public IDevConsoleVariable {
 		iss >> _current;
 	}
 
+	std::string GetString() const override {
+		std::ostringstream oss;
+		oss << _current;
+		return oss.str();
+	}
+
+	bool IsCheat() const override { return _flags & DC_FLAG_CHEAT; }
+	bool IsUnsafe() const override { return _flags & DC_FLAG_UNSAFE; }
+
 	const Type& operator*() const { return _current; }
 	Type Get() const { return _current; }
 };
