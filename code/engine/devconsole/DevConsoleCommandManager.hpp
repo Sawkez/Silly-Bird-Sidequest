@@ -21,6 +21,8 @@ enum ConsoleCommand {
 
 	CMD_PLAYER_GIVE_UPGRADES,
 
+	CMD_VAR_SET,
+
 	_CMD_COUNT
 };
 
@@ -33,7 +35,7 @@ class DevConsoleCommandManager {
 #endif
 
    public:
-	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&),
+	static void RegisterCommand(const std::string& name, void (*function)(const std::vector<std::string>&, bool),
 								unsigned char flags, int index, const std::string& description) {
 		if (index >= _CMD_COUNT)
 			std::cerr << "ERROR REGISTERING COMMAND: INDEX " << index << "OUT OF RANGE" << std::endl;

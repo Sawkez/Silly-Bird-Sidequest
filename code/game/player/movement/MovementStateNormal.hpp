@@ -4,11 +4,11 @@
 
 #include "engine/Math.hpp"
 #include "engine/devconsole/DevConsole.hpp"
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "engine/input/InputManager.hpp"
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
-
-// TODO unfriend
 
 struct MovementStateNormal : public IMovementState {
 	static inline constexpr float ACCELERATION = 600.0;
@@ -17,11 +17,13 @@ struct MovementStateNormal : public IMovementState {
 	static inline constexpr float AIR_FRICTION = 60.0;
 
 	static inline constexpr float WEAK_GRAVITY = 600.0;
-	static inline constexpr float GRAVITY = 900.0;
+
+	CONVAR(float, _gravity, PLAYER_STATE_NORMAL_GRAVITY, 900.0f, DC_FLAG_CHEAT);
+
 	static inline constexpr float FAST_FALL_GRAVITY = 1200.0;
 
 	static inline constexpr float FAST_FALL_WINDOW =
-		GRAVITY * 14.0 / 120.0;	 // 10 frames total, 5 frames either direction at 60 fps
+		900.0f * 14.0 / 120.0;	// 10 frames total, 5 frames either direction at 60 fps
 	static inline constexpr float FALL_SPEED_CAP = 200.0;
 
 	static inline constexpr float JUMP_FORCE = 250.0;
@@ -38,7 +40,7 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// ceiling dash
-		if (p.TimerActive(Player::TIMER_DASH) && p.velocity.y < GRAVITY * delta && p.IsPushingCeiling()) {
+		if (p.TimerActive(Player::TIMER_DASH) && p.velocity.y < *_gravity * delta && p.IsPushingCeiling()) {
 			p.CeilingDash();
 		}
 
@@ -84,7 +86,7 @@ struct MovementStateNormal : public IMovementState {
 			velocity.y = FAST_FALL_GRAVITY * timeFastFalling;
 			*/
 
-			p.velocity.y = abs(p.velocity.y) * sqrtf(FAST_FALL_GRAVITY / GRAVITY);
+			p.velocity.y = abs(p.velocity.y) * sqrtf(FAST_FALL_GRAVITY / *_gravity);
 			dc::msg << "setting velocity to " << p.velocity.y << dc::endl;
 		}
 
@@ -103,7 +105,7 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		else {
-			p.velocity.y += GRAVITY * delta;
+			p.velocity.y += *_gravity * delta;
 		}
 
 		// resetting coyote timer
@@ -125,7 +127,7 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// dive buffer
-		bool wantsToDive = p.velocity.y < GRAVITY * delta || !p.IsCloseToFloor();
+		bool wantsToDive = p.velocity.y < *_gravity * delta || !p.IsCloseToFloor();
 		bool wantsToUltraslide = p.velocity.y > MAX_DIVE_BUFFER_Y_VELOCITY && p.GetInput().IsDown(ACTION_DOWN);
 
 		if (!p.GetInput().IsTapped(ACTION_DIVE)) {
@@ -168,7 +170,7 @@ struct MovementStateNormal : public IMovementState {
 		}
 
 		// diving
-		if (p.BufferActive(Player::BUFFER_DIVE) && p.velocity.y > GRAVITY * delta &&
+		if (p.BufferActive(Player::BUFFER_DIVE) && p.velocity.y > *_gravity * delta &&
 			p.HasUpgrade(Player::UPGRADE_DIVE) && p.IsDiveAvailable()) {
 			p.SetState(Player::MOVEMENT_STATE_DIVE);
 			return;
@@ -190,7 +192,7 @@ struct MovementStateNormal : public IMovementState {
 		if (!p.BufferActive(Player::BUFFER_DASH)) {
 		}
 
-		else if (dashFirst && p.velocity.y > GRAVITY * delta && p.HasUpgrade(Player::UPGRADE_DASH) &&
+		else if (dashFirst && p.velocity.y > *_gravity * delta && p.HasUpgrade(Player::UPGRADE_DASH) &&
 				 p.IsDashAvailable()) {
 			p.SetState(Player::MOVEMENT_STATE_DASH);
 			return;

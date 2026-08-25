@@ -8,7 +8,7 @@
 #include "game/player/Player.hpp"
 
 namespace ConsoleCommandsPlayer {
-void giveUpgrade(const std::vector<std::string>& args) {
+void giveUpgrade(const std::vector<std::string>& args, bool fromUser) {
 	Player& player = WorldManager::GetLevel().GetPlayer();
 
 	bool gave = false;
@@ -55,7 +55,8 @@ void giveUpgrade(const std::vector<std::string>& args) {
 	}
 
 	if (!gave) {
-		dc::msg << "Possible options: dive (0), dash (1), slide (2), diveboost (3), rejuvenator (4), wallrun (5), all" << dc::endl;
+		dc::msg << "Possible options: dive (0), dash (1), slide (2), diveboost (3), rejuvenator (4), wallrun (5), all"
+				<< dc::endl;
 	}
 }
 }  // namespace ConsoleCommandsPlayer

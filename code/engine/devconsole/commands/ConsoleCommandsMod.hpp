@@ -8,7 +8,7 @@
 
 namespace ConsoleCommandsMod {
 
-void loadCurrentModLevel(const std::vector<std::string>& args) {
+void loadCurrentModLevel(const std::vector<std::string>& args, bool fromUser) {
 	if (args[0] == "index") {
 		WorldManager::LoadLevel(stoi(args[1]));
 	} else if (args[0] == "path") {
@@ -18,7 +18,7 @@ void loadCurrentModLevel(const std::vector<std::string>& args) {
 	}
 }
 
-void loadModLevel(const std::vector<std::string>& args) {
+void loadModLevel(const std::vector<std::string>& args, bool fromUser) {
 	if (args[1] == "index") {
 		ModManager::LoadLevelModFromFile(args[0]);
 		WorldManager::LoadLevel(stoi(args[2]));
@@ -32,7 +32,7 @@ void loadModLevel(const std::vector<std::string>& args) {
 	}
 }
 
-void loadBuiltinLevel(const std::vector<std::string>& args) {
+void loadBuiltinLevel(const std::vector<std::string>& args, bool fromUser) {
 	if (args[0] == "index") {
 		ModManager::LoadLevelModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
 		WorldManager::LoadLevel(stoi(args[1]));
@@ -44,7 +44,7 @@ void loadBuiltinLevel(const std::vector<std::string>& args) {
 	}
 }
 
-void loadCurrentModSkin(const std::vector<std::string>& args) {
+void loadCurrentModSkin(const std::vector<std::string>& args, bool fromUser) {
 	if (args[0] == "index") {
 		ModManager::LoadSkin(GameState::GetMainRenderer(), stoi(args[1]));
 	} else if (args[0] == "path") {
@@ -54,7 +54,7 @@ void loadCurrentModSkin(const std::vector<std::string>& args) {
 	}
 }
 
-void loadModSkin(const std::vector<std::string>& args) {
+void loadModSkin(const std::vector<std::string>& args, bool fromUser) {
 	if (args[1] == "index") {
 		ModManager::LoadSkinModFromFile(args[0]);
 		ModManager::LoadSkin(GameState::GetMainRenderer(), stoi(args[2]));
@@ -66,7 +66,7 @@ void loadModSkin(const std::vector<std::string>& args) {
 	}
 }
 
-void loadBuiltinSkin(const std::vector<std::string>& args) {
+void loadBuiltinSkin(const std::vector<std::string>& args, bool fromUser) {
 	if (args[0] == "index") {
 		ModManager::LoadSkinModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
 		ModManager::LoadSkin(GameState::GetMainRenderer(), stoi(args[1]));
