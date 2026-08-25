@@ -94,6 +94,9 @@ bool Enumerate(void* userData, const char* directory, SDL_EnumerateDirectoryCall
 			case SDL_ENUM_SUCCESS:
 				zip_entry_close(zip);
 				return true;
+
+			default:
+				break;
 		}
 
 		zip_entry_close(zip);
