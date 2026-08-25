@@ -131,7 +131,8 @@ class DevConsoleCommandManager {
 
 		commandFunction->second.Run(arguments, true);
 
-		return true;
+		// TODO something other than this
+		return (commandName == "loadModLevel");
 	}
 
 #else
