@@ -61,5 +61,6 @@ class DevConsoleVariable : public IDevConsoleVariable {
 	bool IsUnsafe() const override { return _flags & DC_FLAG_UNSAFE; }
 
 	const Type& operator*() const { return _current; }
+	const Type* operator->() const { return &_current; }
 	Type Get() const { return _current; }
 };
