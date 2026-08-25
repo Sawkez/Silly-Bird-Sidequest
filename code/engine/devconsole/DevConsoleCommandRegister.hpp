@@ -33,6 +33,8 @@ void Init() {
 		"Give one or more upgrades to player");
 
 	reg("set", ConsoleCommandsVar::set, DC_FLAG_NONE, CMD_VAR_SET, "Set console variable");
+	reg("listVariables", ConsoleCommandsVar::listVariables, DC_FLAG_NONE, CMD_VAR_LIST,
+		"List available console variables");
 }
 
 }  // namespace DevConsoleCommandRegister

@@ -15,4 +15,6 @@ void set(const std::vector<std::string>& args, bool fromUser) {
 
 	DevConsoleVariableManager::Set(args[0], args[1], fromUser);
 }
+
+void listVariables(const std::vector<std::string>& args, bool fromUser) { DevConsoleVariableManager::ListVariables(); }
 }  // namespace ConsoleCommandsVar
