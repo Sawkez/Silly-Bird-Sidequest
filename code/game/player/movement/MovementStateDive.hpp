@@ -1,24 +1,30 @@
 #pragma once
 
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
 
+#define CONVAR_CATEGORY PLAYER_STATE_DIVE
+
 class MovementStateDive : public IMovementState {
-	static inline constexpr float DIVE_INITIAL_VELOCITY = 200.0;
-	static inline constexpr float DIVE_INITIAL_GRAVITY = 60.0;
-	static inline constexpr float DIVE_GRAVITY_MULT = 304.481639541f;  // powf(1.1, 60.0);
-	static inline constexpr float DIVE_GRAVITY_MAX = 900.0;
-	static inline constexpr float DIVE_CANCEL_DURATION = 5.0 / 60.0;
-	static inline constexpr float DIVEBOOST_FORCE = 200.0;
-	static inline constexpr float DIVE_FRICTION = 300.0;
+	// clang-format off
+	CONVAR(float,	_initialVelocity,	INITIAL_VELOCITY,	200.0f,				DC_FLAG_CHEAT);
+	CONVAR(float,	_initialGravity,	INITIAL_GRAVITY,	60.0f,				DC_FLAG_CHEAT);
+	CONVAR(float,	_gravityMult,		GRAVITY_MULT,		304.481639541f,		DC_FLAG_CHEAT); // powf(1.1, 60.0)
+	CONVAR(float,	_gravityMax,		GRAVITY_MAX,		900.0f,				DC_FLAG_CHEAT);
+	CONVAR(float,	_cancelDuration,	CANCEL_DURATION,	5.0f / 60.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_boostForce,		BOOST_FORCE,		200.0f,				DC_FLAG_CHEAT);
+	CONVAR(float,	_friction,			FRICTION,			300.0f,				DC_FLAG_CHEAT);
+	// clang-format on
 
 	void Init(Player& p) const override {
 		p.UnloadDive();
 		p.Unbuffer(Player::BUFFER_DIVE);
 		p.SetTimer(Player::TIMER_DIVE);
-		p.SetCurrentDiveGravity(DIVE_INITIAL_GRAVITY);
+		p.SetCurrentDiveGravity(*_initialGravity);
 
-		p.velocity.x = max(DIVE_INITIAL_VELOCITY, abs(p.velocity.x));
+		p.velocity.x = max(*_initialVelocity, abs(p.velocity.x));
 		p.velocity.y = 0.0;
 
 		if (p.IsFacingLeft()) {
@@ -32,18 +38,18 @@ class MovementStateDive : public IMovementState {
 
 	void Process(Player& p, float delta) const override {
 		// friction
-		if (abs(p.velocity.x) > DIVE_INITIAL_VELOCITY) {
-			p.velocity.x -= copysignf(DIVE_FRICTION * delta, p.velocity.x);
+		if (abs(p.velocity.x) > *_initialVelocity) {
+			p.velocity.x -= copysignf(*_friction * delta, p.velocity.x);
 		}
 
 		// keeping top speed
 		else {
-			p.velocity.x = copysignf(DIVE_INITIAL_VELOCITY, p.velocity.x);
+			p.velocity.x = copysignf(*_initialVelocity, p.velocity.x);
 		}
 
 		// gravity
 		p.velocity.y += p.GetCurrentDiveGravity() * delta;
-		p.SetCurrentDiveGravity(min(p.GetCurrentDiveGravity() * powf(DIVE_GRAVITY_MULT, delta), DIVE_GRAVITY_MAX));
+		p.SetCurrentDiveGravity(min(p.GetCurrentDiveGravity() * powf(*_gravityMult, delta), *_gravityMax));
 
 		// rotating
 		p.SetSpriteRotationRadians(p.velocity.Angle() + (p.IsFacingLeft() ? M_PI : 0.0f));
@@ -59,15 +65,15 @@ class MovementStateDive : public IMovementState {
 			p.UnloadDash();
 			p.Unbuffer(Player::BUFFER_DASH);
 
-			p.velocity.y = -DIVEBOOST_FORCE;
-			p.SetCurrentDiveGravity(DIVE_INITIAL_GRAVITY);
+			p.velocity.y = -*_boostForce;
+			p.SetCurrentDiveGravity(*_initialGravity);
 		}
 
 		// pivoting
-		if (p.GetInput().GetDir().x * p.velocity.x < 0.0 && p.GetTimer(Player::TIMER_DIVE) > DIVE_CANCEL_DURATION) {
+		if (p.GetInput().GetDir().x * p.velocity.x < 0.0 && p.GetTimer(Player::TIMER_DIVE) > *_cancelDuration) {
 			p.velocity.x = -p.velocity.x;
 			p.FlipSprite(!p.IsFacingLeft());
-			p.SetTimer(Player::TIMER_DIVE, DIVE_CANCEL_DURATION);
+			p.SetTimer(Player::TIMER_DIVE, *_cancelDuration);
 		}
 
 		// undiving
@@ -81,7 +87,7 @@ class MovementStateDive : public IMovementState {
 				return;
 			}
 
-			if (p.GetTimer(Player::TIMER_DIVE) > DIVE_CANCEL_DURATION) {
+			if (p.GetTimer(Player::TIMER_DIVE) > *_cancelDuration) {
 				p.ReloadDive(true);
 			}
 
@@ -95,3 +101,5 @@ class MovementStateDive : public IMovementState {
 
 	void Deinit(Player& p) const override { p.SetSpriteRotationDegrees(0.0); }
 };
+
+#undef CONVAR_CATEGORY
