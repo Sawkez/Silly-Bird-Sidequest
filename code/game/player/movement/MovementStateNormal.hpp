@@ -10,6 +10,8 @@
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
 
+#define CONVAR_CATEGORY PLAYER_STATE_NORMAL
+
 struct MovementStateNormal : public IMovementState {
 	static inline constexpr float ACCELERATION = 600.0;
 	static inline constexpr float TOP_SPEED = 125.0;
@@ -18,7 +20,7 @@ struct MovementStateNormal : public IMovementState {
 
 	static inline constexpr float WEAK_GRAVITY = 600.0;
 
-	CONVAR(float, _gravity, PLAYER_STATE_NORMAL_GRAVITY, 900.0f, DC_FLAG_CHEAT);
+	CONVAR(float, _gravity, GRAVITY, 900.0f, DC_FLAG_CHEAT);
 
 	static inline constexpr float FAST_FALL_GRAVITY = 1200.0;
 
@@ -243,3 +245,5 @@ struct MovementStateNormal : public IMovementState {
 
 	void Deinit(Player& p) const override {}
 };
+
+#undef CONVAR_CATEGORY

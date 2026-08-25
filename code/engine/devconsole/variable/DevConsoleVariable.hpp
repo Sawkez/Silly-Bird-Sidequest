@@ -8,9 +8,18 @@
 #include "engine/devconsole/variable/DevConsoleVariableManager.hpp"
 #include "engine/devconsole/variable/IDevConsoleVariable.hpp"
 
-#define CONVAR(type, varName, id, defaultValue, flags, ...) \
-	static inline auto varName =                            \
-		DevConsoleVariable<type>(#id, DevConsoleVariableManager::id, defaultValue, flags, ##__VA_ARGS__)
+#define CONVAR_STR_HELPER(x) #x
+#define CONVAR_STR(x) CONVAR_STR_HELPER(x)
+
+#define CONVAR_GLUE_HELPER(x, y) x##_##y
+#define CONVAR_GLUE(x, y) CONVAR_GLUE_HELPER(x, y)
+
+#define CONVAR_NAME_STR(cat, id) CONVAR_STR(cat) "_" CONVAR_STR(id)
+
+#define CONVAR(type, varName, id, defaultValue, flags, ...)                                                            \
+	static inline auto varName = DevConsoleVariable<type>(CONVAR_NAME_STR(CONVAR_CATEGORY, id),                        \
+														  DevConsoleVariableManager::CONVAR_GLUE(CONVAR_CATEGORY, id), \
+														  defaultValue, flags, ##__VA_ARGS__)
 
 template <typename Type>
 class DevConsoleVariable : public IDevConsoleVariable {
