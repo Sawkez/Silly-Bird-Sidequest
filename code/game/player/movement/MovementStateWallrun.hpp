@@ -3,25 +3,31 @@
 #include <math.h>
 
 #include "engine/Math.hpp"
+#include "engine/devconsole/DevConsoleFlags.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "engine/physics/Raycast.hpp"
 #include "game/player/Player.hpp"
 #include "game/player/movement/IMovementState.hpp"
-#include "game/player/movement/MovementStateNormal.hpp"
+
+#define CONVAR_CATEGORY PLAYER_STATE_WALLRUN
 
 class MovementStateWallrun : public IMovementState {
-	static inline constexpr float STICK_ACCEL = 1800;
-	static inline constexpr float DROP_ACCEL = 450;
-	static inline constexpr float STICK_VELOCITY = 150.0;
-	static inline constexpr float GRAVITY = 500.0;
-	static inline constexpr float MAX_DIST = 6.0;
-	static inline constexpr float INITIAL_VELOCITY = 250.0;
-	static inline const Vector2 JUMP_FORCE = Vector2(250.0, 200.0);
-	static inline constexpr float DROP_VELOCITY = 300.0;
+	// clang-format off
+	CONVAR(float,	_stickAccel,		STICK_ACCEL,		1800.0f,	DC_FLAG_CHEAT);
+	CONVAR(float,	_dropAccel,			DROP_ACCEL,			450.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_stickVelocity,		STICK_VELOCITY,		150.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_gravity,			GRAVITY,			500.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_maxDist,			MAX_DIST,			6.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_initialVelocity,	INITIAL_VELOCITY,	250.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_jumpForceX,		JUMP_FORCE_X,		250.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_jumpForceY,		JUMP_FORCE_Y,		200.0f,		DC_FLAG_CHEAT);
+	CONVAR(float,	_dropVelocity,		DROP_VELOCITY,		300.0f,		DC_FLAG_CHEAT);
+	// clang-format on
 
 	void Init(Player& p) const override {
 		p.PlayAnimation(Player::ANIM_WALLRUN);
 
-		p.velocity.y = min(p.velocity.y, -INITIAL_VELOCITY);
+		p.velocity.y = min(p.velocity.y, -*_initialVelocity);
 
 		p.EnableQuickClimb();
 	}
@@ -35,27 +41,27 @@ class MovementStateWallrun : public IMovementState {
 
 		if (wallDir * p.GetInput().GetDir().x < 0.0) {
 			if (!p.GetInput().IsDown(ACTION_DIVE)) {
-				p.velocity.x -= wallDir * DROP_ACCEL * delta;
+				p.velocity.x -= wallDir * *_dropAccel * delta;
 			}
 
 			if (p.BufferActive(Player::BUFFER_WALLJUMP)) {
-				p.velocity.x = copysignf(JUMP_FORCE.x, -wallDir);
+				p.velocity.x = copysignf(*_jumpForceX, -wallDir);
 				p.SetState(Player::MOVEMENT_STATE_NORMAL);
 				return;
 			}
 		}
 
 		else {
-			p.velocity.x += wallDir * STICK_ACCEL * delta;
-			p.velocity.x = clamp(p.velocity.x, -STICK_VELOCITY, STICK_VELOCITY);
+			p.velocity.x += wallDir * *_stickAccel * delta;
+			p.velocity.x = clamp(p.velocity.x, -*_stickVelocity, *_stickVelocity);
 		}
 
 		bool shouldLetGoAtTop = !p.GetInput().IsDown(ACTION_DIVE) || p.BufferActive(Player::BUFFER_WALLJUMP);
 		bool isAtTop = p.velocity.y >= 0.0;
-		bool isAtBottom = p.velocity.y > DROP_VELOCITY || p.IsPushingFloor();
+		bool isAtBottom = p.velocity.y > *_dropVelocity || p.IsPushingFloor();
 
 		Raycast wallCast(p.position + Vector2(0, -p.BODY_CENTER.y), p.IsFacingLeft() ? Raycast::LEFT : Raycast::RIGHT,
-						 MAX_DIST);
+						 *_maxDist);
 
 		bool hasWall = p.GetRoomColliders().CheckRaycast(wallCast);
 
@@ -70,14 +76,16 @@ class MovementStateWallrun : public IMovementState {
 			return;
 		}
 
-		p.velocity.y += GRAVITY * delta;
+		p.velocity.y += *_gravity * delta;
 	}
 
 	void Deinit(Player& p) const override {
 		if (p.UseBuffer(Player::BUFFER_WALLJUMP)) {
-			p.velocity.y = min(0.0f, p.velocity.y) - JUMP_FORCE.y;
+			p.velocity.y = min(0.0f, p.velocity.y) - *_jumpForceY;
 		}
 
 		p.SetCooldown(Player::COOLDOWN_WALLRUN);
 	}
 };
+
+#undef CONVAR_CATEGORY
