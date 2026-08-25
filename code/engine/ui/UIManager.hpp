@@ -21,6 +21,8 @@ class UIManager {
 	static inline std::vector<uint8_t> _buf;
 
 	static inline SDL_Texture* _texture = NULL;
+	static inline int _textureRes = 0;
+	static inline SDL_Point _displayRes{0, 0};
 	static inline SDL_Renderer* _renderer;
 
 	static inline std::vector<Menu*> _stack;
@@ -143,19 +145,24 @@ class UIManager {
 	}
 
 	static void Resize(int windowWidth, int windowHeight) {
+		int newTextureSize = Math::CeilPowerOfTwo(std::max(windowWidth, windowHeight));
+
 #if !SDL_PLATFORM_PSP
-		_buf.resize(windowWidth * windowHeight * 2);
+		_buf.resize(newTextureSize * newTextureSize * 2);
 #endif
 
 		lv_display_set_resolution(_display, windowWidth, windowHeight);
+		_displayRes = {windowWidth, windowHeight};
 		lv_display_set_buffers(_display, _buf.data(), NULL, _buf.size(), LV_DISPLAY_RENDER_MODE_PARTIAL);
+
+		if (newTextureSize == _textureRes) return;
 
 		if (_texture != NULL) {
 			SDL_DestroyTexture(_texture);
 		}
 
-		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, windowWidth,
-									 windowHeight);
+		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newTextureSize,
+									 newTextureSize);
 
 		if (_texture == NULL) {
 			dc::err << "ERROR creating UI texture: " << SDL_GetError() << dc::endl;
@@ -166,19 +173,32 @@ class UIManager {
 	}
 
 	static bool HandleEvent(const SDL_Event& event) {
-		if (_stackTop < 0) return false;
+		switch (event.type) {
+			case SDL_EVENT_WINDOW_RESIZED:
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+			case SDL_EVENT_WINDOW_MAXIMIZED:
+			case SDL_EVENT_WINDOW_RESTORED: {
+				int w, h;
+				SDL_Window* window = SDL_GetWindowFromID(event.window.windowID);
+				SDL_GetWindowSizeInPixels(window, &w, &h);
+				Resize(w, h);
+				return false;
+				break;
+			}
 
-		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-			Resize(event.window.data1, event.window.data2);
-			return false;
+			default:
+				break;
 		}
+
+		if (_stackTop < 0) return false;
 
 		return (UIInputManager::HandleEvent(event));
 	}
 
 	static void Draw() {
 		if (_stackTop < 0) return;
-		SDL_RenderTexture(_renderer, _texture, NULL, NULL);
+		SDL_FRect source{0.0, 0.0, float(_displayRes.x), float(_displayRes.y)};
+		SDL_RenderTexture(_renderer, _texture, &source, NULL);
 	}
 
 	static void Push(MenuID menu) { Push(_menus[menu]); }
