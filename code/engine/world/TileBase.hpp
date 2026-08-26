@@ -14,6 +14,10 @@ struct TileBase {
 	uint16_t xAtlas = 0;
 	uint16_t yAtlas = 0;
 
+	TileBase() {}
+
+	TileBase(Uint16 X, Uint16 Y, Uint16 XAtlas, Uint16 YAtlas) : x(X), y(Y), xAtlas(XAtlas), yAtlas(YAtlas) {}
+
 	virtual int GetDrawSourceSize() const = 0;
 	virtual int GetDrawDestOffset() const = 0;
 

@@ -45,7 +45,7 @@ class BinaryReader {
 		while (strncmp(_sectionName, tag, 4) != 0);
 	}
 
-	void FindSection(const char tag[4]) {
+	void EnsureSection(const char tag[4]) {
 		while (strncmp(_sectionName, tag, 4) != 0) {
 			GetNextSection();
 		}

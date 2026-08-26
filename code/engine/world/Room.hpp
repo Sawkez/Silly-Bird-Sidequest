@@ -47,7 +47,7 @@ class Room : IDrawableRect {
 		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_LOADING);
 
 		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
-		_binary.FindSection("PROP");
+		_binary.EnsureSection("PROP");
 		_binary.Read(8, &_xPosition);
 		_binary.Read(8, &_yPosition);
 		_binary.Read(2, &_width);
@@ -74,17 +74,17 @@ class Room : IDrawableRect {
 		int tileCountY = _height / 8;
 
 		dc::msg << SDL_GetTicks() << ": Loading tile colliders" << dc::endl;
-		_binary.FindSection("TLCL");
+		_binary.EnsureSection("TLCL");
 		_colliders =
 			RoomColliderContainer(_binary.GetCurrentPosition(), tileCountX, tileCountY, _xPosition, _yPosition);
 
 		dc::msg << SDL_GetTicks() << ": Loading spike colliders" << dc::endl;
-		_binary.FindSection("SKCL");
+		_binary.EnsureSection("SKCL");
 		_spikeColliders =
 			SpikeColliderContainer(_binary.GetCurrentPosition(), tileCountX, tileCountY, _xPosition, _yPosition);
 
 		dc::msg << SDL_GetTicks() << ": Loading " << checkpointCount << " checkpoints" << dc::endl;
-		_binary.FindSection("CKPT");
+		_binary.EnsureSection("CKPT");
 		_checkpoints.reserve(checkpointCount);
 		for (int i = 0; i < checkpointCount; i++) {
 			Vector2 checkpoint;
@@ -94,14 +94,14 @@ class Room : IDrawableRect {
 		}
 
 		dc::msg << SDL_GetTicks() << ": Loading " << neighborCount << " neighbors" << dc::endl;
-		_binary.FindSection("NGBR");
+		_binary.EnsureSection("NGBR");
 		_neighbors.reserve(neighborCount);
 		for (int i = 0; i < neighborCount; i++) {
 			_neighbors.emplace_back(_binary);
 		}
 
 		dc::msg << SDL_GetTicks() << ": Loading " << ledgeCount << " ledges" << dc::endl;
-		_binary.FindSection("LEGE");
+		_binary.EnsureSection("LEGE");
 		_ledges.reserve(ledgeCount);
 		for (int i = 0; i < ledgeCount; i++) {
 			Sint64 x, y;

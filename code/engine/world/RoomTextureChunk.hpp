@@ -9,46 +9,37 @@
 #include <unordered_map>
 #include <vector>
 
+#include "engine/PlatformDefines.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
+#include "engine/world/RoomChunkBase.hpp"
 #include "engine/world/WorldConstants.hpp"
 #include "yyjson.h"
 
-class RoomTextureChunk : public IDrawableRect {
-	const int OVERLAP_OFFSET = 8;
-
+class RoomTextureChunk : public RoomChunkBase {
    private:
-	SDL_Rect _rect;
+	struct RoomTextureChunkCustomData {
+		SDL_Storage* storage;
+		std::unordered_map<Uint8, SDL_Texture*>& atlases;
+		SDL_Texture* spikeAtlas;
+	};
+
 	SDL_Texture* _cache = NULL;
 
-	static inline SDL_Vertex SPIKE_VERTICES[4096 * 4];
-	static inline int VERTEX_INDICES[4096 * 6];
+	static inline SDL_Vertex SPIKE_VERTICES[PLATFORM_SPIKES_PER_CHUNK * 4];
+	static inline int VERTEX_INDICES[PLATFORM_SPIKES_PER_CHUNK * 6];
 
    public:
-	RoomTextureChunk() : _rect({0, 0, 0, 0}) {}
-
 	RoomTextureChunk(SDL_Storage* storage, BinaryReader& binary, SDL_Renderer* renderer,
 					 std::unordered_map<Uint8, SDL_Texture*>& atlases, SDL_Texture* spikeAtlas) {
-		binary.FindSection("CHNK");
+		RoomTextureChunkCustomData data{storage, atlases, spikeAtlas};
+		BuildChunk(renderer, binary, &data);
+	}
 
-		Uint16 num;
-		binary.Read(2, &num);
-		_rect.x = num;
-		binary.Read(2, &num);
-		_rect.y = num;
-		binary.Read(2, &num);
-		_rect.w = num;
-		binary.Read(2, &num);
-		_rect.h = num;
-
-		Uint32 tileCount;
-		binary.Read(4, &tileCount);
-		Uint32 spikeCount;
-		binary.Read(4, &spikeCount);
-
+	void PrepareCache(SDL_Renderer* renderer, int tileCount, int spikeCount, void* customData) override {
 		_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET, _rect.w, _rect.h);
 		SDL_SetRenderTarget(renderer, _cache);
 
@@ -57,86 +48,63 @@ class RoomTextureChunk : public IDrawableRect {
 		SDL_FRect fill{0.0, 0.0, float(_rect.w), float(_rect.h)};
 		SDL_RenderFillRect(renderer, &fill);
 
-		dc::msg << SDL_GetTicks() << ": Loading and caching " << tileCount << " tiles" << dc::endl;
-		binary.FindSection("TLFG");
-		for (int i = 0; i < tileCount; i++) {
-			ForegroundTile tile(binary);
-			tile.EnsureAtlasLoaded(renderer, storage, atlases);
-			tile.Draw(renderer, atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+		if (spikeCount > PLATFORM_SPIKES_PER_CHUNK) {
+			dc::err << "ERROR: Too many spikes in this chunk. Some will be invisible." << dc::endl;
 		}
-
-		dc::msg << SDL_GetTicks() << ": Loading and caching " << spikeCount << " spikes" << dc::endl;
-		binary.FindSection("SPIK");
-
-		for (int i = 0; i < spikeCount; i++) {
-			Uint16 xSpike, ySpike;
-			binary.Read(2, &xSpike);
-			binary.Read(2, &ySpike);
-
-			float xSpikeChunk = xSpike * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.x;
-			float ySpikeChunk = ySpike * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.y;
-
-			Uint8 spikeMask;
-			binary.Read(1, &spikeMask);
-
-			float xAtlas = (spikeMask & 15) / 16.0f;  //	% 16
-			float yAtlas = (spikeMask >> 4) / 16.0f;  //	/ 16
-
-			// clang-format off
-			SPIKE_VERTICES[i * 4] = SDL_Vertex {
-				SDL_FPoint{xSpikeChunk, ySpikeChunk},
-				SDL_FColor{1.0, 1.0, 1.0, 1.0},
-				SDL_FPoint{xAtlas, yAtlas}
-			};
-
-			SPIKE_VERTICES[i * 4 + 1] = SDL_Vertex {
-				SDL_FPoint{xSpikeChunk + WorldConstants::TILE_SIZE_F, ySpikeChunk},
-				SDL_FColor{1.0, 1.0, 1.0, 1.0},
-				SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas}
-			};
-
-			SPIKE_VERTICES[i * 4 + 2] = SDL_Vertex {
-				SDL_FPoint{xSpikeChunk, ySpikeChunk + WorldConstants::TILE_SIZE_F},
-				SDL_FColor{1.0, 1.0, 1.0, 1.0},
-				SDL_FPoint{xAtlas, yAtlas + 1.0f / 16.0f}
-			};
-
-			SPIKE_VERTICES[i * 4 + 3] = SDL_Vertex {
-				SDL_FPoint{xSpikeChunk + WorldConstants::TILE_SIZE_F, ySpikeChunk + WorldConstants::TILE_SIZE_F},
-				SDL_FColor{1.0, 1.0, 1.0, 1.0},
-				SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas + 1.0f / 16.0f}
-			};
-
-			// clang-format on
-
-			VERTEX_INDICES[i * 6] = i * 4;
-			VERTEX_INDICES[i * 6 + 1] = i * 4 + 1;
-			VERTEX_INDICES[i * 6 + 2] = i * 4 + 2;
-			VERTEX_INDICES[i * 6 + 3] = i * 4 + 1;
-			VERTEX_INDICES[i * 6 + 4] = i * 4 + 2;
-			VERTEX_INDICES[i * 6 + 5] = i * 4 + 3;
-		}
-
-		SDL_RenderGeometry(renderer, spikeAtlas, SPIKE_VERTICES, spikeCount * 4, VERTEX_INDICES, spikeCount * 6);
 	}
 
-	RoomTextureChunk(const RoomTextureChunk&) = delete;
-	RoomTextureChunk& operator=(const RoomTextureChunk&) = delete;
-
-	RoomTextureChunk(RoomTextureChunk&& other) noexcept : _rect(other._rect), _cache(other._cache) {
-		other._cache = NULL;
+	void CacheTile(SDL_Renderer* renderer, int index, Uint16 x, Uint16 y, Uint16 xAtlas, Uint16 yAtlas, Uint8 sourceID,
+				   void* customData) override {
+		auto* data = (RoomTextureChunkCustomData*)customData;
+		ForegroundTile tile(x, y, xAtlas, yAtlas, sourceID);
+		tile.EnsureAtlasLoaded(renderer, data->storage, data->atlases);
+		tile.Draw(renderer, data->atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
 	}
 
-	RoomTextureChunk& operator=(RoomTextureChunk&& other) noexcept {
-		if (this != &other) {
-			if (_cache) SDL_DestroyTexture(_cache);
+	virtual void CacheSpike(SDL_Renderer* renderer, int index, float x, float y, float xAtlas, float yAtlas,
+							void* customData) override {
+		auto* data = (RoomTextureChunkCustomData*)customData;
 
-			_rect = other._rect;
-			_cache = other._cache;
+		if (index > PLATFORM_SPIKES_PER_CHUNK - 1) return;
 
-			other._cache = NULL;
-		}
-		return *this;
+		// clang-format off
+		SPIKE_VERTICES[index * 4] = SDL_Vertex {
+			SDL_FPoint{x, y},
+			SDL_FColor{1.0, 1.0, 1.0, 1.0},
+			SDL_FPoint{xAtlas, yAtlas}
+		};
+
+		SPIKE_VERTICES[index * 4 + 1] = SDL_Vertex {
+			SDL_FPoint{x + WorldConstants::TILE_SIZE_F, y},
+			SDL_FColor{1.0, 1.0, 1.0, 1.0},
+			SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas}
+		};
+
+		SPIKE_VERTICES[index * 4 + 2] = SDL_Vertex {
+			SDL_FPoint{x, y + WorldConstants::TILE_SIZE_F},
+			SDL_FColor{1.0, 1.0, 1.0, 1.0},
+			SDL_FPoint{xAtlas, yAtlas + 1.0f / 16.0f}
+		};
+
+		SPIKE_VERTICES[index * 4 + 3] = SDL_Vertex {
+			SDL_FPoint{x + WorldConstants::TILE_SIZE_F, y + WorldConstants::TILE_SIZE_F},
+			SDL_FColor{1.0, 1.0, 1.0, 1.0},
+			SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas + 1.0f / 16.0f}
+		};
+		// clang-format on
+
+		VERTEX_INDICES[index * 6] = index * 4;
+		VERTEX_INDICES[index * 6 + 1] = index * 4 + 1;
+		VERTEX_INDICES[index * 6 + 2] = index * 4 + 2;
+		VERTEX_INDICES[index * 6 + 3] = index * 4 + 1;
+		VERTEX_INDICES[index * 6 + 4] = index * 4 + 2;
+		VERTEX_INDICES[index * 6 + 5] = index * 4 + 3;
+	}
+
+	void FinalizeCache(SDL_Renderer* renderer, void* customData, int tileCount, int spikeCount) override {
+		auto* data = (RoomTextureChunkCustomData*)customData;
+
+		SDL_RenderGeometry(renderer, data->spikeAtlas, SPIKE_VERTICES, spikeCount * 4, VERTEX_INDICES, spikeCount * 6);
 	}
 
 	void UncacheTiles() {
@@ -145,9 +113,8 @@ class RoomTextureChunk : public IDrawableRect {
 	}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
-		SDL_FRect destination{float(_rect.x) + drawOffset.x - WorldConstants::TILE_SIZE_F,
-							  float(_rect.y) + drawOffset.y - WorldConstants::TILE_SIZE_F, float(_rect.w),
-							  float(_rect.h)};
+		SDL_FRect destination{float(_rect.x) + drawOffset.x - OVERLAP_OFFSET,
+							  float(_rect.y) + drawOffset.y - OVERLAP_OFFSET, float(_rect.w), float(_rect.h)};
 
 		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &destination)) {
 			return false;
@@ -156,25 +123,6 @@ class RoomTextureChunk : public IDrawableRect {
 		SDL_RenderTexture(renderer, _cache, nullptr, &destination);
 		return true;
 	}
-
-	/*
-	void Draw(SDL_Renderer* renderer) const {
-		if (_cache == NULL) {
-			dc::err << "ERROR: chunk not cached!" << dc::endl;
-		}
-
-		SDL_FRect destination{0, 0, float(_rect.w), float(_rect.h)};
-
-		SDL_RenderTexture(renderer, _cache, NULL, &destination);
-	}
-	*/
-
-	int GetWidth() const { return _rect.w; }
-	int GetHeight() const { return _rect.h; }
-
-	const SDL_Rect& GetRect() const { return _rect; }
-
-	SDL_FRect GetFRect() const { return SDL_FRect{float(_rect.x), float(_rect.y), float(_rect.w), float(_rect.h)}; }
 
 	~RoomTextureChunk() { UncacheTiles(); }
 };
