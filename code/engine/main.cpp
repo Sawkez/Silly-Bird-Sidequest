@@ -140,7 +140,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
 #endif
 
-	// if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;
+	if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 	if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
 

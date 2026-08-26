@@ -8,6 +8,7 @@
 #include "engine/Math.hpp"
 #include "engine/PlatformDefines.hpp"
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/DevConsole.hpp"
 #include "engine/input/Action.hpp"
 
 enum ActionID {
@@ -172,7 +173,17 @@ class InputManager {
 		return false;
 	}
 
-	void HandleEvent(const SDL_GamepadDeviceEvent& event) { SDL_OpenGamepad(event.which); }
+	void HandleEvent(const SDL_GamepadDeviceEvent& event) {
+		dc::msg << "event happened to gamepad " << event.which << dc::endl;
+
+#if SDL_PLATFORM_PS2
+		if (event.which != 1) return;
+#endif
+
+		if (SDL_OpenGamepad(event.which) == nullptr) {
+			dc::err << "ERROR opening controller " << event.which << ": " << SDL_GetError() << dc::endl;
+		}
+	}
 
 	void UpdateDir() {
 		if (_dirJoystickPriority) {
