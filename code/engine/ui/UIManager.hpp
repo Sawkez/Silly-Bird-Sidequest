@@ -86,7 +86,6 @@ class UIManager {
 
 	static lv_display_t* InitLVGL(SDL_Point windowSize) {
 		lv_log_register_print_cb(dc::LogCallback);
-		dc::msg << "callback registered" << dc::endl;
 		lv_init();
 
 		lv_tick_set_cb(TickCallback);
