@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: \$0 <platform> <build_type>"
-    echo 'Platforms: linux, windows, win32, psp, web, android, haiku'
+    echo 'Platforms: linux, windows, win32, psp, ps2, web, android, haiku'
     echo 'Build types: debug, release (default)'
     exit 1
 fi
@@ -36,6 +36,10 @@ case "$PLATFORM" in
 
     psp)
         CMAKE_COMMAND=(psp-cmake)
+    ;;
+
+    ps2)
+        CMAKE_COMMAND+=( "-DCMAKE_TOOLCHAIN_FILE=$PS2DEV/share/ps2dev.cmake" )
     ;;
 
     linux)

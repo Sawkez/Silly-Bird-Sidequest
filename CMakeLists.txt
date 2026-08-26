@@ -150,3 +150,7 @@ if(EMSCRIPTEN)
         "-sEXPORTED_RUNTIME_METHODS=ccall"
     )
 endif()
+
+if(PS2)
+    target_link_options(sbsidequest PRIVATE "-ljpeg" "-llzma")
+endif()

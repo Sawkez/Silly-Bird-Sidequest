@@ -40,8 +40,18 @@ class DevConsoleOutputStream {
 	template <typename Type>
 	DevConsoleOutputStream& operator<<(const Type& obj) {
 		char buf[32];
-		auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), obj);
-		_text.append(buf, ptr);
+
+		if constexpr (std::is_floating_point_v<Type>) {
+			int len = std::snprintf(buf, sizeof(buf), "%.4f", static_cast<double>(obj));
+			if (len > 0) {
+				_text.append(buf, static_cast<std::size_t>(len));
+			}
+		} else {
+			auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), obj);
+			if (ec == std::errc{}) {
+				_text.append(buf, static_cast<std::size_t>(ptr - buf));
+			}
+		}
 		return *this;
 	}
 
