@@ -92,7 +92,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	// render
 	if (!SaveManager::instance->OverrideDrawing()) {
-		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 255, 255, 255);
+		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 255, 255, 255, 255);
 		if (!SDL_RenderClear(GameState::GetMainRenderer())) {
 			dc::err << "ERROR clearing screen: " << SDL_GetError() << dc::endl;
 		}

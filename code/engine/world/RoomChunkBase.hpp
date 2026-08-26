@@ -11,7 +11,7 @@ class RoomChunkBase : public IDrawableRect {
 
 	RoomChunkBase() {}
 
-	void BuildChunk(SDL_Renderer* renderer, BinaryReader& binary, void* customData) {
+	void BuildChunk(BinaryReader& binary, void* customData) {
 		binary.EnsureSection("CHNK");
 
 		Uint16 num;
@@ -29,7 +29,7 @@ class RoomChunkBase : public IDrawableRect {
 		Uint32 spikeCount;
 		binary.Read(4, &spikeCount);
 
-		this->PrepareCache(renderer, tileCount, spikeCount, customData);
+		this->PrepareCache(tileCount, spikeCount, customData);
 
 		binary.EnsureSection("TLFG");
 		for (int i = 0; i < tileCount; i++) {
@@ -42,36 +42,42 @@ class RoomChunkBase : public IDrawableRect {
 			binary.Read(2, &yAtlas);
 			binary.Read(1, &sourceID);
 
-			this->CacheTile(renderer, i, x, y, xAtlas, yAtlas, sourceID, customData);
+			float xChunk =
+				x * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.x - WorldConstants::TILE_PERSPECTIVE_OVERLAP_F;
+			float yChunk =
+				y * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.y - WorldConstants::TILE_PERSPECTIVE_OVERLAP_F;
+			float xAtlasPixel = xAtlas * WorldConstants::TILE_TEXTURE_SIZE_F;
+			float yAtlasPixel = yAtlas * WorldConstants::TILE_TEXTURE_SIZE_F;
+
+			this->CacheTile(i, xChunk, yChunk, xAtlasPixel, yAtlasPixel, sourceID, customData);
 		}
 
 		binary.EnsureSection("SPIK");
 		for (int i = 0; i < spikeCount; i++) {
-			Uint16 xSpike, ySpike;
-			binary.Read(2, &xSpike);
-			binary.Read(2, &ySpike);
+			Uint16 x, y;
+			binary.Read(2, &x);
+			binary.Read(2, &y);
 
-			float xSpikeChunk = xSpike * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.x;
-			float ySpikeChunk = ySpike * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.y;
+			float xChunk = x * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.x;
+			float yChunk = y * WorldConstants::TILE_SIZE_F + OVERLAP_OFFSET - _rect.y;
 
 			Uint8 spikeMask;
 			binary.Read(1, &spikeMask);
 
-			float xAtlas = (spikeMask & 15) / 16.0f;  //	% 16
-			float yAtlas = (spikeMask >> 4) / 16.0f;  //	/ 16
+			float xAtlas = (spikeMask & 15) * WorldConstants::TILE_SIZE_F;	//	% 16
+			float yAtlas = (spikeMask >> 4) * WorldConstants::TILE_SIZE_F;	//	/ 16
 
-			this->CacheSpike(renderer, i, xSpikeChunk, ySpikeChunk, xAtlas, yAtlas, customData);
+			this->CacheSpike(i, xChunk, yChunk, xAtlas, yAtlas, customData);
 		}
 
-		this->FinalizeCache(renderer, customData, tileCount, spikeCount);
+		this->FinalizeCache(customData, tileCount, spikeCount);
 	}
 
-	virtual void PrepareCache(SDL_Renderer* renderer, int tileCount, int spikeCount, void* customData) = 0;
-	virtual void CacheTile(SDL_Renderer* renderer, int index, Uint16 x, Uint16 y, Uint16 xAtlas, Uint16 yAtlas,
-						   Uint8 sourceID, void* customData) = 0;
-	virtual void CacheSpike(SDL_Renderer* renderer, int index, float x, float y, float xAtlas, float yAtlas,
-							void* customData) = 0;
-	virtual void FinalizeCache(SDL_Renderer* renderer, void* customData, int tileCount, int spikeCount) = 0;
+	virtual void PrepareCache(int tileCount, int spikeCount, void* customData) = 0;
+	virtual void CacheTile(int index, float x, float y, float xAtlas, float yAtlas, Uint8 sourceID,
+						   void* customData) = 0;
+	virtual void CacheSpike(int index, float x, float y, float xAtlas, float yAtlas, void* customData) = 0;
+	virtual void FinalizeCache(void* customData, int tileCount, int spikeCount) = 0;
 
    public:
 	int GetWidth() const { return _rect.w; }

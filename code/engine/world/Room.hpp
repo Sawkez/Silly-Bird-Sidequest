@@ -5,10 +5,10 @@
 #include <vector>
 
 #include "engine/IProcessable.hpp"
+#include "engine/PlatformDefines.hpp"
 #include "engine/PointHash.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
-#include "engine/graphics/RoomTextureChunkRenderer.hpp"
 #include "engine/performance/PerformanceManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/RoomColliderContainer.hpp"
@@ -22,6 +22,12 @@
 #include "game/player/IPlayer.hpp"
 #include "game/world/objects/RoomObjectFactory.hpp"
 #include "yyjson.h"
+
+#ifdef PLATFORM_USE_TEXTURE_CHUNKS
+#include "engine/graphics/RoomTextureChunkRenderer.hpp"
+#else
+#include "engine/graphics/RoomMeshChunkRenderer.hpp"
+#endif
 
 using namespace std;
 
@@ -40,7 +46,12 @@ class Room : IDrawableRect {
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
 	vector<IRoomObject*> _roomObjects;
+
+#ifdef PLATFORM_USE_TEXTURE_CHUNKS
 	RoomTextureChunkRenderer _chunkRenderer;
+#else
+	RoomMeshChunkRenderer _chunkRenderer;
+#endif
 
    public:
 	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer) : _binary(storage, path) {
@@ -68,7 +79,11 @@ class Room : IDrawableRect {
 
 		dc::msg << SDL_GetTicks() << ": Room size is " << _width << "x" << _height << dc::endl;
 
+#ifdef PLATFORM_USE_TEXTURE_CHUNKS
 		_chunkRenderer = RoomTextureChunkRenderer(renderer, storage, chunkCount, _binary);
+#else
+		_chunkRenderer = RoomMeshChunkRenderer(renderer, storage, chunkCount, _binary);
+#endif
 
 		int tileCountX = _width / 8;
 		int tileCountY = _height / 8;

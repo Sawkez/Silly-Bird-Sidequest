@@ -82,6 +82,8 @@ class Vector2 : public SDL_FPoint {
 
 	Vector2 operator*(const Vector2& b) { return Vector2{x * b.x, y * b.y}; }
 
+	Vector2 operator/(const Vector2& b) { return Vector2{x / b.x, y / b.y}; }
+
 	Vector2& operator+=(const Vector2& b) {
 		x += b.x;
 		y += b.y;

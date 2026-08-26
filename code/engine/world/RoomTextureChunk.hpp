@@ -22,6 +22,7 @@
 class RoomTextureChunk : public RoomChunkBase {
    private:
 	struct RoomTextureChunkCustomData {
+		SDL_Renderer* renderer;
 		SDL_Storage* storage;
 		std::unordered_map<Uint8, SDL_Texture*>& atlases;
 		SDL_Texture* spikeAtlas;
@@ -35,61 +36,75 @@ class RoomTextureChunk : public RoomChunkBase {
    public:
 	RoomTextureChunk(SDL_Storage* storage, BinaryReader& binary, SDL_Renderer* renderer,
 					 std::unordered_map<Uint8, SDL_Texture*>& atlases, SDL_Texture* spikeAtlas) {
-		RoomTextureChunkCustomData data{storage, atlases, spikeAtlas};
-		BuildChunk(renderer, binary, &data);
+		RoomTextureChunkCustomData data{renderer, storage, atlases, spikeAtlas};
+		BuildChunk(binary, &data);
 	}
 
-	void PrepareCache(SDL_Renderer* renderer, int tileCount, int spikeCount, void* customData) override {
-		_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET, _rect.w, _rect.h);
-		SDL_SetRenderTarget(renderer, _cache);
+	void PrepareCache(int tileCount, int spikeCount, void* customData) override {
+		auto* data = (RoomTextureChunkCustomData*)customData;
+		_cache =
+			SDL_CreateTexture(data->renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET, _rect.w, _rect.h);
+		SDL_SetRenderTarget(data->renderer, _cache);
 
 		// SDL_RenderClear currently bugged on PSP
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, 255);
 		SDL_FRect fill{0.0, 0.0, float(_rect.w), float(_rect.h)};
-		SDL_RenderFillRect(renderer, &fill);
+		SDL_RenderFillRect(data->renderer, &fill);
 
 		if (spikeCount > PLATFORM_SPIKES_PER_CHUNK) {
 			dc::err << "ERROR: Too many spikes in this chunk. Some will be invisible." << dc::endl;
 		}
 	}
 
-	void CacheTile(SDL_Renderer* renderer, int index, Uint16 x, Uint16 y, Uint16 xAtlas, Uint16 yAtlas, Uint8 sourceID,
-				   void* customData) override {
+	void CacheTile(int index, float x, float y, float xAtlas, float yAtlas, Uint8 sourceID, void* customData) override {
 		auto* data = (RoomTextureChunkCustomData*)customData;
-		ForegroundTile tile(x, y, xAtlas, yAtlas, sourceID);
-		tile.EnsureAtlasLoaded(renderer, data->storage, data->atlases);
-		tile.Draw(renderer, data->atlases, -_rect.x + OVERLAP_OFFSET, -_rect.y + OVERLAP_OFFSET);
+		auto pair = data->atlases.find(sourceID);
+
+		SDL_Texture* atlas;
+
+		if (pair == data->atlases.end()) {
+			atlas = ModManager::LoadTileSource(data->renderer, sourceID);
+			data->atlases[sourceID] = atlas;
+		} else {
+			atlas = pair->second;
+		}
+
+		SDL_FRect source{xAtlas, yAtlas, WorldConstants::TILE_TEXTURE_SIZE_F, WorldConstants::TILE_TEXTURE_SIZE_F};
+		SDL_FRect destination{x, y, WorldConstants::TILE_TEXTURE_SIZE_F, WorldConstants::TILE_TEXTURE_SIZE_F};
+
+		SDL_RenderTexture(data->renderer, atlas, &source, &destination);
 	}
 
-	virtual void CacheSpike(SDL_Renderer* renderer, int index, float x, float y, float xAtlas, float yAtlas,
-							void* customData) override {
+	virtual void CacheSpike(int index, float x, float y, float xAtlas, float yAtlas, void* customData) override {
 		auto* data = (RoomTextureChunkCustomData*)customData;
 
 		if (index > PLATFORM_SPIKES_PER_CHUNK - 1) return;
+
+		Vector2 spikeTextureSize(data->spikeAtlas->w, data->spikeAtlas->h);
 
 		// clang-format off
 		SPIKE_VERTICES[index * 4] = SDL_Vertex {
 			SDL_FPoint{x, y},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			SDL_FPoint{xAtlas, yAtlas}
+			Vector2{xAtlas, yAtlas} / spikeTextureSize
 		};
 
 		SPIKE_VERTICES[index * 4 + 1] = SDL_Vertex {
 			SDL_FPoint{x + WorldConstants::TILE_SIZE_F, y},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas}
+			Vector2{xAtlas + 1.0f / 16.0f, yAtlas} / spikeTextureSize
 		};
 
 		SPIKE_VERTICES[index * 4 + 2] = SDL_Vertex {
 			SDL_FPoint{x, y + WorldConstants::TILE_SIZE_F},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			SDL_FPoint{xAtlas, yAtlas + 1.0f / 16.0f}
-		};
+			Vector2{xAtlas, yAtlas + 1.0f / 16.0f} / spikeTextureSize
+		}; 
 
 		SPIKE_VERTICES[index * 4 + 3] = SDL_Vertex {
 			SDL_FPoint{x + WorldConstants::TILE_SIZE_F, y + WorldConstants::TILE_SIZE_F},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			SDL_FPoint{xAtlas + 1.0f / 16.0f, yAtlas + 1.0f / 16.0f}
+			Vector2{xAtlas + 1.0f / 16.0f, yAtlas + 1.0f / 16.0f} / spikeTextureSize
 		};
 		// clang-format on
 
@@ -101,10 +116,11 @@ class RoomTextureChunk : public RoomChunkBase {
 		VERTEX_INDICES[index * 6 + 5] = index * 4 + 3;
 	}
 
-	void FinalizeCache(SDL_Renderer* renderer, void* customData, int tileCount, int spikeCount) override {
+	void FinalizeCache(void* customData, int tileCount, int spikeCount) override {
 		auto* data = (RoomTextureChunkCustomData*)customData;
 
-		SDL_RenderGeometry(renderer, data->spikeAtlas, SPIKE_VERTICES, spikeCount * 4, VERTEX_INDICES, spikeCount * 6);
+		SDL_RenderGeometry(data->renderer, data->spikeAtlas, SPIKE_VERTICES, spikeCount * 4, VERTEX_INDICES,
+						   spikeCount * 6);
 	}
 
 	void UncacheTiles() {
