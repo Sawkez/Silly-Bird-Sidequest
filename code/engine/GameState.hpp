@@ -43,19 +43,37 @@ class GameState {
 
    public:
 	static void Init() {
-		std::cout << "Welcome to Silly Bird Sidequest!" << std::endl;
+		dc::msg << "Welcome to Silly Bird Sidequest!" << dc::endl;
+
+		SDL_Time time;
+		SDL_GetCurrentTime(&time);
+
+		SDL_DateTime dateTime;
+		SDL_TimeToDateTime(time, &dateTime, true);
+		dc::msg << "The date is " << dateTime.day << "/" << dateTime.month << "/" << dateTime.year << dc::endl;
+		dc::msg << "The time is " << dateTime.hour << ":" << dateTime.minute << dc::endl;
+
 		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, WINDOWFLAGS);
 
-		std::cout << "Available render drivers: ";
+		if (_mainWindow == nullptr) {
+			dc::err << "ERROR creating window: " << SDL_GetError() << dc::endl;
+		}
+
+		dc::msg << "Available render drivers: ";
 
 		int driverCount = SDL_GetNumRenderDrivers();
 		for (int i = 0; i < driverCount; i++) {
-			std::cout << SDL_GetRenderDriver(i) << "; ";
+			dc::msg << SDL_GetRenderDriver(i) << "; ";
 		}
+
+		dc::msg << dc::endl;
 
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 
-		std::cout << std::endl << "Using driver: " << SDL_GetRendererName(_mainRenderer) << std::endl << std::endl;
+		if (_mainRenderer == nullptr) {
+			dc::err << "ERROR creating renderer: " << SDL_GetError() << dc::endl;
+		}
+		dc::msg << "Using driver: " << SDL_GetRendererName(_mainRenderer) << dc::endl;
 
 		SDL_SetRenderVSync(_mainRenderer, 1);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
