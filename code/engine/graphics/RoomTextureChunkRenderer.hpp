@@ -7,9 +7,9 @@
 
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
+#include "engine/graphics/RoomTextureChunk.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/resource/ResourceManager.hpp"
-#include "engine/world/RoomTextureChunk.hpp"
 #include "engine/world/WorldConstants.hpp"
 
 class RoomTextureChunkRenderer : public IDrawableRect {

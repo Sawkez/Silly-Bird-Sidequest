@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "engine/Vector2.hpp"
-#include "engine/world/RoomChunkBase.hpp"
+#include "engine/graphics/RoomChunkBase.hpp"
 #include "engine/world/WorldConstants.hpp"
 
 class RoomMeshChunk : public RoomChunkBase {
