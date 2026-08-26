@@ -40,7 +40,7 @@
  * - LV_STDLIB_RTTHREAD:    RT-Thread implementation
  * - LV_STDLIB_CUSTOM:      Implement the functions externally
  */
-#define LV_USE_STDLIB_MALLOC    LV_STDLIB_CLIB
+#define LV_USE_STDLIB_MALLOC    LV_STDLIB_BUILTIN
 
 /** Possible values
  * - LV_STDLIB_BUILTIN:     LVGL's built in implementation
@@ -69,7 +69,7 @@
 
 #if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
     /** Size of memory available for `lv_malloc()` in bytes (>= 2kB) */
-    #define LV_MEM_SIZE (100U * 1024U)          /**< [bytes] */
+    #define LV_MEM_SIZE (1024U * 1024U)          /**< [bytes] */
 
     /** Size of the memory expand for `lv_malloc()` in bytes */
     #define LV_MEM_POOL_EXPAND_SIZE 0
@@ -206,7 +206,7 @@
     /**
      * - 0: Use a simple renderer capable of drawing only simple rectangles with gradient, images, text, and straight lines only.
      * - 1: Use a complex renderer capable of drawing rounded corners, shadow, skew lines, and arcs too. */
-    #define LV_DRAW_SW_COMPLEX          0
+    #define LV_DRAW_SW_COMPLEX          1
 
     #if LV_DRAW_SW_COMPLEX == 1
         /** Allow buffering some shadow calculation.
@@ -466,7 +466,7 @@
      *  - LV_LOG_LEVEL_ERROR    Log only critical issues, when system may fail.
      *  - LV_LOG_LEVEL_USER     Log only custom log messages added by the user.
      *  - LV_LOG_LEVEL_NONE     Do not log anything. */
-    #define LV_LOG_LEVEL LV_LOG_LEVEL_TRACE
+    #define LV_LOG_LEVEL LV_LOG_LEVEL_WARN
 
     /** - 1: Print log with 'printf';
      *  - 0: User needs to register a callback with `lv_log_register_print_cb()`. */
@@ -505,9 +505,9 @@
  * If LV_USE_LOG is enabled, an error message will be printed on failure. */
 #define LV_USE_ASSERT_NULL          1   /**< Check if the parameter is NULL. (Very fast, recommended) */
 #define LV_USE_ASSERT_MALLOC        1   /**< Checks is the memory is successfully allocated or no. (Very fast, recommended) */
-#define LV_USE_ASSERT_STYLE         1   /**< Check if the styles are properly initialized. (Very fast, recommended) */
-#define LV_USE_ASSERT_MEM_INTEGRITY 1   /**< Check the integrity of `lv_mem` after critical operations. (Slow) */
-#define LV_USE_ASSERT_OBJ           1   /**< Check the object's type and existence (e.g. not deleted). (Slow) */
+#define LV_USE_ASSERT_STYLE         0   /**< Check if the styles are properly initialized. (Very fast, recommended) */
+#define LV_USE_ASSERT_MEM_INTEGRITY 0   /**< Check the integrity of `lv_mem` after critical operations. (Slow) */
+#define LV_USE_ASSERT_OBJ           0   /**< Check the object's type and existence (e.g. not deleted). (Slow) */
 
 /** Add a custom handler when assert happens e.g. to restart MCU. */
 #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
