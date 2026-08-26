@@ -11,18 +11,6 @@
 #include "engine/input/touch/TouchController.hpp"
 #endif
 
-#if SDL_PLATFORM_PSP
-#define INITIAL_WINDOW_RES 480, 272
-#else
-#define INITIAL_WINDOW_RES 960, 540
-#endif
-
-#if SDL_PLATFORM_ANDROID
-#define WINDOWFLAGS SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
-#else
-#define WINDOWFLAGS SDL_WINDOW_RESIZABLE
-#endif
-
 class GameState {
    private:
 	static inline constexpr float MAX_DELTA = 1.0;
@@ -53,7 +41,7 @@ class GameState {
 		dc::msg << "The date is " << dateTime.day << "/" << dateTime.month << "/" << dateTime.year << dc::endl;
 		dc::msg << "The time is " << dateTime.hour << ":" << dateTime.minute << dc::endl;
 
-		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, WINDOWFLAGS);
+		_mainWindow = SDL_CreateWindow("SBS", PLATFORM_INITIAL_RES, PLATFORM_WINDOW_FLAGS);
 
 		if (_mainWindow == nullptr) {
 			dc::err << "ERROR creating window: " << SDL_GetError() << dc::endl;
@@ -75,7 +63,7 @@ class GameState {
 		}
 		dc::msg << "Using driver: " << SDL_GetRendererName(_mainRenderer) << dc::endl;
 
-		SDL_SetRenderVSync(_mainRenderer, 1);
+		SDL_SetRenderVSync(_mainRenderer, 0);
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 

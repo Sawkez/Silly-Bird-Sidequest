@@ -47,6 +47,8 @@ class RoomChunk : public IDrawableRect {
 		Uint32 spikeCount;
 		binary.Read(4, &spikeCount);
 
+		return;
+
 		_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET, _rect.w, _rect.h);
 		SDL_SetRenderTarget(renderer, _cache);
 
@@ -141,6 +143,7 @@ class RoomChunk : public IDrawableRect {
 	}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
+		return true;
 		SDL_FRect destination{float(_rect.x) + drawOffset.x, float(_rect.y) + drawOffset.y, float(_rect.w),
 							  float(_rect.h)};
 

@@ -18,6 +18,8 @@ void Init(IDevConsoleMenu* consoleMenu) {
 
 void Clear() { menu->Clear(); }
 
+void LogCallback(lv_log_level_t level, const char* buf) { msg << buf << endl; }
+
 }  // namespace DevConsole
 
 namespace dc = DevConsole;

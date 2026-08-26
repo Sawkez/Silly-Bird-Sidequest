@@ -39,6 +39,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	}
 #endif
 
+	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
+
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 		dc::err << "ERROR: " << SDL_GetError() << dc::endl;
 	}
@@ -57,6 +59,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	ModManager::LoadSkinModFromFolder(ResourceManager::gameData, "content/sidequest.sbsq");
 	ModManager::LoadSkin(GameState::GetMainRenderer(), 0);
 
+	dc::msg << "loading level" << dc::endl;
 	WorldManager::LoadLevel(0);
 
 	if (!DevConsoleCommandManager::ParseLaunchArguments(argc, argv)) {
@@ -65,10 +68,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
 	GameState::Unpause();
 
+	dc::msg << "initialization done!" << dc::endl;
 	return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
+	dc::msg << "iterating" << dc::endl;
 	if (!GameState::IsRunning()) return SDL_APP_SUCCESS;
 	if (!GameState::ShouldProcess()) return SDL_APP_CONTINUE;
 
@@ -81,6 +86,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	GameState::GetInput().UpdateDir();
 
+	dc::msg << "processing game" << dc::endl;
 	// game logic
 	if (!GameState::IsPaused()) {
 		WorldManager::GetLevel().Process(delta);
@@ -88,11 +94,13 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	GameState::GetInput().UpdateTapStates();
 
+	dc::msg << "processing UI" << dc::endl;
 	UIManager::Process(delta);
 
+	dc::msg << "rendering" << dc::endl;
 	// render
 	if (!SaveManager::instance->OverrideDrawing()) {
-		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 255, 255, 255, 0);
+		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 0, 255, 255, 255);
 		if (!SDL_RenderClear(GameState::GetMainRenderer())) {
 			dc::err << "ERROR clearing screen: " << SDL_GetError() << dc::endl;
 		}
@@ -105,6 +113,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 		if (!UIManager::IsVisible()) GameState::GetTouch().Draw(GameState::GetMainRenderer());
 #endif
 
+		dc::msg << "presenting" << dc::endl;
 		SDL_RenderPresent(GameState::GetMainRenderer());
 	}
 
@@ -112,10 +121,13 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 		SaveManager::instance->Draw();
 	}
 
+	dc::msg << "moving on" << dc::endl;
+
 	return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+	dc::msg << "event " << event->type << dc::endl;
 	if (SaveManager::instance->OverrideDrawing()) return SDL_APP_CONTINUE;
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED) WorldManager::GetLevel().GetCamera().UpdateZoom();
@@ -128,7 +140,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 	if (GameState::GetTouch().HandleEvent(*event)) return SDL_APP_CONTINUE;
 #endif
 
-	if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;
+	// if (GameState::GetInput().HandleEvent(*event)) return SDL_APP_CONTINUE;
 
 	if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
 
