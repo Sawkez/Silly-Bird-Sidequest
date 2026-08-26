@@ -21,7 +21,11 @@ class Camera {
 	const Player& _player;
 	SDL_Point _pixelSize;
 	std::reference_wrapper<const Room> _room;
+
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 	SDL_Texture* _pixelTexture = nullptr;
+#endif
+
 	SDL_Point _pixelTextureSize{0, 0};
 
 	Vector2 _roomStart;
@@ -108,9 +112,11 @@ class Camera {
 
 		_pixelTextureSize = newTextureRes;
 
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 		if (_pixelTexture != nullptr) SDL_DestroyTexture(_pixelTexture);
 		_pixelTexture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET,
 										  _pixelTextureSize.x, _pixelTextureSize.y);
+#endif
 	}
 
 	Vector2 GetGlobalCenter() const {
@@ -170,6 +176,7 @@ class Camera {
 		if (abs(_zoom - 1.0f) < ZOOM_SNAP) _zoom = 1.0f;
 	}
 
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 	void Draw(SDL_Renderer* renderer) const {
 		Vector2 center = GetGlobalCenter();
 		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
@@ -197,11 +204,33 @@ class Camera {
 		SDL_SetRenderTarget(renderer, nullptr);
 		SDL_RenderTexture(renderer, _pixelTexture, &hdRenderSource, nullptr);
 	}
+#else
+	void Draw(SDL_Renderer* renderer) const {
+		Vector2 center = GetGlobalCenter();
+		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
+
+		Vector2 topLeft = center - zoomedSize * 0.5f;
+
+		SDL_FRect visibilityRect{0.0f, 0.0f, zoomedSize.x + 16.0f, zoomedSize.y + 16.0f};
+
+		int winW, winH;
+		SDL_GetRenderOutputSize(renderer, &winW, &winH);  // Assuming SDL3 since you used SDL_RenderTexture
+		SDL_SetRenderScale(renderer, (float)winW / zoomedSize.x, (float)winH / zoomedSize.y);
+
+		_room.get().Draw(renderer, visibilityRect, -topLeft);
+		_player.Draw(renderer, visibilityRect, -topLeft);
+
+		SDL_SetRenderScale(renderer, 1.0f, 1.0f);
+	}
+#endif
 
 	~Camera() {
 		GameState::GetInput().RemovePressedCallback(ACTION_CAMERA, _pressedCallbackID);
 		GameState::GetInput().RemoveReleasedCallback(ACTION_CAMERA, _releasedCallbackID);
 		GameState::GetInput().RemoveDoubleTapCallback(ACTION_CAMERA, _doubleTapCallbackID);
+
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 		if (_pixelTexture != nullptr) SDL_DestroyTexture(_pixelTexture);
+#endif
 	}
 };
