@@ -60,8 +60,8 @@ class UIManager {
 	}
 
 	static void Init(SDL_Renderer* renderer, SDL_Point windowSize, float contentScale) {
-#if SDL_PLATFORM_PSP
-		contentScale = 0.7;
+#ifdef PLATFORM_FORCE_CONTENT_SCALE
+		contentScale = PLATFORM_FORCE_CONTENT_SCALE;
 #endif
 
 		_display = InitLVGL(windowSize);
@@ -80,7 +80,6 @@ class UIManager {
 #if SDL_PLATFORM_PSP
 		_buf.resize(windowSize.x * windowSize.y * 4);  // use fullscreen buffer on PSP to save 4 fps during animations
 #endif
-
 		Resize(windowSize.x, windowSize.y);
 	}
 
@@ -146,6 +145,14 @@ class UIManager {
 	}
 
 	static void Resize(int windowWidth, int windowHeight) {
+#ifdef PLATFORM_UI_RES_X
+		windowWidth = PLATFORM_UI_RES_X;
+#endif
+
+#ifdef PLATFORM_UI_RES_Y
+		windowHeight = PLATFORM_UI_RES_Y;
+#endif
+
 		int newTextureSize = Math::CeilPowerOfTwo(std::max(windowWidth, windowHeight));
 
 #if !SDL_PLATFORM_PSP
