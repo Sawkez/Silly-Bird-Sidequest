@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "engine/graphics/IDrawableRect.hpp"
@@ -13,9 +14,10 @@
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/ForegroundTile.hpp"
+#include "engine/world/WorldConstants.hpp"
 #include "yyjson.h"
 
-class RoomChunk : public IDrawableRect {
+class RoomTextureChunk : public IDrawableRect {
 	const int OVERLAP_OFFSET = 8;
 
    private:
@@ -26,10 +28,10 @@ class RoomChunk : public IDrawableRect {
 	static inline int VERTEX_INDICES[4096 * 6];
 
    public:
-	RoomChunk() : _rect({0, 0, 0, 0}) {}
+	RoomTextureChunk() : _rect({0, 0, 0, 0}) {}
 
-	RoomChunk(SDL_Storage* storage, BinaryReader& binary, SDL_Renderer* renderer,
-			  std::unordered_map<Uint8, SDL_Texture*>& atlases, SDL_Texture* spikeAtlas) {
+	RoomTextureChunk(SDL_Storage* storage, BinaryReader& binary, SDL_Renderer* renderer,
+					 std::unordered_map<Uint8, SDL_Texture*>& atlases, SDL_Texture* spikeAtlas) {
 		binary.FindSection("CHNK");
 
 		Uint16 num;
@@ -46,8 +48,6 @@ class RoomChunk : public IDrawableRect {
 		binary.Read(4, &tileCount);
 		Uint32 spikeCount;
 		binary.Read(4, &spikeCount);
-
-		return;
 
 		_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET, _rect.w, _rect.h);
 		SDL_SetRenderTarget(renderer, _cache);
@@ -120,12 +120,14 @@ class RoomChunk : public IDrawableRect {
 		SDL_RenderGeometry(renderer, spikeAtlas, SPIKE_VERTICES, spikeCount * 4, VERTEX_INDICES, spikeCount * 6);
 	}
 
-	RoomChunk(const RoomChunk&) = delete;
-	RoomChunk& operator=(const RoomChunk&) = delete;
+	RoomTextureChunk(const RoomTextureChunk&) = delete;
+	RoomTextureChunk& operator=(const RoomTextureChunk&) = delete;
 
-	RoomChunk(RoomChunk&& other) noexcept : _rect(other._rect), _cache(other._cache) { other._cache = NULL; }
+	RoomTextureChunk(RoomTextureChunk&& other) noexcept : _rect(other._rect), _cache(other._cache) {
+		other._cache = NULL;
+	}
 
-	RoomChunk& operator=(RoomChunk&& other) noexcept {
+	RoomTextureChunk& operator=(RoomTextureChunk&& other) noexcept {
 		if (this != &other) {
 			if (_cache) SDL_DestroyTexture(_cache);
 
@@ -143,8 +145,8 @@ class RoomChunk : public IDrawableRect {
 	}
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
-		return true;
-		SDL_FRect destination{float(_rect.x) + drawOffset.x, float(_rect.y) + drawOffset.y, float(_rect.w),
+		SDL_FRect destination{float(_rect.x) + drawOffset.x - WorldConstants::TILE_SIZE_F,
+							  float(_rect.y) + drawOffset.y - WorldConstants::TILE_SIZE_F, float(_rect.w),
 							  float(_rect.h)};
 
 		if (!SDL_HasRectIntersectionFloat(&drawTargetRect, &destination)) {
@@ -174,5 +176,5 @@ class RoomChunk : public IDrawableRect {
 
 	SDL_FRect GetFRect() const { return SDL_FRect{float(_rect.x), float(_rect.y), float(_rect.w), float(_rect.h)}; }
 
-	~RoomChunk() { UncacheTiles(); }
+	~RoomTextureChunk() { UncacheTiles(); }
 };

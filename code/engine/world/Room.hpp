@@ -8,6 +8,7 @@
 #include "engine/PointHash.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
+#include "engine/graphics/RoomTextureChunkRenderer.hpp"
 #include "engine/performance/PerformanceManager.hpp"
 #include "engine/physics/CollisionRect.hpp"
 #include "engine/physics/RoomColliderContainer.hpp"
@@ -17,7 +18,6 @@
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/IRoomObject.hpp"
-#include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
 #include "game/player/IPlayer.hpp"
 #include "game/world/objects/RoomObjectFactory.hpp"
@@ -34,17 +34,16 @@ class Room : IDrawableRect {
 	Uint16 _height;
 	Uint16 _targetWidth;
 	Uint16 _targetHeight;
-	vector<RoomChunk> _chunks;
 	RoomColliderContainer _colliders;
 	SpikeColliderContainer _spikeColliders;
 	unordered_set<SDL_Point> _ledges;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
 	vector<IRoomObject*> _roomObjects;
+	RoomTextureChunkRenderer _chunkRenderer;
 
    public:
-	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Texture* spikeAtlas)
-		: _binary(storage, path) {
+	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer) : _binary(storage, path) {
 		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_LOADING);
 
 		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
@@ -69,11 +68,7 @@ class Room : IDrawableRect {
 
 		dc::msg << SDL_GetTicks() << ": Room size is " << _width << "x" << _height << dc::endl;
 
-		std::unordered_map<Uint8, SDL_Texture*> atlases;
-		for (int i = 0; i < chunkCount; i++) {
-			dc::msg << SDL_GetTicks() << ": Loading chunk " << i << dc::endl;
-			_chunks.emplace_back(storage, _binary, renderer, atlases, spikeAtlas);
-		}
+		_chunkRenderer = RoomTextureChunkRenderer(renderer, storage, chunkCount, _binary);
 
 		int tileCountX = _width / 8;
 		int tileCountY = _height / 8;
@@ -154,7 +149,7 @@ class Room : IDrawableRect {
 
 	const unordered_set<SDL_Point>& GetLedges() const { return _ledges; }
 
-	const vector<RoomChunk>& GetChunks() const { return _chunks; }
+	// const vector<RoomChunk>& GetChunks() const { return _chunks; }
 
 	const vector<RoomNeighbor>& GetNeighbors() const { return _neighbors; }
 
@@ -195,9 +190,7 @@ class Room : IDrawableRect {
 
 		Vector2 localOffset = drawOffset + GetPosition();
 
-		for (const auto& chunk : _chunks) {
-			drawn |= chunk.Draw(renderer, drawTargetRect, localOffset - Vector2(8, 8));
-		}
+		drawn |= _chunkRenderer.Draw(renderer, drawTargetRect, localOffset);
 
 		for (const auto* object : _roomObjects) {
 			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);
@@ -210,7 +203,7 @@ class Room : IDrawableRect {
 
 	~Room() {
 		_ledges.clear();
-		_chunks.clear();
+		// _chunks.clear();
 		_neighbors.clear();
 	}
 };
