@@ -3,7 +3,10 @@
 #include <functional>
 
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "game/player/Player.hpp"
+
+#define CONVAR_CATEGORY DRAW
 
 class Camera {
    private:
@@ -14,6 +17,8 @@ class Camera {
 	static inline const float ZOOM_SPEED = 8.0;
 	static inline const float ZOOM_SNAP = 0.0001;
 	static inline const float FREE_CAM_SPEED = 200.0;
+
+	CONVAR(bool, _pixelate, PIXELATE, true, 0, "Render the game as low-resolution to align the pixels");
 
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
@@ -176,8 +181,19 @@ class Camera {
 		if (abs(_zoom - 1.0f) < ZOOM_SNAP) _zoom = 1.0f;
 	}
 
-#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 	void Draw(SDL_Renderer* renderer) const {
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
+		if (*_pixelate) {
+			DrawPixelate(renderer);
+			return;
+		}
+#endif
+
+		DrawSharp(renderer);
+	}
+
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
+	void DrawPixelate(SDL_Renderer* renderer) const {
 		Vector2 center = GetGlobalCenter();
 		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
 		Vector2 topLeft = center - zoomedSize * 0.5f;
@@ -204,8 +220,8 @@ class Camera {
 		SDL_SetRenderTarget(renderer, nullptr);
 		SDL_RenderTexture(renderer, _pixelTexture, &hdRenderSource, nullptr);
 	}
-#else
-	void Draw(SDL_Renderer* renderer) const {
+#endif
+	void DrawSharp(SDL_Renderer* renderer) const {
 		Vector2 center = GetGlobalCenter();
 		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
 
@@ -222,7 +238,6 @@ class Camera {
 
 		SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 	}
-#endif
 
 	~Camera() {
 		GameState::GetInput().RemovePressedCallback(ACTION_CAMERA, _pressedCallbackID);
