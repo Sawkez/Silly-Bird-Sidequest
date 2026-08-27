@@ -8,6 +8,7 @@ class Menu {
 
    public:
 	virtual void Init() { _screen = lv_obj_create(NULL); }
+
 	virtual void Activate() {
 		if (_screen == NULL) {
 			this->Init();
@@ -15,5 +16,6 @@ class Menu {
 
 		lv_screen_load(_screen);
 	}
+
 	virtual void Deactivate() {}
 };

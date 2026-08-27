@@ -31,18 +31,43 @@ class UIManager {
 	static Menu* _menus[_MENU_COUNT];
 
 	static void FlushCallback(lv_display_t* display, const lv_area_t* area, uint8_t* pixelData) {
-		void* outPixels;
-		int pitch;
-
 		int w = (area->x2 - area->x1) + 1;
 		int h = (area->y2 - area->y1) + 1;
 
 		SDL_Rect rect = {area->x1, area->y1, w, h};
+		size_t totalPixels = static_cast<size_t>(w * h);
 
-		size_t bytesPerPixel = LV_COLOR_DEPTH / 8;
-		size_t bytesPerRow = w * bytesPerPixel;
+		const uint16_t* src = reinterpret_cast<const uint16_t*>(pixelData);
 
-		SDL_UpdateTexture(_texture, &rect, pixelData, bytesPerRow);
+		static thread_local std::vector<uint16_t> conversionBuffer;
+		if (conversionBuffer.size() < totalPixels) {
+			conversionBuffer.resize(totalPixels);
+		}
+
+		uint16_t* dst = conversionBuffer.data();
+
+		// convert RGB565 to ARGB1555
+		for (size_t i = 0; i < totalPixels; ++i) {
+			uint16_t p = src[i];
+
+			// pure black means fully transparent
+			if (p == 0x0000) {
+				dst[i] = 0x0000;
+			}
+
+			// not pure black means fully opaque
+			else {
+				uint16_t r = (p >> 11) & 0x1F;
+				uint16_t g = (p >> 6) & 0x1F;
+				uint16_t b = p & 0x1F;
+
+				dst[i] = 0x8000 | (r << 10) | (g << 5) | b;
+			}
+		}
+
+		size_t bytesPerRow = w * sizeof(uint16_t);
+		SDL_UpdateTexture(_texture, &rect, dst, static_cast<int>(bytesPerRow));
+
 		lv_display_flush_ready(display);
 	}
 
@@ -89,7 +114,7 @@ class UIManager {
 
 		lv_tick_set_cb(TickCallback);
 		lv_display_t* display = lv_display_create(windowSize.x, windowSize.y);
-		lv_display_set_color_format(display, LV_COLOR_FORMAT_ARGB8888);
+		lv_display_set_color_format(display, LV_COLOR_FORMAT_RGB565);
 		lv_display_set_flush_cb(display, FlushCallback);
 
 		return display;
@@ -169,7 +194,7 @@ class UIManager {
 			SDL_DestroyTexture(_texture);
 		}
 
-		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newTextureSize,
+		_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, newTextureSize,
 									 newTextureSize);
 
 		if (_texture == NULL) {
