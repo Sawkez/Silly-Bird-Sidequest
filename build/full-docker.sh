@@ -10,5 +10,5 @@ fi
 SCRIPT_DIR=$(dirname "$0")
 
 $SCRIPT_DIR/prepare-resources.sh || exit 1
-$SCRIPT_DIR/build-docker.sh $1 $2 || exit 1
+$SCRIPT_DIR/build-docker.sh "$@" || exit 1
 $SCRIPT_DIR/export.sh $1 $2 || exit 1

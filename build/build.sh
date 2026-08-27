@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [ "$#" -lt 1 ]; then
-    echo "Usage: \$0 <platform> <build_type>"
+    echo "Usage: $0 <platform> [build_type] [extra_cmake_args...]"
     echo 'Platforms: linux, windows, win32, psp, ps2, web, android, haiku'
     echo 'Build types: debug, release (default)'
     exit 1
@@ -9,7 +9,18 @@ fi
 
 SCRIPT_DIR=$(dirname "$0")
 PLATFORM=$1
-USER_BUILD_TYPE=${2:-release}
+
+# Handle default build_type if unset or passed as empty string
+if [ -z "$2" ] || [[ "$2" == -D* ]]; then
+    USER_BUILD_TYPE="release"
+    shift 1
+else
+    USER_BUILD_TYPE=$2
+    shift 2
+fi
+
+# Everything remaining is a CMake extra argument
+EXTRA_CMAKE_ARGS=("$@")
 
 case "$USER_BUILD_TYPE" in
     release)
@@ -21,7 +32,7 @@ case "$USER_BUILD_TYPE" in
     ;;
 
     *)
-        echo "Unknkown build type. Use either debug or release"
+        echo "Unknown build type '$USER_BUILD_TYPE'. Use either debug or release"
         exit 1
     ;;
 esac
@@ -46,10 +57,10 @@ case "$PLATFORM" in
     ;;
     
     haiku)
-    	if [ "$(uname -s)" != "Haiku" ]; then
-    		CMAKE_COMMAND+=( "-DCMAKE_TOOLCHAIN_FILE=$SRC_DIR/haiku-x64.cmake" )
-    	fi
-	;;
+        if [ "$(uname -s)" != "Haiku" ]; then
+            CMAKE_COMMAND+=( "-DCMAKE_TOOLCHAIN_FILE=$SRC_DIR/haiku-x64.cmake" )
+        fi
+    ;;
 
     windows)
         MINGW_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw
@@ -64,7 +75,7 @@ case "$PLATFORM" in
     ;;
 
     android)
-        cd $SRC_DIR/android-project
+        cd "$SRC_DIR/android-project" || exit 1
         if [ "$USER_BUILD_TYPE" = "debug" ]; then
             ./gradlew assembleDebug || exit 1
         else
@@ -82,6 +93,6 @@ esac
 
 BUILD_DIR=$SCRIPT_DIR/build-files/$USER_BUILD_TYPE/$PLATFORM
 
-mkdir -p $BUILD_DIR || exit 1
-"${CMAKE_COMMAND[@]}" -G Ninja -S $SRC_DIR -B $BUILD_DIR -DCMAKE_BUILD_TYPE=$BUILD_TYPE || exit 1
-ninja -C $BUILD_DIR || exit 1
+mkdir -p "$BUILD_DIR" || exit 1
+"${CMAKE_COMMAND[@]}" -G Ninja -S "$SRC_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=$BUILD_TYPE "${EXTRA_CMAKE_ARGS[@]}" || exit 1
+ninja -C "$BUILD_DIR" || exit 1

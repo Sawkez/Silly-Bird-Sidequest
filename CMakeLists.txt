@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project("Silly Bird Sidequest")
 
+option(ENABLE_ADDRESS_SANITIZER "" OFF)
+option(ENABLE_PROFILER "" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -12,13 +15,12 @@ endif()
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(BUILD_PRX 1)
+endif()
 
-    if(LINUX)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-    endif()
-    
+if(ENABLE_PROFILER)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 endif()
 
 if(PS2)
@@ -112,6 +114,11 @@ else()
         SDL3_image::SDL3_image
         zip
     )
+endif()
+
+if(ENABLE_ADDRESS_SANITIZER)
+    target_compile_options(sbsidequest PRIVATE -fsanitize=address,leak -fno-omit-frame-pointer -g)
+    target_link_options(sbsidequest PRIVATE -fsanitize=address,leak)
 endif()
 
 if(WIN32)

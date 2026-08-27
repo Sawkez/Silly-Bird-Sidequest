@@ -11,6 +11,14 @@ SCRIPT_DIR=$(dirname "$0")
 PLATFORM=$1
 USER_BUILD_TYPE=${2:-release}
 
+CMAKE_ARGS=()
+if [ "$#" -ge 2 ]; then
+    shift 2
+    CMAKE_ARGS=("$@")
+elif [ "$#" -eq 1 ]; then
+    shift 1
+fi
+
 DOCKER_ARGS=(--rm -v "$PWD":"$PWD":Z -w "$PWD")
 
 if [ "$PLATFORM" = "android" ]; then
@@ -20,4 +28,4 @@ if [ "$PLATFORM" = "android" ]; then
     )
 fi
 
-docker run "${DOCKER_ARGS[@]}" sbsidequest-builder-$PLATFORM bash build/build.sh $PLATFORM $USER_BUILD_TYPE
+docker run "${DOCKER_ARGS[@]}" sbsidequest-builder-$PLATFORM bash build/build.sh "$@"
