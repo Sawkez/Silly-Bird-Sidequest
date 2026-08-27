@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
@@ -47,11 +48,7 @@ class Room : IDrawableRect {
 	vector<Vector2> _checkpoints;
 	vector<IRoomObject*> _roomObjects;
 
-#ifdef PLATFORM_USE_TEXTURE_CHUNKS
-	RoomTextureChunkRenderer _chunkRenderer;
-#else
-	RoomMeshChunkRenderer _chunkRenderer;
-#endif
+	std::unique_ptr<IDrawableRect> _chunkRenderer;
 
    public:
 	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer) : _binary(storage, path) {
@@ -80,9 +77,9 @@ class Room : IDrawableRect {
 		dc::msg << SDL_GetTicks() << ": Room size is " << _width << "x" << _height << dc::endl;
 
 #ifdef PLATFORM_USE_TEXTURE_CHUNKS
-		_chunkRenderer = RoomTextureChunkRenderer(renderer, storage, chunkCount, _binary);
+		_chunkRenderer = std::make_unique<RoomTextureChunkRenderer>(renderer, storage, chunkCount, _binary);
 #else
-		_chunkRenderer = RoomMeshChunkRenderer(renderer, storage, chunkCount, _binary);
+		_chunkRenderer = std::make_unique<RoomMeshChunkRenderer>(renderer, storage, chunkCount, _binary);
 #endif
 
 		int tileCountX = _width / 8;
@@ -205,7 +202,7 @@ class Room : IDrawableRect {
 
 		Vector2 localOffset = drawOffset + GetPosition();
 
-		drawn |= _chunkRenderer.Draw(renderer, drawTargetRect, localOffset);
+		drawn |= _chunkRenderer->Draw(renderer, drawTargetRect, localOffset);
 
 		for (const auto* object : _roomObjects) {
 			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);
@@ -218,7 +215,6 @@ class Room : IDrawableRect {
 
 	~Room() {
 		_ledges.clear();
-		// _chunks.clear();
 		_neighbors.clear();
 	}
 };

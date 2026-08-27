@@ -13,6 +13,7 @@
 class RoomMeshChunkRenderer : public IDrawableRect {
    private:
 	std::vector<RoomMeshChunk> _chunks = {};
+	SDL_Texture* _megaTexture = nullptr;
 
    public:
 	RoomMeshChunkRenderer() {}
@@ -74,18 +75,18 @@ class RoomMeshChunkRenderer : public IDrawableRect {
 			SDL_DestroySurface(pair.second);
 		}
 
-		SDL_SaveBMP(megaAtlas, "TEST_MegaAtlas.bmp");
-
-		SDL_Texture* megaTexture = SDL_CreateTextureFromSurface(renderer, megaAtlas);
+		_megaTexture = SDL_CreateTextureFromSurface(renderer, megaAtlas);
 		SDL_DestroySurface(megaAtlas);
 
 		binary.GoToChunkAtPosition(chunkDataStart);
 
 		_chunks.reserve(chunkCount);
 		for (int i = 0; i < chunkCount; i++) {
-			_chunks.emplace_back(binary, offsets, megaTexture);
+			_chunks.emplace_back(binary, offsets, _megaTexture);
 		}
 	}
+
+	~RoomMeshChunkRenderer() { SDL_DestroyTexture(_megaTexture); }
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		bool drawn = false;

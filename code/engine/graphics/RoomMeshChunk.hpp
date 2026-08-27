@@ -165,4 +165,9 @@ class RoomMeshChunk : public RoomChunkBase {
 
 		return true;
 	}
+
+	~RoomMeshChunk() {
+		delete[] _vertices;
+		delete[] _indices;
+	}
 };

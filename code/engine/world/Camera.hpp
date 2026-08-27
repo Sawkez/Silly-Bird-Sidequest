@@ -249,3 +249,5 @@ class Camera {
 #endif
 	}
 };
+
+#undef CONVAR_CATEGORY

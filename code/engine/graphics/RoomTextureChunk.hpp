@@ -92,19 +92,19 @@ class RoomTextureChunk : public RoomChunkBase {
 		SPIKE_VERTICES[index * 4 + 1] = SDL_Vertex {
 			SDL_FPoint{x + WorldConstants::TILE_SIZE_F, y},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			Vector2{xAtlas + 1.0f / 16.0f, yAtlas} / spikeTextureSize
+			Vector2{xAtlas + WorldConstants::TILE_SIZE_F, yAtlas} / spikeTextureSize
 		};
 
 		SPIKE_VERTICES[index * 4 + 2] = SDL_Vertex {
 			SDL_FPoint{x, y + WorldConstants::TILE_SIZE_F},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			Vector2{xAtlas, yAtlas + 1.0f / 16.0f} / spikeTextureSize
+			Vector2{xAtlas, yAtlas + WorldConstants::TILE_SIZE_F} / spikeTextureSize
 		}; 
 
 		SPIKE_VERTICES[index * 4 + 3] = SDL_Vertex {
 			SDL_FPoint{x + WorldConstants::TILE_SIZE_F, y + WorldConstants::TILE_SIZE_F},
 			SDL_FColor{1.0, 1.0, 1.0, 1.0},
-			Vector2{xAtlas + 1.0f / 16.0f, yAtlas + 1.0f / 16.0f} / spikeTextureSize
+			Vector2{xAtlas + WorldConstants::TILE_SIZE_F, yAtlas + WorldConstants::TILE_SIZE_F} / spikeTextureSize
 		};
 		// clang-format on
 
