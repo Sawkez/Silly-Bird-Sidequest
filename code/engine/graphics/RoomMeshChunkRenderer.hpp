@@ -86,7 +86,7 @@ class RoomMeshChunkRenderer : public IDrawableRect {
 		}
 	}
 
-	~RoomMeshChunkRenderer() { SDL_DestroyTexture(_megaTexture); }
+	~RoomMeshChunkRenderer() override { SDL_DestroyTexture(_megaTexture); }
 
 	bool Draw(SDL_Renderer* renderer, const SDL_FRect& drawTargetRect, Vector2 drawOffset) const override {
 		bool drawn = false;

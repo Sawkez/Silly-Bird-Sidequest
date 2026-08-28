@@ -216,5 +216,8 @@ class Room : IDrawableRect {
 	~Room() {
 		_ledges.clear();
 		_neighbors.clear();
+		for (auto* object : _roomObjects) {
+			delete object;
+		}
 	}
 };

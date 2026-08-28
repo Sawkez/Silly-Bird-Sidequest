@@ -140,5 +140,5 @@ class RoomTextureChunk : public RoomChunkBase {
 		return true;
 	}
 
-	~RoomTextureChunk() { UncacheTiles(); }
+	~RoomTextureChunk() override { UncacheTiles(); }
 };

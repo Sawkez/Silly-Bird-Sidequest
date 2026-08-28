@@ -32,7 +32,10 @@ class ResourceManager {
 		modFolderPath = "mods";
 		mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
 #else
-		modFolderPath = SDL_GetPrefPath(ORGANIZATION, APPLICATION) + std::string("/mods");
+		char* prefPath = SDL_GetPrefPath(ORGANIZATION, APPLICATION);
+		modFolderPath = prefPath + std::string("/mods");
+		SDL_free(prefPath);
+
 		mods = SDL_OpenTitleStorage(modFolderPath.c_str(), 0);
 #endif
 	}
