@@ -27,9 +27,12 @@ class RoomMeshChunk : public RoomChunkBase {
 	static inline const Vector2 SPIKE_BOTTOM_RIGHT		= BOTTOM_RIGHT	* WorldConstants::TILE_SIZE_F;
 	// clang-format on
 
+	static inline const SDL_FColor GEOMETRY_COLOR{1.0f, 1.0f, 1.0f, 1.0f};
+
 	SDL_Texture* _megaAtlas;
-	SDL_Vertex* _vertices;
-	int* _indices;
+	SDL_FPoint* _vertexPositions;
+	SDL_FPoint* _vertexUVs;
+	Uint16* _indices;
 	int _quadCount;
 
 	struct RoomMeshChunkCustomData {
@@ -50,8 +53,9 @@ class RoomMeshChunk : public RoomChunkBase {
 
 		_quadCount = tileCount + spikeCount;
 
-		_vertices = new SDL_Vertex[_quadCount * 4];
-		_indices = new int[_quadCount * 6];
+		_vertexPositions = new SDL_FPoint[_quadCount * 4];
+		_vertexUVs = new SDL_FPoint[_quadCount * 4];
+		_indices = new Uint16[_quadCount * 6];
 
 		data->tileCount = tileCount;
 	}
@@ -67,29 +71,15 @@ class RoomMeshChunk : public RoomChunkBase {
 		int i = index * 4;
 
 		// clang-format off
-        _vertices[i + 0] = {
-			destPos + TILE_TOP_LEFT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + TILE_TOP_LEFT) / data->megaAtlasRes
-		};
+		_vertexPositions[i + 0] = destPos + TILE_TOP_LEFT;
+		_vertexPositions[i + 1] = destPos + TILE_TOP_RIGHT;
+		_vertexPositions[i + 2] = destPos + TILE_BOTTOM_LEFT;
+		_vertexPositions[i + 3] = destPos + TILE_BOTTOM_RIGHT;
 
-		_vertices[i + 1] = {
-			destPos + TILE_TOP_RIGHT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + TILE_TOP_RIGHT) / data->megaAtlasRes
-		};
-
-		_vertices[i + 2] = {
-			destPos + TILE_BOTTOM_LEFT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + TILE_BOTTOM_LEFT) / data->megaAtlasRes
-		};
-
-		_vertices[i + 3] = {
-			destPos + TILE_BOTTOM_RIGHT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + TILE_BOTTOM_RIGHT) / data->megaAtlasRes
-		};
+		_vertexUVs[i + 0] = (sourcePos + TILE_TOP_LEFT) / data->megaAtlasRes;
+		_vertexUVs[i + 1] = (sourcePos + TILE_TOP_RIGHT) / data->megaAtlasRes;
+		_vertexUVs[i + 2] = (sourcePos + TILE_BOTTOM_LEFT) / data->megaAtlasRes;
+		_vertexUVs[i + 3] = (sourcePos + TILE_BOTTOM_RIGHT) / data->megaAtlasRes;
 		// clang-format on
 
 		int j = index * 6;
@@ -111,29 +101,15 @@ class RoomMeshChunk : public RoomChunkBase {
 		int i = (index + data->tileCount) * 4;
 
 		// clang-format off
-		_vertices[i + 0] = {
-			destPos + SPIKE_TOP_LEFT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + SPIKE_TOP_LEFT) / data->megaAtlasRes
-		};
+		_vertexPositions[i + 0] = destPos + SPIKE_TOP_LEFT;
+		_vertexPositions[i + 1] = destPos + SPIKE_TOP_RIGHT;
+		_vertexPositions[i + 2] = destPos + SPIKE_BOTTOM_LEFT;
+		_vertexPositions[i + 3] = destPos + SPIKE_BOTTOM_RIGHT;
 
-		_vertices[i + 1] = {
-			destPos + SPIKE_TOP_RIGHT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + SPIKE_TOP_RIGHT) / data->megaAtlasRes
-		};
-
-		_vertices[i + 2] = {
-			destPos + SPIKE_BOTTOM_LEFT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + SPIKE_BOTTOM_LEFT) / data->megaAtlasRes
-		};
-
-		_vertices[i + 3] = {
-			destPos + SPIKE_BOTTOM_RIGHT,
-			SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-			(sourcePos + SPIKE_BOTTOM_RIGHT) / data->megaAtlasRes
-		};
+		_vertexUVs[i + 0] = (sourcePos + SPIKE_TOP_LEFT) / data->megaAtlasRes;
+		_vertexUVs[i + 1] = (sourcePos + SPIKE_TOP_RIGHT) / data->megaAtlasRes;
+		_vertexUVs[i + 2] = (sourcePos + SPIKE_BOTTOM_LEFT) / data->megaAtlasRes;
+		_vertexUVs[i + 3] = (sourcePos + SPIKE_BOTTOM_RIGHT) / data->megaAtlasRes;
 		// clang-format on
 
 		int j = (index + data->tileCount) * 6;
@@ -160,14 +136,28 @@ class RoomMeshChunk : public RoomChunkBase {
 							 _rect.w, _rect.h};
 
 		SDL_SetRenderViewport(renderer, &destination);
-		SDL_RenderGeometry(renderer, _megaAtlas, _vertices, _quadCount * 4, _indices, _quadCount * 6);
+
+		// clang-format off
+		if (!SDL_RenderGeometryRaw(
+			renderer, _megaAtlas,
+			(float*)_vertexPositions, 8,
+			&GEOMETRY_COLOR, 0,
+			(float*)_vertexUVs, 8,
+			_quadCount * 4,
+			_indices, _quadCount * 6, 2
+		)) {
+			dc::err << "ERROR rendering room geometry: " << SDL_GetError() << dc::endl;
+		}
+		// clang-format on
+
 		SDL_SetRenderViewport(renderer, nullptr);
 
 		return true;
 	}
 
 	~RoomMeshChunk() {
-		delete[] _vertices;
+		delete[] _vertexPositions;
+		delete[] _vertexUVs;
 		delete[] _indices;
 	}
 };
