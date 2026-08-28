@@ -28,4 +28,4 @@ if [ "$PLATFORM" = "android" ]; then
     )
 fi
 
-docker run "${DOCKER_ARGS[@]}" sbsidequest-builder-$PLATFORM bash build/build.sh "$@"
+docker run "${DOCKER_ARGS[@]}" sbsidequest-builder-$PLATFORM bash "build/build.sh" "$PLATFORM" "$USER_BUILD_TYPE" "${CMAKE_ARGS[@]}"
