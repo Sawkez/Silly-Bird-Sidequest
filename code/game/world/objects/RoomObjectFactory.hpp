@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "engine/GameState.hpp"
 #include "engine/resource/BinaryReader.hpp"
 #include "engine/world/IRoomObject.hpp"
@@ -22,7 +24,7 @@ IRoomObject* MakeRoomObject(yyjson_val* json) {
 	}
 }
 
-IRoomObject* MakeRoomObject(BinaryReader& binary) {
+std::unique_ptr<IRoomObject> MakeRoomObject(BinaryReader& binary) {
 	Uint16 type;
 	binary.Read(2, &type);
 
@@ -32,7 +34,7 @@ IRoomObject* MakeRoomObject(BinaryReader& binary) {
 			binary.Read(1, &upgrade);
 			Vector2 position(binary);
 
-			return new UpgradePickup(GameState::GetMainRenderer(), position, upgrade);
+			return std::make_unique<UpgradePickup>(GameState::GetMainRenderer(), position, upgrade);
 		}
 		default:
 			return nullptr;

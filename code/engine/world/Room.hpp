@@ -46,7 +46,7 @@ class Room : IDrawableRect {
 	unordered_set<SDL_Point> _ledges;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
-	vector<IRoomObject*> _roomObjects;
+	vector<std::unique_ptr<IRoomObject>> _roomObjects;
 
 	std::unique_ptr<IDrawableRect> _chunkRenderer;
 
@@ -189,10 +189,10 @@ class Room : IDrawableRect {
 		return GetCheckpoint(GetNearestCheckpoint(position));
 	}
 
-	const vector<IRoomObject*>& GetRoomObjects() const { return _roomObjects; }
+	const vector<std::unique_ptr<IRoomObject>>& GetRoomObjects() const { return _roomObjects; }
 
 	void Process(float delta, IPlayer& player) {
-		for (auto object : _roomObjects) {
+		for (auto& object : _roomObjects) {
 			object->Process(delta, player);
 		}
 	}
@@ -204,7 +204,7 @@ class Room : IDrawableRect {
 
 		drawn |= _chunkRenderer->Draw(renderer, drawTargetRect, localOffset);
 
-		for (const auto* object : _roomObjects) {
+		for (const auto& object : _roomObjects) {
 			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);
 		}
 
@@ -216,8 +216,6 @@ class Room : IDrawableRect {
 	~Room() {
 		_ledges.clear();
 		_neighbors.clear();
-		for (auto* object : _roomObjects) {
-			delete object;
-		}
+		_roomObjects.clear();
 	}
 };
