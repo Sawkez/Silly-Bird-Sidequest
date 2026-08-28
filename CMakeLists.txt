@@ -96,6 +96,8 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL)
 add_subdirectory(${CMAKE_SOURCE_DIR}/code/3rdparty/SDL_image)
 
 set(FONT_SOURCES
+    code/fonts/pcsenior_8.c
+    code/fonts/fs_ti_92_eno_c_8.c
     code/fonts/drafting_mono_12.c
     code/fonts/drafting_mono_14.c
     code/fonts/drafting_mono_28.c

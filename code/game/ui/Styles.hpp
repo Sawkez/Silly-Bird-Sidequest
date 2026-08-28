@@ -19,9 +19,12 @@ class Styles {
 		} else if (contentScale > 0.75f) {
 			_defaultFont = &lv_font_montserrat_14;
 			_monoFont = &drafting_mono_14;
-		} else {
+		} else if (contentScale > 0.55f) {
 			_defaultFont = &lv_font_montserrat_12;
 			_monoFont = &drafting_mono_12;
+		} else {
+			_defaultFont = &pcsenior_8;
+			_monoFont = &fs_ti_92_eno_c_8;
 		}
 
 		_defaultTheme = lv_theme_default_init(display, lv_palette_main(LV_PALETTE_BLUE),
