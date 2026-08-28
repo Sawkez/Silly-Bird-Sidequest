@@ -18,6 +18,9 @@ class Camera {
 	static inline const float ZOOM_SNAP = 0.0001;
 	static inline const float FREE_CAM_SPEED = 200.0;
 
+	CONVAR(float, _stretchAspect, STRETCH_ASPECT, PLATFORM_STRETCH_ASPECT, 0,
+		   "How much to scale the view horizontally");
+
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
 
@@ -28,8 +31,9 @@ class Camera {
 #ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 	SDL_Texture* _pixelTexture = nullptr;
 	CONVAR(bool, _pixelate, PIXELATE, true, 0, "Render the game as low-resolution to align the pixels");
-#endif
+#else
 	CONVAR(bool, _pixelate, PIXELATE, false, 0, "Render the game as low-resolution to align the pixels");
+#endif
 
 	SDL_Point _pixelTextureSize{0, 0};
 
@@ -75,10 +79,12 @@ class Camera {
 		int windowWidth, windowHeight;
 		SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
 
+		windowWidth *= *_stretchAspect;
+
 		float aspect = float(windowWidth) / float(windowHeight);
 
 		Vector2 targetRes = _zoomedOut ? _room.get().GetSize() : _room.get().GetTargetSize();
-		float targetAspect = targetRes.x / targetRes.y;
+		float targetAspect = (targetRes.x / targetRes.y);
 
 		Vector2 roomRes = _room.get().GetSize();
 
