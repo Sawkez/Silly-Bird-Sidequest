@@ -18,8 +18,6 @@ class Camera {
 	static inline const float ZOOM_SNAP = 0.0001;
 	static inline const float FREE_CAM_SPEED = 200.0;
 
-	CONVAR(bool, _pixelate, PIXELATE, true, 0, "Render the game as low-resolution to align the pixels");
-
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
 
@@ -29,7 +27,9 @@ class Camera {
 
 #ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 	SDL_Texture* _pixelTexture = nullptr;
+	CONVAR(bool, _pixelate, PIXELATE, true, 0, "Render the game as low-resolution to align the pixels");
 #endif
+	CONVAR(bool, _pixelate, PIXELATE, false, 0, "Render the game as low-resolution to align the pixels");
 
 	SDL_Point _pixelTextureSize{0, 0};
 
