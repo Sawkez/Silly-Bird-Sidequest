@@ -13,6 +13,10 @@ if(HAIKU)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -fPIC")
 endif()
 
+if(PS2)
+    find_package(ZLIB REQUIRED)
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(BUILD_PRX 1)
 endif()
