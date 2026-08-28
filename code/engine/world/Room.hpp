@@ -116,9 +116,9 @@ class Room : IDrawableRect {
 		_binary.EnsureSection("LEGE");
 		_ledges.reserve(ledgeCount);
 		for (int i = 0; i < ledgeCount; i++) {
-			Sint64 x, y;
-			_binary.Read(8, &x);
-			_binary.Read(8, &y);
+			Sint32 x, y;
+			_binary.Read(4, &x);
+			_binary.Read(4, &y);
 
 			SDL_Point ledge{x, y};
 
