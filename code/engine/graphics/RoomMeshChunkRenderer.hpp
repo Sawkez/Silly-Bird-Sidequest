@@ -25,10 +25,13 @@ class RoomMeshChunkRenderer : public IDrawableRect {
 		binary.EnsureSection("CHNK");
 		const char* chunkDataStart = binary.GetCurrentPosition();
 
-		int megaAtlasWidth = spikeAtlas->w;
-		int megaAtlasHeight = spikeAtlas->h;
+		SDL_Point currentOffset = {spikeAtlas->w, 0};
+		int rowHeight = spikeAtlas->h;
+		SDL_Point subAtlasPosition{spikeAtlas->w, spikeAtlas->h};
 
-		std::unordered_map<Uint8, SDL_Surface*> atlases;
+		SDL_Surface* megaAtlas =
+			SDL_CreateSurface(PLATFORM_MEGA_ATLAS_MAX_WIDTH, PLATFORM_MEGA_ATLAS_MAX_HEIGHT, SDL_PIXELFORMAT_ARGB1555);
+		std::unordered_map<Uint8, SDL_Point> offsets;
 
 		for (int i = 0; i < chunkCount; i++) {
 			binary.EnsureSection("CHNK");
@@ -43,39 +46,38 @@ class RoomMeshChunkRenderer : public IDrawableRect {
 				Uint8 sourceID;
 				binary.Read(1, &sourceID);
 
-				if (atlases.find(sourceID) != atlases.end()) continue;
+				if (offsets.find(sourceID) != offsets.end()) continue;
 
 				SDL_Surface* newAtlas = ModManager::LoadTileSourceAsSurface(renderer, sourceID);
 
-				megaAtlasWidth += newAtlas->w;
-				megaAtlasHeight = std::max(megaAtlasHeight, newAtlas->h);
+				currentOffset.x += newAtlas->w;
 
-				atlases[sourceID] = newAtlas;
+				if (currentOffset.x + newAtlas->w > PLATFORM_MEGA_ATLAS_MAX_WIDTH) {
+					currentOffset.y += rowHeight;
+					currentOffset.x = 0;
+					rowHeight = 0;
+
+					if (currentOffset.y > PLATFORM_MEGA_ATLAS_MAX_HEIGHT) {
+						dc::err << "ERROR: Mega atlas too big! some tiles will not render" << dc::endl;
+						break;
+					}
+				}
+
+				SDL_Rect destination{currentOffset.x, currentOffset.y, newAtlas->w, newAtlas->h};
+				rowHeight = std::max(rowHeight, newAtlas->h);
+
+				offsets[sourceID] = currentOffset;
+
+				SDL_BlitSurface(newAtlas, NULL, megaAtlas, &destination);
 			}
 		}
 
-		SDL_Surface* megaAtlas = SDL_CreateSurface(megaAtlasWidth, megaAtlasHeight, SDL_PIXELFORMAT_ARGB1555);
-		SDL_ClearSurface(megaAtlas, 0, 0, 0, 0);
+		_megaTexture = SDL_CreateTextureFromSurface(renderer, megaAtlas);
 
-		SDL_Rect destination{0, 0, spikeAtlas->w, spikeAtlas->h};
-		SDL_BlitSurface(spikeAtlas, nullptr, megaAtlas, &destination);
-
-		int currentOffset = spikeAtlas->w;
-		std::unordered_map<Uint8, int> offsets;
-
-		SDL_DestroySurface(spikeAtlas);
-
-		for (const auto& pair : atlases) {
-			offsets[pair.first] = currentOffset;
-			destination.x = currentOffset;
-			currentOffset += pair.second->w;
-			destination.w = pair.second->w;
-			destination.h = pair.second->h;
-			SDL_BlitSurface(pair.second, nullptr, megaAtlas, &destination);
-			SDL_DestroySurface(pair.second);
+		if (_megaTexture == nullptr) {
+			dc::err << "Failed to create mega atlas texture: " << SDL_GetError() << dc::endl;
 		}
 
-		_megaTexture = SDL_CreateTextureFromSurface(renderer, megaAtlas);
 		SDL_DestroySurface(megaAtlas);
 
 		binary.GoToChunkAtPosition(chunkDataStart);

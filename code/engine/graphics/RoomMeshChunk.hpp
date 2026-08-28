@@ -33,13 +33,13 @@ class RoomMeshChunk : public RoomChunkBase {
 	int _quadCount;
 
 	struct RoomMeshChunkCustomData {
-		const std::unordered_map<Uint8, int>& offsets;
+		const std::unordered_map<Uint8, SDL_Point>& offsets;
 		int tileCount;
 		Vector2 megaAtlasRes;
 	};
 
    public:
-	RoomMeshChunk(BinaryReader& binary, const std::unordered_map<Uint8, int>& offsets, SDL_Texture* megaAtlas)
+	RoomMeshChunk(BinaryReader& binary, const std::unordered_map<Uint8, SDL_Point>& offsets, SDL_Texture* megaAtlas)
 		: _megaAtlas(megaAtlas) {
 		auto data = RoomMeshChunkCustomData{offsets, 0, Vector2(megaAtlas->w, megaAtlas->h)};
 		BuildChunk(binary, &data);
@@ -58,11 +58,11 @@ class RoomMeshChunk : public RoomChunkBase {
 
 	void CacheTile(int index, float x, float y, float xAtlas, float yAtlas, Uint8 sourceID, void* customData) override {
 		auto* data = (RoomMeshChunkCustomData*)customData;
-		int offset = data->offsets.find(sourceID)->second;
+		SDL_Point offset = data->offsets.find(sourceID)->second;
 
 		Vector2 destPos = Vector2(x, y);
 		Vector2 sourcePos = Vector2(xAtlas, yAtlas);
-		sourcePos.x += float(offset);
+		sourcePos += offset;
 
 		int i = index * 4;
 
