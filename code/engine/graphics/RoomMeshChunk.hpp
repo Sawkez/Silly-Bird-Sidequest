@@ -156,8 +156,8 @@ class RoomMeshChunk : public RoomChunkBase {
 			return false;
 		}
 
-		SDL_Rect destination{_rect.x + drawOffset.x - OVERLAP_OFFSET, _rect.y + drawOffset.y - OVERLAP_OFFSET, _rect.w,
-							 _rect.h};
+		SDL_Rect destination{_rect.x + int(drawOffset.x) - OVERLAP_OFFSET, _rect.y + int(drawOffset.y) - OVERLAP_OFFSET,
+							 _rect.w, _rect.h};
 
 		SDL_SetRenderViewport(renderer, &destination);
 		SDL_RenderGeometry(renderer, _megaAtlas, _vertices, _quadCount * 4, _indices, _quadCount * 6);
