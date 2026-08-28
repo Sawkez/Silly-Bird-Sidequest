@@ -3,7 +3,7 @@
 if [ "$#" -lt 1 ]; then
     echo "Usage: $0 <platform> [build_type] [extra_cmake_args...]"
     echo 'Platforms: linux, windows, win32, psp, ps2, web, android, haiku'
-    echo 'Build types: debug, release (default)'
+    echo 'Build types: debug, release (default), memorytest'
     exit 1
 fi
 

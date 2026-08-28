@@ -3,14 +3,13 @@
 if [ "$#" -lt 1 ]; then
     echo "Usage: $0 <platform> [build_type] [extra_cmake_args...]"
     echo 'Platforms: linux, windows, win32, psp, ps2, web, android, haiku'
-    echo 'Build types: debug, release (default)'
+    echo 'Build types: debug, release (default), memorytest'
     exit 1
 fi
 
 SCRIPT_DIR=$(dirname "$0")
 PLATFORM=$1
 
-# Handle default build_type if unset or passed as empty string
 if [ -z "$2" ] || [[ "$2" == -D* ]]; then
     USER_BUILD_TYPE="release"
     shift 1
@@ -19,8 +18,7 @@ else
     shift 2
 fi
 
-# Everything remaining is a CMake extra argument
-EXTRA_CMAKE_ARGS=("$@")
+CMAKE_ARGS=("$@")
 
 case "$USER_BUILD_TYPE" in
     release)
@@ -29,6 +27,11 @@ case "$USER_BUILD_TYPE" in
 
     debug)
         BUILD_TYPE=Debug
+    ;;
+
+    memorytest)
+        BUILD_TYPE=Debug
+        CMAKE_ARGS+=( "-DENABLE_ADDRESS_SANITIZER=1" )
     ;;
 
     *)
@@ -94,5 +97,5 @@ esac
 BUILD_DIR=$SCRIPT_DIR/build-files/$USER_BUILD_TYPE/$PLATFORM
 
 mkdir -p "$BUILD_DIR" || exit 1
-"${CMAKE_COMMAND[@]}" -G Ninja -S "$SRC_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=$BUILD_TYPE "${EXTRA_CMAKE_ARGS[@]}" || exit 1
+"${CMAKE_COMMAND[@]}" -G Ninja -S "$SRC_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=$BUILD_TYPE "${CMAKE_ARGS[@]}" || exit 1
 ninja -C "$BUILD_DIR" || exit 1
