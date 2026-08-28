@@ -3,7 +3,10 @@
 #include <functional>
 
 #include "engine/Vector2.hpp"
+#include "engine/devconsole/variable/DevConsoleVariable.hpp"
 #include "game/player/Player.hpp"
+
+#define CONVAR_CATEGORY DRAW
 
 class Camera {
    private:
@@ -15,13 +18,23 @@ class Camera {
 	static inline const float ZOOM_SNAP = 0.0001;
 	static inline const float FREE_CAM_SPEED = 200.0;
 
+	CONVAR(float, _stretchAspect, STRETCH_ASPECT, PLATFORM_STRETCH_ASPECT, 0,
+		   "How much to scale the view horizontally");
+
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
 
 	const Player& _player;
 	SDL_Point _pixelSize;
 	std::reference_wrapper<const Room> _room;
+
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 	SDL_Texture* _pixelTexture = nullptr;
+	CONVAR(bool, _pixelate, PIXELATE, true, 0, "Render the game as low-resolution to align the pixels");
+#else
+	CONVAR(bool, _pixelate, PIXELATE, false, 0, "Render the game as low-resolution to align the pixels");
+#endif
+
 	SDL_Point _pixelTextureSize{0, 0};
 
 	Vector2 _roomStart;
@@ -66,10 +79,12 @@ class Camera {
 		int windowWidth, windowHeight;
 		SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
 
+		windowWidth *= *_stretchAspect;
+
 		float aspect = float(windowWidth) / float(windowHeight);
 
 		Vector2 targetRes = _zoomedOut ? _room.get().GetSize() : _room.get().GetTargetSize();
-		float targetAspect = targetRes.x / targetRes.y;
+		float targetAspect = (targetRes.x / targetRes.y);
 
 		Vector2 roomRes = _room.get().GetSize();
 
@@ -108,9 +123,11 @@ class Camera {
 
 		_pixelTextureSize = newTextureRes;
 
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 		if (_pixelTexture != nullptr) SDL_DestroyTexture(_pixelTexture);
 		_pixelTexture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_TARGET,
 										  _pixelTextureSize.x, _pixelTextureSize.y);
+#endif
 	}
 
 	Vector2 GetGlobalCenter() const {
@@ -171,6 +188,18 @@ class Camera {
 	}
 
 	void Draw(SDL_Renderer* renderer) const {
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
+		if (*_pixelate) {
+			DrawPixelate(renderer);
+			return;
+		}
+#endif
+
+		DrawSharp(renderer);
+	}
+
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
+	void DrawPixelate(SDL_Renderer* renderer) const {
 		Vector2 center = GetGlobalCenter();
 		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
 		Vector2 topLeft = center - zoomedSize * 0.5f;
@@ -197,11 +226,34 @@ class Camera {
 		SDL_SetRenderTarget(renderer, nullptr);
 		SDL_RenderTexture(renderer, _pixelTexture, &hdRenderSource, nullptr);
 	}
+#endif
+	void DrawSharp(SDL_Renderer* renderer) const {
+		Vector2 center = GetGlobalCenter();
+		Vector2 zoomedSize = Vector2(_pixelSize) * _zoom;
+
+		Vector2 topLeft = center - zoomedSize * 0.5f;
+
+		SDL_FRect visibilityRect{0.0f, 0.0f, zoomedSize.x + 16.0f, zoomedSize.y + 16.0f};
+
+		int winW, winH;
+		SDL_GetRenderOutputSize(renderer, &winW, &winH);  // Assuming SDL3 since you used SDL_RenderTexture
+		SDL_SetRenderScale(renderer, (float)winW / zoomedSize.x, (float)winH / zoomedSize.y);
+
+		_room.get().Draw(renderer, visibilityRect, -topLeft);
+		_player.Draw(renderer, visibilityRect, -topLeft);
+
+		SDL_SetRenderScale(renderer, 1.0f, 1.0f);
+	}
 
 	~Camera() {
 		GameState::GetInput().RemovePressedCallback(ACTION_CAMERA, _pressedCallbackID);
 		GameState::GetInput().RemoveReleasedCallback(ACTION_CAMERA, _releasedCallbackID);
 		GameState::GetInput().RemoveDoubleTapCallback(ACTION_CAMERA, _doubleTapCallbackID);
+
+#ifdef PLATFORM_HAS_CAMERA_PIXEL_TEXTURE
 		if (_pixelTexture != nullptr) SDL_DestroyTexture(_pixelTexture);
+#endif
 	}
 };
+
+#undef CONVAR_CATEGORY

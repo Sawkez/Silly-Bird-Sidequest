@@ -11,18 +11,6 @@
 #include "engine/input/touch/TouchController.hpp"
 #endif
 
-#if SDL_PLATFORM_PSP
-#define INITIAL_WINDOW_RES 480, 272
-#else
-#define INITIAL_WINDOW_RES 960, 540
-#endif
-
-#if SDL_PLATFORM_ANDROID
-#define WINDOWFLAGS SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
-#else
-#define WINDOWFLAGS SDL_WINDOW_RESIZABLE
-#endif
-
 class GameState {
    private:
 	static inline constexpr float MAX_DELTA = 1.0;
@@ -43,23 +31,49 @@ class GameState {
 
    public:
 	static void Init() {
-		std::cout << "Welcome to Silly Bird Sidequest!" << std::endl;
-		_mainWindow = SDL_CreateWindow("SBS", INITIAL_WINDOW_RES, WINDOWFLAGS);
+		dc::msg << "Welcome to Silly Bird Sidequest!" << dc::endl;
 
-		std::cout << "Available render drivers: ";
+		SDL_Time time;
+		SDL_GetCurrentTime(&time);
+
+		SDL_DateTime dateTime;
+		SDL_TimeToDateTime(time, &dateTime, true);
+		dc::msg << "The date is " << dateTime.day << "/" << dateTime.month << "/" << dateTime.year << dc::endl;
+		dc::msg << "The time is " << dateTime.hour << ":" << dateTime.minute << dc::endl;
+
+		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+		SDL_SetHint(SDL_HINT_PS2_GS_WIDTH, PLATFORM_INITIAL_RES_X_STR);
+		SDL_SetHint(SDL_HINT_PS2_GS_HEIGHT, PLATFORM_INITIAL_RES_Y_STR);
+
+		_mainWindow = SDL_CreateWindow("SBS", PLATFORM_INITIAL_RES, PLATFORM_WINDOW_FLAGS);
+
+		if (_mainWindow == nullptr) {
+			dc::err << "ERROR creating window: " << SDL_GetError() << dc::endl;
+		}
+
+		dc::msg << "Available render drivers: ";
 
 		int driverCount = SDL_GetNumRenderDrivers();
 		for (int i = 0; i < driverCount; i++) {
-			std::cout << SDL_GetRenderDriver(i) << "; ";
+			dc::msg << SDL_GetRenderDriver(i) << "; ";
 		}
+
+		dc::msg << dc::endl;
 
 		_mainRenderer = SDL_CreateRenderer(_mainWindow, NULL);
 
-		std::cout << std::endl << "Using driver: " << SDL_GetRendererName(_mainRenderer) << std::endl << std::endl;
+		if (_mainRenderer == nullptr) {
+			dc::err << "ERROR creating renderer: " << SDL_GetError() << dc::endl;
+		}
+		dc::msg << "Using driver: " << SDL_GetRendererName(_mainRenderer) << dc::endl;
 
+#ifdef PLATFORM_ENABLE_VSYNC
 		SDL_SetRenderVSync(_mainRenderer, 1);
+#else
+		SDL_SetRenderVSync(_mainRenderer, 0);
+#endif
+
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
-		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
 #ifdef PLATFORM_HAS_TOUCH
 		_touch.Init(_mainRenderer, _mainWindow);

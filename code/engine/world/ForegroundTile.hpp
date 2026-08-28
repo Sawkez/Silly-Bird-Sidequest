@@ -20,6 +20,9 @@ struct ForegroundTile : public TileBase {
 	int GetDrawSourceSize() const override { return 14; }
 	int GetDrawDestOffset() const override { return (WorldConstants::TILE_SIZE_F - GetDrawSourceSize()) / 2.0; }
 
+	ForegroundTile(Uint16 X, Uint16 Y, Uint16 XAtlas, Uint16 YAtlas, Uint8 SourceID)
+		: TileBase{X, Y, XAtlas, YAtlas}, sourceID(SourceID) {}
+
 	ForegroundTile(BinaryReader& binary) {
 		binary.Read(2, &x);
 		binary.Read(2, &y);

@@ -85,6 +85,15 @@ class ModManager {
 		}
 	}
 
+	static SDL_Surface* LoadTileSourceAsSurface(SDL_Renderer* renderer, Uint8 sourceID) {
+		if (sourceID & BUILTIN_TILE_BIT) {
+			return ResourceManager::LoadSurface(GetBuiltinStorage(),
+												_builtin->GetTileSourcePath(sourceID & ~BUILTIN_TILE_BIT));
+		} else {
+			return ResourceManager::LoadSurface(GetLevelStorage(), _level->GetTileSourcePath(sourceID));
+		}
+	}
+
 	static std::string GetTileSourcePath(uint8_t sourceID) {
 		if (sourceID & BUILTIN_TILE_BIT) {
 			return _builtin->GetTileSourcePath(sourceID & ~BUILTIN_TILE_BIT);

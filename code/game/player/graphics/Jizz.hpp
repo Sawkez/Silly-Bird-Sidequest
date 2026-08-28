@@ -154,6 +154,8 @@ class Jizz {
 					<< dc::endl;
 		}
 
+		SDL_DestroySurface(surface);
+
 		return texture;
 	}
 
@@ -166,4 +168,6 @@ class Jizz {
 	float GetScarfSegmentLength() const { return _scarfSegmentLength; }
 	const FColor& GetScarfChargedColor() const { return _scarfChargedColor; }
 	const FColor& GetScarfEmptyColor() const { return _scarfEmptyColor; }
+
+	~Jizz() { SDL_DestroyPalette(_palette); }
 };

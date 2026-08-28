@@ -45,7 +45,7 @@ class BinaryReader {
 		while (strncmp(_sectionName, tag, 4) != 0);
 	}
 
-	void FindSection(const char tag[4]) {
+	void EnsureSection(const char tag[4]) {
 		while (strncmp(_sectionName, tag, 4) != 0) {
 			GetNextSection();
 		}
@@ -54,8 +54,17 @@ class BinaryReader {
 	const char* GetCurrentPosition() const { return _currentPosition; }
 	void AdvanceCurrentPosition(int num) { _currentPosition += num; }
 
+	void GoToChunkAtPosition(const char* position) {
+		_currentPosition = (char*)position;
+		_sectionData = (char*)position;
+		memcpy(&_sectionLength, _sectionData - 4, 4);
+		_sectionName = _sectionData - 4 - 4;
+	}
+
 	void Read(int bytes, void* outData) {
 		memcpy(outData, _currentPosition, bytes);
 		_currentPosition += bytes;
 	}
+
+	void Skip(int bytes) { _currentPosition += bytes; }
 };

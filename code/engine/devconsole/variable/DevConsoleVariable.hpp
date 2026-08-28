@@ -63,5 +63,7 @@ class DevConsoleVariable : public IDevConsoleVariable {
 	const Type& operator*() const { return _current; }
 	const Type* operator->() const { return &_current; }
 	Type Get() const { return _current; }
+#ifdef PLATFORM_HAS_STRING_COMMANDS
 	const std::string& GetDescription() const override { return _description; }
+#endif
 };

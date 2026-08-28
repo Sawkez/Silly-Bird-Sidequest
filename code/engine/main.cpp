@@ -39,7 +39,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 	}
 #endif
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
+		dc::err << "ERROR: " << SDL_GetError() << dc::endl;
+	}
 
 	PerformanceManager::Init();
 	ZipStorage::Init();
@@ -90,7 +92,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 	// render
 	if (!SaveManager::instance->OverrideDrawing()) {
-		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 255, 255, 255, 0);
+		SDL_SetRenderDrawColor(GameState::GetMainRenderer(), 255, 255, 255, 255);
 		if (!SDL_RenderClear(GameState::GetMainRenderer())) {
 			dc::err << "ERROR clearing screen: " << SDL_GetError() << dc::endl;
 		}
@@ -134,6 +136,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
+	dc::msg << "Thank you for playing!" << dc::endl << dc::endl;
 	GameState::Deinit();
 	SDL_Quit();
 }

@@ -176,7 +176,7 @@
      * - gradients use RGB888
      * - bitmaps with transparency may use ARGB8888
      */
-    #define LV_DRAW_SW_SUPPORT_RGB565       0
+    #define LV_DRAW_SW_SUPPORT_RGB565       1
     #define LV_DRAW_SW_SUPPORT_RGB565_SWAPPED       0
     #define LV_DRAW_SW_SUPPORT_RGB565A8     0
     #define LV_DRAW_SW_SUPPORT_RGB888       1
@@ -695,7 +695,7 @@
  *  #define LV_FONT_CUSTOM_DECLARE   LV_FONT_DECLARE(my_font_1) LV_FONT_DECLARE(my_font_2)
  *  @endcode
  */
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(drafting_mono_12) LV_FONT_DECLARE(drafting_mono_14) LV_FONT_DECLARE(drafting_mono_28)
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(pcsenior_8) LV_FONT_DECLARE(fs_ti_92_eno_c_8) LV_FONT_DECLARE(drafting_mono_12) LV_FONT_DECLARE(drafting_mono_14) LV_FONT_DECLARE(drafting_mono_28)
 
 /** Always set a default font */
 #define LV_FONT_DEFAULT &lv_font_montserrat_14

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
 #include "engine/IProcessable.hpp"
+#include "engine/PlatformDefines.hpp"
 #include "engine/PointHash.hpp"
 #include "engine/Vector2.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
@@ -17,11 +19,16 @@
 #include "engine/resource/ResourceManager.hpp"
 #include "engine/resource/StorageIO.hpp"
 #include "engine/world/IRoomObject.hpp"
-#include "engine/world/RoomChunk.hpp"
 #include "engine/world/RoomNeighbor.hpp"
 #include "game/player/IPlayer.hpp"
 #include "game/world/objects/RoomObjectFactory.hpp"
 #include "yyjson.h"
+
+#ifdef PLATFORM_USE_TEXTURE_CHUNKS
+#include "engine/graphics/RoomTextureChunkRenderer.hpp"
+#else
+#include "engine/graphics/RoomMeshChunkRenderer.hpp"
+#endif
 
 using namespace std;
 
@@ -34,21 +41,21 @@ class Room : IDrawableRect {
 	Uint16 _height;
 	Uint16 _targetWidth;
 	Uint16 _targetHeight;
-	vector<RoomChunk> _chunks;
 	RoomColliderContainer _colliders;
 	SpikeColliderContainer _spikeColliders;
 	unordered_set<SDL_Point> _ledges;
 	vector<RoomNeighbor> _neighbors;
 	vector<Vector2> _checkpoints;
-	vector<IRoomObject*> _roomObjects;
+	vector<std::unique_ptr<IRoomObject>> _roomObjects;
+
+	std::unique_ptr<IDrawableRect> _chunkRenderer;
 
    public:
-	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer, SDL_Texture* spikeAtlas)
-		: _binary(storage, path) {
+	Room(SDL_Storage* storage, const std::string& path, SDL_Renderer* renderer) : _binary(storage, path) {
 		PerformanceManager::instance->SetProfile(PerformanceManagerBase::PROFILE_LOADING);
 
 		dc::msg << SDL_GetTicks() << ": Loading room " << path << " properties" << dc::endl;
-		_binary.FindSection("PROP");
+		_binary.EnsureSection("PROP");
 		_binary.Read(8, &_xPosition);
 		_binary.Read(8, &_yPosition);
 		_binary.Read(2, &_width);
@@ -69,27 +76,27 @@ class Room : IDrawableRect {
 
 		dc::msg << SDL_GetTicks() << ": Room size is " << _width << "x" << _height << dc::endl;
 
-		std::unordered_map<Uint8, SDL_Texture*> atlases;
-		for (int i = 0; i < chunkCount; i++) {
-			dc::msg << SDL_GetTicks() << ": Loading chunk " << i << dc::endl;
-			_chunks.emplace_back(storage, _binary, renderer, atlases, spikeAtlas);
-		}
+#ifdef PLATFORM_USE_TEXTURE_CHUNKS
+		_chunkRenderer = std::make_unique<RoomTextureChunkRenderer>(renderer, storage, chunkCount, _binary);
+#else
+		_chunkRenderer = std::make_unique<RoomMeshChunkRenderer>(renderer, storage, chunkCount, _binary);
+#endif
 
 		int tileCountX = _width / 8;
 		int tileCountY = _height / 8;
 
 		dc::msg << SDL_GetTicks() << ": Loading tile colliders" << dc::endl;
-		_binary.FindSection("TLCL");
+		_binary.EnsureSection("TLCL");
 		_colliders =
 			RoomColliderContainer(_binary.GetCurrentPosition(), tileCountX, tileCountY, _xPosition, _yPosition);
 
 		dc::msg << SDL_GetTicks() << ": Loading spike colliders" << dc::endl;
-		_binary.FindSection("SKCL");
+		_binary.EnsureSection("SKCL");
 		_spikeColliders =
 			SpikeColliderContainer(_binary.GetCurrentPosition(), tileCountX, tileCountY, _xPosition, _yPosition);
 
 		dc::msg << SDL_GetTicks() << ": Loading " << checkpointCount << " checkpoints" << dc::endl;
-		_binary.FindSection("CKPT");
+		_binary.EnsureSection("CKPT");
 		_checkpoints.reserve(checkpointCount);
 		for (int i = 0; i < checkpointCount; i++) {
 			Vector2 checkpoint;
@@ -99,19 +106,22 @@ class Room : IDrawableRect {
 		}
 
 		dc::msg << SDL_GetTicks() << ": Loading " << neighborCount << " neighbors" << dc::endl;
-		_binary.FindSection("NGBR");
+		_binary.EnsureSection("NGBR");
 		_neighbors.reserve(neighborCount);
 		for (int i = 0; i < neighborCount; i++) {
 			_neighbors.emplace_back(_binary);
 		}
 
 		dc::msg << SDL_GetTicks() << ": Loading " << ledgeCount << " ledges" << dc::endl;
-		_binary.FindSection("LEGE");
+		_binary.EnsureSection("LEGE");
 		_ledges.reserve(ledgeCount);
 		for (int i = 0; i < ledgeCount; i++) {
-			SDL_Point ledge;
-			_binary.Read(8, &ledge.x);
-			_binary.Read(8, &ledge.y);
+			Sint32 x, y;
+			_binary.Read(4, &x);
+			_binary.Read(4, &y);
+
+			SDL_Point ledge{x, y};
+
 			_ledges.emplace(ledge);
 		}
 
@@ -151,7 +161,7 @@ class Room : IDrawableRect {
 
 	const unordered_set<SDL_Point>& GetLedges() const { return _ledges; }
 
-	const vector<RoomChunk>& GetChunks() const { return _chunks; }
+	// const vector<RoomChunk>& GetChunks() const { return _chunks; }
 
 	const vector<RoomNeighbor>& GetNeighbors() const { return _neighbors; }
 
@@ -179,10 +189,10 @@ class Room : IDrawableRect {
 		return GetCheckpoint(GetNearestCheckpoint(position));
 	}
 
-	const vector<IRoomObject*>& GetRoomObjects() const { return _roomObjects; }
+	const vector<std::unique_ptr<IRoomObject>>& GetRoomObjects() const { return _roomObjects; }
 
 	void Process(float delta, IPlayer& player) {
-		for (auto object : _roomObjects) {
+		for (auto& object : _roomObjects) {
 			object->Process(delta, player);
 		}
 	}
@@ -192,11 +202,9 @@ class Room : IDrawableRect {
 
 		Vector2 localOffset = drawOffset + GetPosition();
 
-		for (const auto& chunk : _chunks) {
-			drawn |= chunk.Draw(renderer, drawTargetRect, localOffset - Vector2(8, 8));
-		}
+		drawn |= _chunkRenderer->Draw(renderer, drawTargetRect, localOffset);
 
-		for (const auto* object : _roomObjects) {
+		for (const auto& object : _roomObjects) {
 			drawn |= object->Draw(renderer, drawTargetRect, drawOffset);
 		}
 
@@ -207,7 +215,7 @@ class Room : IDrawableRect {
 
 	~Room() {
 		_ledges.clear();
-		_chunks.clear();
 		_neighbors.clear();
+		_roomObjects.clear();
 	}
 };

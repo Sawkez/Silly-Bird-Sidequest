@@ -6,6 +6,7 @@ For build instructions, see [Building](./BUILDING.md).
 
 ## *Platform support
 ✅ - Working;  
+☑️ - Working partially;  
 ❔ - Unattempted;  
 ⏹️ - Currently unsupported;  
 ❌ - Unsupported.  
@@ -34,7 +35,7 @@ For build instructions, see [Building](./BUILDING.md).
 |Nintendo Switch     |⏹️     |Don't have the hardware                              |
 |Nintendo Switch 2   |⏹️     |Don't have the hardware                              |
 |Home consoles       |       |                                                     |
-|PlayStation 2       |⏹️     |Don't have the hardware                              |
+|PlayStation 2       |☑️     |Homebrew. Untested on hardware. No pixel alignment   |
 |PlayStation 4       |⏹️     |Don't have the hardware                              |
 |PlayStation 5       |⏹️     |Don't have the hardware                              |
 |Xbox One            |⏹️     |Don't have the hardware                              |

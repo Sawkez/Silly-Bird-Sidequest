@@ -41,6 +41,8 @@ class WorldManager {
 		}
 
 		SaveManager::instance->saveData.SetPath(path);
+
+		yyjson_doc_free(jsonDoc);
 	}
 
 	/*

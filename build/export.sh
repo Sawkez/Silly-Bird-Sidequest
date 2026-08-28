@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: \$0 <platform> <build_type>"
-    echo 'Platforms: linux, windows, win32, psp, web, android, haiku'
+    echo 'Platforms: linux, windows, win32, psp, ps2, web, android, haiku'
     echo 'Build types: debug, release (default)'
     exit 1
 fi
@@ -33,6 +33,10 @@ case "$PLATFORM" in
         else
             cp $BUILD_DIR/EBOOT.PBP $EXPORT_DIR || exit 1
         fi
+    ;;
+
+    ps2)
+        cp $BUILD_DIR/sbsidequest $EXPORT_DIR/sbsidequest.elf || exit 1
     ;;
 
     linux | haiku)

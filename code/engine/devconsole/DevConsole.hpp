@@ -7,7 +7,7 @@
 namespace DevConsole {
 IDevConsoleMenu* menu;
 DevConsoleNewline endl;
-DevConsoleOutputStream msg(lv_color_black(), SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+DevConsoleOutputStream msg(lv_color_hex(0x101010), SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 DevConsoleOutputStream err(lv_color_hex(0x880000), SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_ERROR);
 
 void Init(IDevConsoleMenu* consoleMenu) {
@@ -17,6 +17,8 @@ void Init(IDevConsoleMenu* consoleMenu) {
 }
 
 void Clear() { menu->Clear(); }
+
+void LogCallback(lv_log_level_t level, const char* buf) { msg << buf << endl; }
 
 }  // namespace DevConsole
 
