@@ -4,6 +4,7 @@
 
 #include <unordered_map>
 
+#include "engine/PlatformDefines.hpp"
 #include "engine/graphics/IDrawableRect.hpp"
 #include "engine/graphics/RoomMeshChunk.hpp"
 #include "engine/mods/ModManager.hpp"
@@ -32,6 +33,10 @@ class RoomMeshChunkRenderer : public IDrawableRect {
 		SDL_Surface* megaAtlas =
 			SDL_CreateSurface(PLATFORM_MEGA_ATLAS_MAX_WIDTH, PLATFORM_MEGA_ATLAS_MAX_HEIGHT, SDL_PIXELFORMAT_ARGB1555);
 		std::unordered_map<Uint8, SDL_Point> offsets;
+
+		SDL_Rect destination = {0, 0, spikeAtlas->w, spikeAtlas->h};
+
+		SDL_BlitSurface(spikeAtlas, NULL, megaAtlas, &destination);
 
 		for (int i = 0; i < chunkCount; i++) {
 			binary.EnsureSection("CHNK");
@@ -63,7 +68,7 @@ class RoomMeshChunkRenderer : public IDrawableRect {
 					}
 				}
 
-				SDL_Rect destination{currentOffset.x, currentOffset.y, newAtlas->w, newAtlas->h};
+				destination = {currentOffset.x, currentOffset.y, newAtlas->w, newAtlas->h};
 				rowHeight = std::max(rowHeight, newAtlas->h);
 
 				offsets[sourceID] = currentOffset;
