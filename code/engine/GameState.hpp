@@ -67,7 +67,12 @@ class GameState {
 		}
 		dc::msg << "Using driver: " << SDL_GetRendererName(_mainRenderer) << dc::endl;
 
+#ifdef PLATFORM_ENABLE_VSYNC
 		SDL_SetRenderVSync(_mainRenderer, 1);
+#else
+		SDL_SetRenderVSync(_mainRenderer, 0);
+#endif
+
 		SDL_SetDefaultTextureScaleMode(_mainRenderer, SDL_SCALEMODE_NEAREST);
 
 #ifdef PLATFORM_HAS_TOUCH
